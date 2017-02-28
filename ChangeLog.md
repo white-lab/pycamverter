@@ -4,4 +4,4 @@
 
 Features
 
-  - Initial release, spun off from pyproteome
+  - Initial release, spun off from pyproteome.
