@@ -5,8 +5,7 @@ Provides functionality for interacting with MASCOT data.
 import re
 import xml.etree.ElementTree as ET
 
-from scipy.misc import comb
-
+from .utils import nCr
 from . import ms_labels
 
 
@@ -94,7 +93,7 @@ class PeptideQuery:
                 if o_letters == letters and o_mod != mod:
                     potential_mod_sites -= o_count
 
-            num_comb *= comb(potential_mod_sites, count)
+            num_comb *= nCr(potential_mod_sites, count)
 
         return num_comb
 

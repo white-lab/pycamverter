@@ -3,7 +3,7 @@
 block_cipher = None
 
 a = Analysis(
-        ['pycamv/main.py'],
+        [os.path.join('pycamv', 'main.py')],
         pathex=[],
         binaries=None,
         datas=[],
@@ -29,10 +29,10 @@ exe = EXE(
         a.zipfiles,
         a.datas,
         name='PyCAMVerter',
-        debug=False,
+        debug=True,
         strip=False,
         upx=True,
-        console=False,
+        console=True,
         exclude_binaries=False,
 )
 

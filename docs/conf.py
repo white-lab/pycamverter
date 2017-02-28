@@ -64,9 +64,6 @@ extensions = [
 ]
 
 intersphinx_mapping = {
-    "numpy": ("http://docs.scipy.org/doc/numpy/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
-    "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", None),
     "pymzml": ("https://pymzml.github.io/", None),
 }
 
@@ -74,12 +71,6 @@ autodoc_mock_imports = [
     mod_name.replace("-", "_")
     for mod_name in PROJ_REQUIREMENTS
     if mod_name not in DOCS_REQUIREMENTS
-] + [
-    "sklearn",
-    "IPython", "IPython.display",
-    "scipy.stats", "scipy.misc",
-    "Bio", "Bio.Alphabet", "Bio.Alphabet.IUPAC", "Bio.Seq", "Bio.motifs",
-    "adjustText.adjustText",
 ]
 
 numpydoc_show_class_members = False

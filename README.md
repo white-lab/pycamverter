@@ -18,11 +18,4 @@ To install the core pycamverter package, run the following command:
 pip install pycamverter
 ```
 
-### Windows
-
-If you are using Windows, it is easiest to use the latest version of
-[Anaconda](https://www.continuum.io/downloads) for your Python installation, as
-pyproteome requires several hard-to-install packages, such as NumPy and SciPy.
-
-Then, you can simply run the above `pip install pycamverter` command to install
-this package and the rest of its dependencies.
+or download a Windows executable from our [releases page](https://github.com/white-lab/pycamverter/releases)

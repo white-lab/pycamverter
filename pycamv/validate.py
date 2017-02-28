@@ -13,10 +13,6 @@ import os
 import re
 import tempfile
 
-# Core data analysis libraries
-
-from pyproteome import paths
-
 from . import compare, fragments, gen_sequences, mascot, ms_labels, scans
 
 
@@ -57,9 +53,8 @@ def load_scan_list(scans_path):
 
 
 def validate_spectra(
-    basename=None,
-    xml_path=None,
-    raw_path=None,
+    xml_path,
+    raw_path,
     scans_path=None,
     scan_list=None,
 ):
@@ -68,9 +63,8 @@ def validate_spectra(
 
     Parameters
     ----------
-    basename : str, optional
-    xml_path : str, optional
-    raw_path : str, optional
+    xml_path : str
+    raw_path : str
     scans_path : str, optional
     scan_list : list of int, optional
 
@@ -90,18 +84,13 @@ def validate_spectra(
         Dictionary mapping peptide queries to peak lists for quantification
         channels.
     """
-    # Read MASCOT xml file
-    if xml_path is None:
-        xml_path = os.path.join(
-            paths.MASCOT_XML_DIR, "{}.xml".format(basename)
-        )
-
     if scan_list is None:
         scan_list = []
 
     if scans_path is not None:
         scan_list += load_scan_list(scans_path)
 
+    # Read MASCOT xml file
     fixed_mods, var_mods, pep_queries = mascot.read_mascot_xml(xml_path)
 
     # Optionally filter queries using a scan list
@@ -121,9 +110,6 @@ def validate_spectra(
     out_dir = tempfile.mkdtemp()
 
     LOGGER.info("Getting scan data.")
-
-    if raw_path is None:
-        raw_path = os.path.join(paths.MS_RAW_DIR, "{}.raw".format(basename))
 
     scan_queries, ms_two_data, ms_data = scans.get_scan_data(
         raw_path, pep_queries, out_dir,

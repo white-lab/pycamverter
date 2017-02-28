@@ -4,9 +4,10 @@ import argparse
 import logging
 import sys
 
-from pyproteome import paths
-
-from . import validate, export
+try:
+    from . import validate, export
+except SystemError:
+    from pycamv import validate, export
 
 
 LOGGER = logging.getLogger("pycamv.main")
@@ -42,14 +43,6 @@ def _parse_args(args):
         help="Show GUI for converting files.",
     )
     parser.add_argument(
-        "--base_dir",
-        default=paths.BASE_DIR,
-        help="Path to folder containing data files.",
-    )
-    parser.add_argument(
-        "--basename",
-    )
-    parser.add_argument(
         "--raw_path",
     )
     parser.add_argument(
@@ -69,8 +62,8 @@ def _parse_args(args):
     return parser.parse_args(args)
 
 
-def run_gui():
-    pass
+def run_gui(args):
+    return
 
 
 def main(args):
@@ -86,18 +79,16 @@ def main(args):
         level=level,
     )
 
-    if args.base_dir:
-        paths.set_base_dir(args.base_dir)
+    LOGGER.debug(sys.argv)
+    LOGGER.debug(args)
 
     if args.show_gui:
-        run_gui()
+        run_gui(args)
     else:
         if (
-            args.basename is None or (
-                args.xml_path is None and
-                args.raw_path is None and
-                args.out_dir is None
-            )
+            args.xml_path is None and
+            args.raw_path is None and
+            args.out_dir is None
         ):
             raise Exception(
                 "Missing either basename or input xml / raw / scans / out path"
@@ -105,7 +96,6 @@ def main(args):
 
         options, peak_hits, scan_mapping, precursor_windows, label_windows = (
             validate.validate_spectra(
-                basename=args.basename,
                 xml_path=args.xml_path,
                 raw_path=args.raw_path,
                 scans_path=args.scans_path,
@@ -114,7 +104,7 @@ def main(args):
         )
 
         export.export_to_camv(
-            args.out_path,
+            args.out_dir,
             peak_hits, scan_mapping, precursor_windows, label_windows,
         )
 

@@ -7,10 +7,10 @@ from collections import OrderedDict
 import json
 import re
 
-from pyproteome.utils import DefaultOrderedDict
-
+from .utils import DefaultOrderedDict
 from . import ms_labels
-from pyproteome.loading import RE_PROTEIN
+
+RE_PROTEIN = re.compile("([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
 
 
 RE_B_Y_IONS = re.compile("([abcxyz]_\{[0-9]+\})\^\{\+\}")
