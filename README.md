@@ -12,7 +12,7 @@ Utility for converting searched mass spec data into a format readable by CAMV.
 
 ## Installation
 
-To install the core pyproteome package, run the following command:
+To install the core pycamverter package, run the following command:
 
 ```
 pip install pycamverter

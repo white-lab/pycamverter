@@ -15,7 +15,7 @@ REQUIREMENTS_PATH = os.path.abspath(
 
 
 setup(
-    name="pyproteome",
+    name="pycamverter",
     version=__version__,
     description=(
         "Utility for converting searched mass spec data into a format "

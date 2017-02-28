@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# pyproteome documentation build configuration file, created by
+# pycamverter documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 22 11:16:19 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -99,8 +99,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pyproteome'
-copyright = u'2016, Nader Morshed'
+project = u'pycamverter'
+copyright = u'2017, Nader Morshed'
 author = u'Nader Morshed'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -111,7 +111,7 @@ author = u'Nader Morshed'
 version = [
     line.split("=", 1)[1][1:]
     for line in open(
-        os.path.join(THIS_DIR, "..", "pyproteome", "version.py")
+        os.path.join(THIS_DIR, "..", "pycamverter", "version.py")
     )
     if line.startswith("__version__ =")
 ][0]
@@ -259,7 +259,7 @@ html_theme = 'classic'
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyproteomedoc'
+htmlhelp_basename = 'pycamverterdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -281,7 +281,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'pyproteome.tex', u'pyproteome Documentation',
+  (master_doc, 'pycamverter.tex', u'pycamverter Documentation',
    u'Nader Morshed', 'manual'),
 ]
 

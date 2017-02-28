@@ -87,9 +87,9 @@ qthelp:
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/pyproteome.qhcp"
+	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/pycamverter.qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/pyproteome.qhc"
+	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/pycamverter.qhc"
 
 applehelp:
 	$(SPHINXBUILD) -b applehelp $(ALLSPHINXOPTS) $(BUILDDIR)/applehelp
@@ -104,8 +104,8 @@ devhelp:
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/pyproteome"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/pyproteome"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/pycamverter"
+	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/pycamverter"
 	@echo "# devhelp"
 
 epub:
@@ -192,4 +192,4 @@ pseudoxml:
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
 rst:
-	sphinx-apidoc -f -o . ../pyproteome
+	sphinx-apidoc -f -o . ../pycamverter
