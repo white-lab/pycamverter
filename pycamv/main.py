@@ -88,7 +88,7 @@ def main(args):
         if (
             args.xml_path is None and
             args.raw_path is None and
-            args.out_dir is None
+            args.out_path is None
         ):
             raise Exception(
                 "Missing either basename or input xml / raw / scans / out path"
@@ -104,7 +104,7 @@ def main(args):
         )
 
         export.export_to_camv(
-            args.out_dir,
+            args.out_path,
             peak_hits, scan_mapping, precursor_windows, label_windows,
         )
 
