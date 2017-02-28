@@ -1,0 +1,47 @@
+language: python
+sudo: false
+
+python:
+- '2.7'
+- '3.4'
+- '3.5'
+- '3.6'
+
+before_install:
+- if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+  -O miniconda.sh ; else wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
+  -O miniconda.sh ; fi
+- bash miniconda.sh -b -p /home/travis/mc
+- export PATH=/home/travis/mc/bin:$PATH
+- export CONDA_PACKAGES="numpy scipy matplotlib pandas networkx scikit-learn seaborn
+  biopython pyzmq"
+
+install:
+- conda config --set always_yes yes --set changeps1 no
+- conda update conda
+- conda create -n env python=$TRAVIS_PYTHON_VERSION $CONDA_PACKAGES
+- source activate env
+- pip install -r requirements.txt
+- pip install coveralls
+- echo $PATH
+- which python
+- python --version
+- conda info
+- conda list
+- python setup.py install
+
+script:
+- coverage run --source=pycamv setup.py test
+
+after_success:
+- coveralls
+
+# deploy:
+#   provider: pypi
+#   user: Nader.Morshed
+#   password:
+#     secure: k92n1qrbadmUvldhanmjV0JcNNDl1qN/ay8AF9zSjzyXuxpomJM8VXz+gmjjo8/3DSzABovXdKwjWEP7+N6C3kCuOpVVE7LJR90+1tsq/OFCMOahqkKaIvraqXBxQoOlPPMtlyaOg+mAjBvlQuotlfrbC06mDoBJQHOi20I+1Vaen4zfqGHpJBASriy0RESb5wg6qPYgGJy5KEIwsIlGsgsnMEjVMetthW4Uu5Q6drth7vN/bnKHYX72ptD9Um7E2g1sHdpfSE9KYgMOwjtCfVbHKYlB4tvqRTLapK6t/XIKlv4XNQEX1rXoxIiPFkaHTF+faQML6T7VyGJw4pm/xd/hcTCMB7pNu4NLHKzWD53ZJK/feUwY5m9eKnY6fWImTZM5k9/Dkudzlkpc6n5knERLdgEUAqmrrFSUOqEDY7mPXJ1kmjOiGORc4tAfaagv/Otc8WElKLfOyEMIJla5WEToREq0R/vtY0n2Oul93S1w4w/aq+TQSHvaGoFbEgyygO51MumT8S3aZM6itXpetefPofurROk2nq0QeAKA84ZPJZzcS1nlD8saQZ06gMtzq9buA/tD6WVgyGmANmtM0jZN2ovhpNU5vFOs09PC6vWQSZyDuzOxQjQnIjBlMT7FOzV7aonEThXOtiklS1jgHC26w/CNw58YgLR4vZ0F3tQ=
+#   on:
+#     tags: true
+#     distributions: sdist bdist_wheel
+#     repo: white-lab/pycamverter
