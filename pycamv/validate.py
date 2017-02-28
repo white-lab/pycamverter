@@ -96,10 +96,13 @@ def validate_spectra(
             paths.MASCOT_XML_DIR, "{}.xml".format(basename)
         )
 
-    fixed_mods, var_mods, pep_queries = mascot.read_mascot_xml(xml_path)
+    if scan_list is None:
+        scan_list = []
 
     if scans_path is not None:
-        scan_list = load_scan_list(scans_path)
+        scan_list += load_scan_list(scans_path)
+
+    fixed_mods, var_mods, pep_queries = mascot.read_mascot_xml(xml_path)
 
     # Optionally filter queries using a scan list
     if scan_list:

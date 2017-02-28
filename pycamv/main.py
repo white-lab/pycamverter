@@ -4,6 +4,8 @@ import argparse
 import logging
 import sys
 
+from pyproteome import paths
+
 from . import validate, export
 
 
@@ -40,6 +42,11 @@ def _parse_args(args):
         help="Show GUI for converting files.",
     )
     parser.add_argument(
+        "--base_dir",
+        default=paths.BASE_DIR,
+        help="Path to folder containing data files.",
+    )
+    parser.add_argument(
         "--basename",
     )
     parser.add_argument(
@@ -50,6 +57,11 @@ def _parse_args(args):
     )
     parser.add_argument(
         "--scans_path",
+    )
+    parser.add_argument(
+        "--scans",
+        nargs="*", type=int,
+        help="Individual scans to select for validation.",
     )
     parser.add_argument(
         "--out_path",
@@ -74,6 +86,9 @@ def main(args):
         level=level,
     )
 
+    if args.base_dir:
+        paths.set_base_dir(args.base_dir)
+
     if args.show_gui:
         run_gui()
     else:
@@ -94,6 +109,7 @@ def main(args):
                 xml_path=args.xml_path,
                 raw_path=args.raw_path,
                 scans_path=args.scans_path,
+                scan_list=args.scans,
             )
         )
 
