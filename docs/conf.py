@@ -102,7 +102,7 @@ author = u'Nader Morshed'
 version = [
     line.split("=", 1)[1][1:]
     for line in open(
-        os.path.join(THIS_DIR, "..", "pycamverter", "version.py")
+        os.path.join(THIS_DIR, "..", "pycamv", "version.py")
     )
     if line.startswith("__version__ =")
 ][0]
