@@ -13,6 +13,8 @@ install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "pip install -r requirements.txt"
     - "pip install pyinstaller"
+    - "pip install pyqt5"
+    - "python -c 'from PyQt5 import QtCore'"
 
 build_script:
     - "pyinstaller pycamv.spec"
