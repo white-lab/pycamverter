@@ -14,8 +14,8 @@ RE_PROTEIN = re.compile("([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
 
 
 RE_B_Y_IONS = re.compile("([abcxyz]_\{[0-9]+\})\^\{\+\}")
-SUPERSCRIPT_UNICODE_START = ord("\u2070")
-SUBSCRIPT_UNICODE_START = ord('\u2080')
+SUPERSCRIPT_UNICODE_START = ord(u"\u2070")
+SUBSCRIPT_UNICODE_START = ord(u'\u2080')
 SCRIPT_MAPPING = {
     str(i): i
     for i in range(10)

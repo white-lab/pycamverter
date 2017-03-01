@@ -5,12 +5,12 @@ Provides functions for interacting with MS data through ProteoWizard.
 import logging
 import os
 import platform
-import requests
 import shutil
 import subprocess
 import sys
 import tempfile
 
+import requests
 import pymzml
 
 
