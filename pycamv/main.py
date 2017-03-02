@@ -5,9 +5,9 @@ import logging
 import sys
 
 try:
-    from . import validate, export
+    from . import validate, export, gui
 except SystemError:
-    from pycamv import validate, export
+    from pycamv import validate, export, gui
 
 
 LOGGER = logging.getLogger("pycamv.main")
@@ -62,10 +62,6 @@ def _parse_args(args):
     return parser.parse_args(args)
 
 
-def run_gui(args):
-    return
-
-
 def main(args):
     args = _parse_args(args)
 
@@ -83,7 +79,7 @@ def main(args):
     LOGGER.debug(args)
 
     if args.show_gui:
-        run_gui(args)
+        gui.run_gui(args)
     else:
         if (
             args.xml_path is None and
