@@ -13,6 +13,8 @@ import os
 import re
 import tempfile
 
+import pandas as pd
+
 from . import compare, fragments, gen_sequences, mascot, ms_labels, scans
 
 
@@ -48,8 +50,8 @@ class SearchOptions:
 
 
 def load_scan_list(scans_path):
-    # TODO
-    return
+    df = pd.read_excel(scans_path, header=None)
+    return list(df[df.columns[0]])
 
 
 def validate_spectra(
