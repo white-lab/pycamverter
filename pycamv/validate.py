@@ -9,11 +9,10 @@ from __future__ import division
 
 from collections import OrderedDict
 import logging
-import os
 import re
 import tempfile
 
-import pandas as pd
+from openpyxl import load_workbook
 
 from . import compare, fragments, gen_sequences, mascot, ms_labels, scans
 
@@ -65,8 +64,9 @@ def _remap_pst(pep_mods):
 
 
 def load_scan_list(scans_path):
-    df = pd.read_excel(scans_path, header=None)
-    return list(df[df.columns[0]])
+    wb = load_workbook(scans_path)
+    ws = wb.active
+    return [row[0].value for row in ws.iter_rows()]
 
 
 def validate_spectra(
