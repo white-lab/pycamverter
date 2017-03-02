@@ -63,6 +63,7 @@ def _remap_pst(pep_mods):
         for count, mod, letters in pep_mods
     ]
 
+
 def load_scan_list(scans_path):
     df = pd.read_excel(scans_path, header=None)
     return list(df[df.columns[0]])

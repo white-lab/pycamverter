@@ -22,6 +22,7 @@ class PeptideQuery:
     gi : str
     protein : str
     query : int
+    filename: str
     pep_rank : int
     pep_score : float
     pep_exp_mz : float
@@ -33,13 +34,14 @@ class PeptideQuery:
     num_comb : int
     """
     def __init__(
-        self, gi, protein, query,
+        self, gi, protein, query, filename,
         pep_rank, pep_score, pep_exp_mz, pep_exp_z, pep_seq,
         pep_var_mods, pep_fixed_mods, scan,
     ):
         self.gi = gi
         self.protein = protein
         self.query = query
+        self.filename = filename
         self.pep_rank = pep_rank
         self.pep_score = pep_score
         self.pep_exp_mz = pep_exp_mz
@@ -126,6 +128,8 @@ def _parse_letters(letters):
 
 
 def _parse_mascot_2_4_1(root):
+    filename = root.find("mascot:header/mascot:FILENAME", MASCOT_NS).text
+    filename = filename.split(":", 1)[1].strip()
     fixed_mods = [
         i.text
         for i in root.findall(
@@ -221,6 +225,7 @@ def _parse_mascot_2_4_1(root):
                     accession,
                     prot_desc,
                     query,
+                    filename,
                     rank,
                     pep_score,
                     exp_mz,

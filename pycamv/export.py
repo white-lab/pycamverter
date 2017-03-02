@@ -435,6 +435,7 @@ def export_to_camv(
         """
         return [
             OrderedDict([
+                ("fileName", query.filename),
                 ("scanNumber", query.scan),
                 ("scanId", scan_index[query]),
                 ("chargeState", query.pep_exp_z),
