@@ -3,7 +3,7 @@ This module provides functionality for calculating the masses of peptide
 fragments.
 """
 
-from collections import defaultdict
+from collections import Counter
 
 from . import masses, ms_labels
 
@@ -140,7 +140,7 @@ def _generate_losses(
         losses=None, max_depth=2,
     ):
         if losses is None:
-            losses = defaultdict(int)
+            losses = Counter()
 
         if max_depth < 1:
             yield losses
@@ -148,7 +148,9 @@ def _generate_losses(
 
         for loss in any_losses:
             new_losses = losses.copy()
-            new_losses[loss] += 1
+
+            for ion in loss.split("-"):
+                new_losses[ion] += 1
 
             yield new_losses
 
@@ -169,7 +171,9 @@ def _generate_losses(
 
                 for loss in a_losses:
                     new_losses = losses.copy()
-                    new_losses[loss] += 1
+
+                    for ion in loss.split("-"):
+                        new_losses[ion] += 1
 
                     yield new_losses
 
@@ -190,7 +194,9 @@ def _generate_losses(
 
                 for loss in m_losses:
                     new_losses = losses.copy()
-                    new_losses[loss] += 1
+
+                    for ion in loss.split("-"):
+                        new_losses[ion] += 1
 
                     yield new_losses
 
@@ -216,7 +222,7 @@ def _generate_losses(
                 "{} ".format(count) if count > 1 else "",
                 loss_name,
             )
-            for loss_name, count in loss.items()
+            for loss_name, count in sorted(loss.items(), key=lambda x: x[0])
         )
 
         yield loss_name, loss_mass
