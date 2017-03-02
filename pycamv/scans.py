@@ -58,8 +58,10 @@ def _scanquery_from_spectrum(spectrum):
         spectrum["filter string"]
     ).group(1).upper()
 
+    ns = {"ns0": "http://psi.hupo.org/ms/mzml"}
     spectrum_ref = spectrum.xmlTreeIterFree.find(
-        "precursorList/precursor",
+        "ns0:precursorList/ns0:precursor",
+        ns,
     ).get("spectrumRef")
     precursor_scan = int(re.search("scan=(\d+)", spectrum_ref).group(1))
 
