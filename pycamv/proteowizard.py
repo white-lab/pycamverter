@@ -142,6 +142,7 @@ def raw_to_mzml(raw_path, out_dir, scans=None, mz_window=None):
     os.remove(config_path)
 
     # Read the file into memory using pymzml
+    basename = os.path.splitext(os.path.basename(raw_path))[0]
     out_path = os.path.join(out_dir, "{}.mzML".format(basename))
     data = pymzml.run.Reader(
         out_path,
