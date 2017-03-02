@@ -4,6 +4,7 @@ format).
 """
 
 from collections import OrderedDict
+import gzip
 import json
 import re
 
@@ -509,7 +510,11 @@ def export_to_camv(
         ("scanData", _get_scan_data()),
     ])
 
-    with open(out_path, "w") as f:
-        json.dump(data, f, indent=2)
+    if out_path.endswith(".gz"):
+        with gzip.GzipFile(out_path, 'w') as f:
+            f.write(json.dumps(data, indent=2).encode("utf-8"))
+    else:
+        with open(out_path, "w") as f:
+            json.dump(data, f, indent=2)
 
     return data
