@@ -49,6 +49,20 @@ class SearchOptions:
         # TODO: Parse out SILAC, C-mod, phospho, etc
 
 
+def _remap_pst(pep_mods):
+    return [
+        (
+            count,
+            mod,
+            letters + (
+                ("Y",)
+                if (mod == "Phospho" and set(letters) == set(["S", "T"])) else
+                ()
+            ),
+        )
+        for count, mod, letters in pep_mods
+    ]
+
 def load_scan_list(scans_path):
     df = pd.read_excel(scans_path, header=None)
     return list(df[df.columns[0]])
@@ -121,6 +135,11 @@ def validate_spectra(
         (pep_query, scan_query)
         for pep_query, scan_query in zip(pep_queries, scan_queries)
     )
+
+    # Remap pST -> pSTY
+    for pep_query in pep_queries:
+        pep_query.pep_var_mods = _remap_pst(pep_query.pep_var_mods)
+        pep_query.pep_fixed_mods = _remap_pst(pep_query.pep_fixed_mods)
 
     # Generate sequences
     LOGGER.info("Generating sequences.")
