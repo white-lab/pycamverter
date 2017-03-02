@@ -122,10 +122,13 @@ def _pep_mod_name(pep_seq, mods):
 
 
 def _get_labels_mz(query):
+    def _within(val, bounds):
+        return val >= bounds[0] and val <= bounds[1]
     return [
         mz
         for mod in set(query.get_label_mods)
         for mz in ms_labels.LABEL_MASSES.get(mod, [])
+        if _within(mz, ms_labels.LABEL_MZ_WINDOW.get(mod, [mz, mz]))
     ]
 
 
@@ -440,7 +443,10 @@ def export_to_camv(
                     _peaks_to_dict(precursor_windows[query]),
                 ),
                 ("precursorMz", query.pep_exp_mz),
-                ("precursorIsolationWindow", scan_mapping[query].window_offset),
+                (
+                    "precursorIsolationWindow",
+                    scan_mapping[query].window_offset,
+                ),
                 ("quantScanData", _peaks_to_dict(label_windows[query])),
                 ("quantMz", _get_labels_mz(query)),
                 (
