@@ -108,6 +108,13 @@ def main(args):
         )
 
 if __name__ == "__main__":
+    is_frozen_executable = getattr(sys, u'frozen', False)
+
+    if is_frozen_executable:
+        os.chdir(os.path.dirname(sys.executable))
+    else:
+        os.chdir(os.path.join(os.path.dirname(__file__), u'..'))
+
     try:
         main(sys.argv[1:])
     except Exception as e:
