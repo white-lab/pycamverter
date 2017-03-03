@@ -60,6 +60,9 @@ def _parse_args(args):
     parser.add_argument(
         "--out_path",
     )
+    parser.add_argument(
+        'files', nargs='*',
+    )
     return parser.parse_args(args)
 
 
@@ -82,6 +85,24 @@ def main(args):
     if args.show_gui:
         gui.run_gui(args)
     else:
+        if args.xml_path is None:
+            xmls = [i for i in args.files if i.lower().endswith(".xml")]
+
+            if len(xmls) == 1:
+                args.xml_path = xmls[0]
+
+        if args.raw_path is None:
+            raws = [i for i in args.files if i.lower().endswith(".raw")]
+
+            if len(raws) == 1:
+                args.raw_path = raws[0]
+
+        if args.scans_path is None:
+            scans = [i for i in args.files if i.lower().endswith(".xlsx")]
+
+            if len(scans) == 1:
+                args.scans_path = scans[0]
+
         if (
             args.xml_path is None or
             args.raw_path is None
@@ -108,12 +129,12 @@ def main(args):
         )
 
 if __name__ == "__main__":
-    is_frozen_executable = getattr(sys, u'frozen', False)
-
-    if is_frozen_executable:
-        os.chdir(os.path.dirname(sys.executable))
-    else:
-        os.chdir(os.path.join(os.path.dirname(__file__), u'..'))
+    # is_frozen_executable = getattr(sys, u'frozen', False)
+    #
+    # if is_frozen_executable:
+    #     os.chdir(os.path.dirname(sys.executable))
+    # else:
+    #     os.chdir(os.path.join(os.path.dirname(__file__), u'..'))
 
     try:
         main(sys.argv[1:])
