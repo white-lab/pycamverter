@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import tempfile
+import xml.etree.ElementTree as ET
 
 from . import ms_labels, proteowizard
 
@@ -59,10 +60,26 @@ def _scanquery_from_spectrum(spectrum):
     ).group(1).upper()
 
     ns = {"ns0": "http://psi.hupo.org/ms/mzml"}
-    spectrum_ref = spectrum.xmlTreeIterFree.find(
+    precursor = spectrum.xmlTreeIterFree.find(
         "ns0:precursorList/ns0:precursor",
         ns,
-    ).get("spectrumRef")
+    ) or spectrum.xmlTreeIterFree.find(
+        "precursorList/precursor",
+    )
+
+    if precursor is None:
+        LOGGER.error(
+            "Unable to find precursor scan info in scan {}".format(scan)
+        )
+        LOGGER.error(
+            ET.tostring(
+                spectrum.xmlTreeIterFree,
+                encoding='utf8', method='xml',
+            )
+        )
+
+    spectrum_ref = precursor.get("spectrumRef")
+
     precursor_scan = int(re.search(r"scan=(\d+)", spectrum_ref).group(1))
 
     return ScanQuery(
