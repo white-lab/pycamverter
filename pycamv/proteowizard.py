@@ -2,6 +2,7 @@
 Provides functions for interacting with MS data through ProteoWizard.
 """
 
+import cgi
 import logging
 import os
 import platform
@@ -26,18 +27,40 @@ PROTEOWIZARD_PATH = os.path.join(
     "ProteoWizard {}".format(PROTEOWIZARD_VERSION),
 )
 
-PROTEOWIZARD_MSI_32_URL = (
-    "https://www.dropbox.com/s/k46o01dmaf2np3m/"
-    "pwiz-setup-3.0.10505-x86.msi?dl=1"
-)
+PROTEOWIZARD_MSI_32_URLS = [
+    (
+        (
+            "https://www.dropbox.com/s/k46o01dmaf2np3m/"
+            "pwiz-setup-3.0.10505-x86.msi?dl=1"
+        ),
+        "GET",
+        None,
+    ),
+    (
+        "http://data.mallicklab.com/download.php",
+        "POST",
+        {"downloadtype": "bt36i"},
+    ),
+]
 
-PROTEOWIZARD_MSI_64_URL = (
-    "https://www.dropbox.com/s/05n6c678d5qvwn0/"
-    "pwiz-setup-3.0.10505-x86_64.msi?dl=1"
-)
+PROTEOWIZARD_MSI_64_URLS = [
+    (
+        (
+            "https://www.dropbox.com/s/05n6c678d5qvwn0/"
+            "pwiz-setup-3.0.10505-x86_64.msi?dl=1"
+        ),
+        "GET",
+        None,
+    ),
+    (
+        "http://data.mallicklab.com/download.php",
+        "POST",
+        {"downloadtype": "bt83i"},
+    ),
+]
 
 
-def fetch_proteowizard(url=None):
+def fetch_proteowizard(urls=None):
     if os.path.exists(PROTEOWIZARD_PATH):
         return
 
@@ -46,24 +69,44 @@ def fetch_proteowizard(url=None):
     if platform.system() not in ["Windows"]:
         raise Exception("Proteowizard install not supported on your platform")
 
-    if url is None:
+    if urls is None:
         if platform.architecture()[0] == "64bit":
-            url = PROTEOWIZARD_MSI_64_URL
+            urls = PROTEOWIZARD_MSI_64_URLS
         else:
-            url = PROTEOWIZARD_MSI_32_URL
+            urls = PROTEOWIZARD_MSI_32_URLS
 
     tmpdir = tempfile.mkdtemp()
-    out_path = os.path.join(tmpdir, url.rsplit("/", 1)[1].rsplit("?")[0])
 
     # Download the .msi file
-    with open(out_path, mode="wb") as f:
-        response = requests.get(url, stream=True)
+    responses = []
+    for url, req_type, post in urls:
+        if req_type in ["GET"]:
+            response = requests.get(url, stream=True)
+        elif req_type in ["POST"]:
+            response = requests.post(url, data=post, stream=True)
+        else:
+            raise Exception("Unknown request type: {}".format(req_type))
 
         if not response.ok:
-            raise Exception("Unable to download file: {}".format(response))
+            responses.append(response)
+            continue
 
-        for block in response.iter_content(1024):
-            f.write(block)
+        out_path = os.path.join(
+            tmpdir,
+            cgi.parse_header(
+                response.headers["Content-Disposition"]
+            )[-1]["filename"]
+        )
+
+        with open(out_path, mode="wb") as f:
+            for block in response.iter_content(1024):
+                # print(block)
+                # return
+                f.write(block)
+
+            break
+    else:
+        raise Exception("Unable to download file: {}".format(responses))
 
     # Extract the msi file's contents
     extract_path = os.path.join(tmpdir, "msi_extract")
@@ -83,7 +126,7 @@ def fetch_proteowizard(url=None):
         "ProteoWizard",
     )
 
-    shutil.rmtree(PROTEOWIZARD_DIR)
+    shutil.rmtree(PROTEOWIZARD_DIR, ignore_errors=True)
     shutil.copytree(src, PROTEOWIZARD_DIR)
     shutil.rmtree(tmpdir)
 

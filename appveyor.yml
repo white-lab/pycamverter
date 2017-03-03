@@ -16,7 +16,7 @@ install:
     - "pip install pyinstaller"
 
 build_script:
-    - "python -c 'from pycamv import proteowizard ; proteowizard.fetch_proteowizard()'"
+    - "python -c \"from pycamv import proteowizard ; proteowizard.fetch_proteowizard()\""
     - "pyinstaller pycamv.spec"
 
 test_script:
