@@ -166,7 +166,7 @@ def _parse_mascot_2_4_1(root):
             if fixed_mods:
                 pep_fixed_mods = [
                     re.match(
-                        "(.+) \((.+)\)",
+                        r"(.+) \((.+)\)",
                         mod.strip()
                     ).group(1, 2)
                     for mod in fixed_mods
@@ -191,7 +191,7 @@ def _parse_mascot_2_4_1(root):
                 # i.e. "2 Phospho (STY)""
                 var_mods = [
                     re.match(
-                        "((\d+) )?(.+) \((.+)\)",
+                        r"((\d+) )?(.+) \((.+)\)",
                         mod.strip()
                     ).group(2, 3, 4)
                     for mod in var_mods.split(";")
@@ -205,7 +205,7 @@ def _parse_mascot_2_4_1(root):
 
             scan = int(
                 re.search(
-                    "(scans:|Cmpd_)(\d+)",
+                    r"(scans:|Cmpd_)(\d+)",
                     peptide.find("mascot:pep_scan_title", MASCOT_NS).text
                 ).group(2)
             )

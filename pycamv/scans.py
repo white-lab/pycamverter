@@ -54,7 +54,7 @@ def _scanquery_from_spectrum(spectrum):
         spectrum["isolation window upper offset"],
     )
     collision_type = re.search(
-        ".*@([A-Za-z]+)\d+",
+        r".*@([A-Za-z]+)\d+",
         spectrum["filter string"]
     ).group(1).upper()
 
@@ -63,7 +63,7 @@ def _scanquery_from_spectrum(spectrum):
         "ns0:precursorList/ns0:precursor",
         ns,
     ).get("spectrumRef")
-    precursor_scan = int(re.search("scan=(\d+)", spectrum_ref).group(1))
+    precursor_scan = int(re.search(r"scan=(\d+)", spectrum_ref).group(1))
 
     return ScanQuery(
         scan,

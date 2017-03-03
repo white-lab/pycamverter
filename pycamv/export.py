@@ -11,10 +11,10 @@ import re
 from .utils import DefaultOrderedDict
 from . import ms_labels
 
-RE_PROTEIN = re.compile("([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
 
+RE_PROTEIN = re.compile(r"([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
 
-RE_B_Y_IONS = re.compile("([abcxyz]_\{[0-9]+\})\^\{\+\}")
+RE_B_Y_IONS = re.compile(r"([abcxyz]_\{[0-9]+\})\^\{\+\}")
 SUPERSCRIPT_UNICODE_START = ord(u"\u2070")
 SUBSCRIPT_UNICODE_START = ord(u'\u2080')
 SCRIPT_MAPPING = {
@@ -300,7 +300,7 @@ def export_to_camv(
                     if name in visited:
                         continue
 
-                    name_split = re.split("[_\^]", name)
+                    name_split = re.split(r"[_\^]", name)
                     name_split = [i.strip("{}") for i in name_split]
 
                     ion_type, ion_pos = None, None
