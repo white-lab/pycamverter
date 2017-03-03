@@ -4,10 +4,10 @@ import argparse
 import logging
 import sys
 
-try:
-    from . import validate, export, gui
-except SystemError:
-    from pycamv import validate, export, gui
+# try:
+#     from . import validate, export, gui
+# except SystemError:
+from pycamv import validate, export, gui
 
 
 LOGGER = logging.getLogger("pycamv.main")
