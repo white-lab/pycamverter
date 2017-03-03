@@ -1,4 +1,4 @@
--e git+https://github.com/pymzml/pymzML#egg=pymzml
+pymzml>=0.7.7
 requests>=2.12.0
 numpydoc==0.6
 openpyxl>=2.4.4

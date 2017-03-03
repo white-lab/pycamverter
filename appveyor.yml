@@ -12,8 +12,7 @@ environment:
 install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "python --version"
-    - "pip install jdcal et_xmlfile"
-    - "pip install -r requirements.txt --no-deps"
+    - "pip install -r requirements.txt"
     - "pip install git+git://github.com/pyinstaller/pyinstaller.git@develop"
 
 build_script:
