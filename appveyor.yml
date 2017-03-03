@@ -13,7 +13,7 @@ install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "python --version"
     - "pip install -r requirements.txt"
-    - "pip install pyinstaller"
+    - "pip install git+git://github.com/pyinstaller/pyinstaller.git@develop"
 
 build_script:
     - "python -c \"from pycamv import proteowizard ; proteowizard.fetch_proteowizard()\""
