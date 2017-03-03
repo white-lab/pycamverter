@@ -61,6 +61,10 @@ PROTEOWIZARD_MSI_64_URLS = [
 
 
 def fetch_proteowizard(urls=None):
+    LOGGER.info(THIS_DIR)
+    LOGGER.info(PROTEOWIZARD_DIR)
+    LOGGER.info(PROTEOWIZARD_PATH)
+
     if os.path.exists(PROTEOWIZARD_PATH):
         return
 
