@@ -8,7 +8,7 @@ import sys
 # try:
 #     from . import validate, export, gui
 # except SystemError:
-from pycamv import validate, export, gui
+from pycamv import validate, export, gui, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
@@ -17,26 +17,28 @@ LOGGER = logging.getLogger("pycamv.main")
 def _parse_args(args):
     """
     Parses arguments from a argv format.
+
     Parameters
     ----------
     args : list of str
+
     Returns
     -------
     argparse.ArgumentParser
     """
     parser = argparse.ArgumentParser(
-        prog="PyCAMV Converter",
+        prog="PyCAMVerter",
         description="Aww yeah, mass specs!",
     )
     parser.add_argument(
         "-v", "--verbose",
-        action="store_true",
+        action="count",
         help="Increase verbosity of output.",
     )
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Turn on debugging mode.",
+        '-V', '--version',
+        action="version",
+        version="%(prog)s {}".format(__version__),
     )
     parser.add_argument(
         "--show_gui",
@@ -69,13 +71,15 @@ def _parse_args(args):
 def main(args):
     args = _parse_args(args)
 
-    if args.verbose or args.debug:
-        level = logging.DEBUG
-    else:
+    if not args.verbose:
+        level = logging.WARNING
+    elif args.verbose in [1]:
         level = logging.INFO
+    elif args.verbose >= 2:
+        level = logging.DEBUG
 
     logging.basicConfig(
-        filename="pycamv.log",
+        # filename="pycamv.log",
         level=level,
     )
 
