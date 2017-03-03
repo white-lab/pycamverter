@@ -14,7 +14,7 @@ from . import ms_labels
 
 RE_PROTEIN = re.compile(r"([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
 
-RE_B_Y_IONS = re.compile(r"([abcxyz]_\{[0-9]+\})\^\{\+\}")
+RE_B_Y_IONS = re.compile(r"([abcxyz]_\{[0-9]+\})\^\{\+\}(.*)")
 SUPERSCRIPT_UNICODE_START = ord(u"\u2070")
 SUBSCRIPT_UNICODE_START = ord(u'\u2080')
 SCRIPT_MAPPING = {
@@ -31,7 +31,7 @@ def _rewrite_ion_name(name):
     m = RE_B_Y_IONS.match(name)
 
     if m:
-        name = m.group(1)
+        name = "".join(m.group(1, 2))
 
     ret = ""
     sup, sub = False, False
