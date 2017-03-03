@@ -6,7 +6,7 @@ a = Analysis(
         [os.path.join('pycamv', 'main.py')],
         pathex=[],
         binaries=None,
-        datas=[('pycamv/ProteoWizard/*', 'pycamv/ProteoWizard')],
+        datas=[('pycamv/ProteoWizard/*', 'pycamv/ProteoWizard/ProteoWizard 3.0.10505')],
         hiddenimports=[],
         hookspath=[],
         runtime_hooks=[],
