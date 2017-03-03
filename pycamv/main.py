@@ -82,12 +82,11 @@ def main(args):
         gui.run_gui(args)
     else:
         if (
-            args.xml_path is None and
-            args.raw_path is None and
-            args.out_path is None
+            args.xml_path is None or
+            args.raw_path is None
         ):
             raise Exception(
-                "Missing either basename or input xml / raw / scans / out path"
+                "Missing either input xml / raw paths"
             )
 
         options, peak_hits, scan_mapping, precursor_windows, label_windows = (
@@ -98,6 +97,9 @@ def main(args):
                 scan_list=args.scans,
             )
         )
+
+        if args.out_path is None:
+            args.out_path = os.path.splitext(args.raw_path)[0] + ".camv.gz"
 
         export.export_to_camv(
             args.out_path,
