@@ -4,6 +4,15 @@ import pymzml
 
 block_cipher = None
 
+def dir_files(path, rel):
+    ret = []
+    for p,d,f in os.walk(path):
+        relpath = p.replace(path, '')[1:]
+        for fname in f:
+            ret.append((os.path.join(rel, relpath, fname),
+                        os.path.join(p, fname), 'DATA'))
+    return ret
+
 a = Analysis(
         [os.path.join('pycamv', 'main.py')],
         pathex=[],
