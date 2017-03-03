@@ -3,8 +3,17 @@ import os
 from pip.req import parse_requirements
 from pip.download import PipSession
 from setuptools import setup, find_packages
+import atexit
 
 from pycamv import __version__
+
+# Fixes error caused by openpyxl's atexit registration
+try:
+    from openpyxl.writer import write_only
+except ImportError:
+    pass
+else:
+    atexit.unregister(write_only._openpyxl_shutdown)
 
 
 REQUIREMENTS_PATH = os.path.abspath(
