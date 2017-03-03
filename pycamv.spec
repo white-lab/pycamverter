@@ -1,5 +1,7 @@
 # -*- mode: python -*-
 
+import pymzml
+
 block_cipher = None
 
 a = Analysis(
@@ -17,6 +19,10 @@ a = Analysis(
         win_private_assemblies=False,
         cipher=block_cipher,
 )
+
+a.datas.extend(dir_files(os.path.join(os.path.dirname(pymzml.__file__),
+    'obo'), os.path.join('pymzml', 'obo')))
+
 
 pyz = PYZ(
         a.pure,
