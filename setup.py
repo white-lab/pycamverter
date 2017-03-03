@@ -30,6 +30,9 @@ setup(
         str(i.req)
         for i in parse_requirements(REQUIREMENTS_PATH, session=PipSession())
     ],
+    dependency_links=[
+        "git+git://github.com/naderm/pymzML.git",
+    ],
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Natural Language :: English",

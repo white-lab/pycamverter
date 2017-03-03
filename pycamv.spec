@@ -8,8 +8,6 @@ a = Analysis(
         binaries=None,
         datas=[
             ('pycamv/ProteoWizard/*', 'pycamv/ProteoWizard/ProteoWizard 3.0.10505/'),
-            ('obo/*', 'pymzml/obo/'),
-            ('obo/*', 'obo/'),
         ],
         hiddenimports=[],
         hookspath=[],
