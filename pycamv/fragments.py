@@ -259,7 +259,6 @@ def _b_y_ions(
 
     for index in range(2, len(pep_seq) - 1):
         # XXX: iTRAQ / TMT y-adducts?
-        # y ion: 1 hydrogen added to NH group, one hydrogen on K/R
         base_ions = {
             "a_{{{}}}".format(index - 1):
                 sum(frag_masses[:index]) - masses.MASSES["CO"],
@@ -274,6 +273,7 @@ def _b_y_ions(
                 yield name, mz
 
     for index in range(1, len(pep_seq) - 1):
+        # y ion: 1 hydrogen added to NH group, one hydrogen on K/R
         base_ions = {
             "y_{{{}}}".format(len(pep_seq) - index - 1):
                 sum(frag_masses[index:]) + masses.PROTON,
@@ -281,7 +281,7 @@ def _b_y_ions(
 
         for ion_name, ion_mass in base_ions.items():
             for name, mz in _generate_ions(
-                pep_seq[:index], ion_mass, ion_name,
+                pep_seq[index:], ion_mass, ion_name,
             ):
                 yield name, mz
 
