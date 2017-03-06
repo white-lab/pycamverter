@@ -124,7 +124,7 @@ SO2CH4 = exact_mass({"S": [1], "O": [2], "C": [1], "H": [4]})
 HYDROXYL = exact_mass({"H": [1], "O": [1]})
 H2_PHOSPHATE = exact_mass({"H": [2], "O": [4], "P": [1]})
 ACETYL = exact_mass({"H": [3], "C": [2], "O": [1]})
-CARBAMIDOMETHYL = exact_mass({"H": [2], "C": [2], "O": [1], "N": [1]})
+CARBAMIDOMETHYL = exact_mass({"H": [4], "C": [2], "O": [1], "N": [1]})
 
 ACETYL_LYSINE = -PROTON + ACETYL
 OXY_METHIONINE = OXIDE
