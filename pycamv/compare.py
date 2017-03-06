@@ -97,7 +97,7 @@ def compare_spectra(
         peak_candidates = {
             ion_name: (ion_mz, abs(ion_mz - mz))
             for ion_name, ion_mz in frag_ions.items()
-            if abs(ion_mz - mz) / ion_mz < 1.5 * tol / 1e6
+            if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol
         }
 
         if not peak_candidates:
