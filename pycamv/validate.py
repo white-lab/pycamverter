@@ -8,7 +8,9 @@ Currently limited to importing and outputing scan lists.
 from __future__ import division
 
 from collections import OrderedDict
+from functools import partial
 import logging
+import multiprocessing
 import re
 import tempfile
 
@@ -69,11 +71,42 @@ def load_scan_list(scans_path):
     return [row[0].value for row in ws.iter_rows()]
 
 
+def _map_frag(kv):
+    pep_query, sequence = kv
+    return (
+        (pep_query, tuple(sequence)),
+        fragments.fragment_ions(
+            sequence, pep_query.pep_exp_z,
+        ),
+    )
+
+
+def _map_compare(kv, scan_mapping):
+    key, val = kv
+    pep_query, sequence = key
+    frag_ions, scan = val
+    import pymzml.spec
+    import inspect
+    # print("_map", [i[0] for i in inspect.getmembers(scan)])
+    # print("_map", [type(i) for i in scan._i])
+    print("__dict__", list(scan.__dict__.keys()))
+    print("_i", scan._i)
+
+    return key, compare.compare_spectra(
+        scan,
+        frag_ions,
+        pep_query.pep_exp_z,
+        scans.c13_num(pep_query, scan_mapping[pep_query]),
+        tol=compare.COLLISION_TOLS[scan_mapping[pep_query].collision_type],
+    )
+
+
 def validate_spectra(
     xml_path,
     raw_path,
     scans_path=None,
     scan_list=None,
+    cpu_count=None,
 ):
     """
     Generate CAMV web page for validating spectra.
@@ -84,6 +117,7 @@ def validate_spectra(
     raw_path : str
     scans_path : str, optional
     scan_list : list of int, optional
+    cpu_count : int, optional
 
     Returns
     -------
@@ -101,6 +135,12 @@ def validate_spectra(
         Dictionary mapping peptide queries to peak lists for quantification
         channels.
     """
+    if cpu_count is None:
+        try:
+            cpu_count = multiprocessing.cpu_count()
+        except NotImplementedError:
+            cpu_count = 2
+
     if scan_list is None:
         scan_list = []
 
@@ -158,18 +198,48 @@ def validate_spectra(
     )
 
     LOGGER.info("Generating fragment ions.")
+    pool = multiprocessing.Pool(processes=cpu_count)
     fragment_mapping = OrderedDict(
-        (
-            (pep_query, tuple(sequence)),
-            fragments.fragment_ions(
-                sequence, pep_query.pep_exp_z,
-            ),
+        pool.map(
+            _map_frag,
+            [
+                (pep_query, sequence)
+                for pep_query, sequences in sequence_mapping.items()
+                for sequence in sequences
+            ]
         )
-        for pep_query, sequences in sequence_mapping.items()
-        for sequence in sequences
     )
-
+    # fragment_mapping = OrderedDict(
+    #     (
+    #         (pep_query, tuple(sequence)),
+    #         fragments.fragment_ions(
+    #             sequence, pep_query.pep_exp_z,
+    #         ),
+    #     )
+    #     for pep_query, sequences in sequence_mapping.items()
+    #     for sequence in sequences
+    # )
+    #
     LOGGER.info("Comparing predicted peaks to spectra.")
+
+    def fix(scan):
+        scan._decode()
+        # print("__dict__", list(scan.__dict__.keys()))
+        # print(dir(scan))
+        # import inspect
+        # print("inspect", [i[0] for i in inspect.getmembers(scan)])
+        # print("fix", [type(i) for i in scan._i])
+        return scan
+
+    # peak_hits = dict(
+    #     pool.map(
+    #         partial(_map_compare, scan_mapping=scan_mapping),
+    #         [
+    #             (key, (val, fix(ms_two_data[key[0].scan])))
+    #             for key, val in fragment_mapping.items()
+    #         ],
+    #     )
+    # )
     peak_hits = {
         (pep_query, sequence): compare.compare_spectra(
             ms_two_data[pep_query.scan],
