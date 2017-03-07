@@ -8,6 +8,7 @@ build:
 environment:
     matrix:
         - PYTHON: "C:\\Python36-x64"
+          platform: x64
 
 install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
