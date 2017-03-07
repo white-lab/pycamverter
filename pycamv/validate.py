@@ -198,13 +198,19 @@ def validate_spectra(
     )
 
     # Generate sequences
-    LOGGER.info("Generating sequences.")
+    LOGGER.info(
+        "Generating all possible sequence-modification combinations."
+    )
     pool = multiprocessing.Pool(processes=cpu_count)
     sequence_mapping = OrderedDict(
         pool.map(_map_seq, pep_queries)
     )
 
-    LOGGER.info("Generating fragment ions.")
+    LOGGER.info(
+        "Generating fragment ions for {} queries.".format(
+            len(sequence_mapping),
+        )
+    )
     fragment_mapping = OrderedDict(
         pool.map(
             _map_frag,
@@ -216,7 +222,11 @@ def validate_spectra(
         )
     )
 
-    LOGGER.info("Comparing predicted peaks to spectra.")
+    LOGGER.info(
+        "Comparing predicted to actual peaks for {} spectra.".format(
+            len(fragment_mapping),
+        )
+    )
 
     def _imap_compare(kv):
         key, val = kv

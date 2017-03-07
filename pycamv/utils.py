@@ -21,6 +21,9 @@ class LenGen(object):
     def __call__(self):
         return itertools.islice(self.gen(), self.length)
 
+    def __iter__(self):
+        return self.gen
+
     def __len__(self):
         return self.length
 
@@ -48,7 +51,7 @@ class DefaultOrderedDict(OrderedDict):
             raise KeyError(key)
 
         self[key] = value = self.default_factory()
-        
+
         return value
 
     def __reduce__(self):
