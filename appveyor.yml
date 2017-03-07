@@ -29,7 +29,7 @@ artifacts:
 
 deploy:
     - provider: GitHub
-      description: ""
+      description: "Tool for processing mass spectrometry data for CAMV"
       artifact: PyCAMVerter
       draft: false
       prerelease: false
