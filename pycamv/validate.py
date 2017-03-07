@@ -71,6 +71,19 @@ def load_scan_list(scans_path):
     return [row[0].value for row in ws.iter_rows()]
 
 
+def _map_seq(kv):
+    pep_query = kv
+    return (
+        pep_query,
+        tuple(
+            gen_sequences.gen_possible_seq(
+                pep_query.pep_seq,
+                pep_query.pep_mods,
+            )
+        ),
+    )
+
+
 def _map_frag(kv):
     pep_query, sequence = kv
     return (
@@ -85,12 +98,6 @@ def _map_compare(kv, scan_mapping):
     key, val = kv
     pep_query, sequence = key
     frag_ions, scan = val
-    import pymzml.spec
-    import inspect
-    # print("_map", [i[0] for i in inspect.getmembers(scan)])
-    # print("_map", [type(i) for i in scan._i])
-    print("__dict__", list(scan.__dict__.keys()))
-    print("_i", scan._i)
 
     return key, compare.compare_spectra(
         scan,
@@ -158,6 +165,12 @@ def validate_spectra(
             if query.scan in scan_list
         ]
 
+    # Remap pST -> pSTY
+    LOGGER.info("Remapping pST -> pSTY")
+    for pep_query in pep_queries:
+        pep_query.pep_var_mods = _remap_pst(pep_query.pep_var_mods)
+        pep_query.pep_fixed_mods = _remap_pst(pep_query.pep_fixed_mods)
+
     # Extract MASCOT search options
     options = SearchOptions(fixed_mods, var_mods)
 
@@ -177,28 +190,14 @@ def validate_spectra(
         for pep_query, scan_query in zip(pep_queries, scan_queries)
     )
 
-    # Remap pST -> pSTY
-    for pep_query in pep_queries:
-        pep_query.pep_var_mods = _remap_pst(pep_query.pep_var_mods)
-        pep_query.pep_fixed_mods = _remap_pst(pep_query.pep_fixed_mods)
-
     # Generate sequences
     LOGGER.info("Generating sequences.")
+    pool = multiprocessing.Pool(processes=cpu_count)
     sequence_mapping = OrderedDict(
-        (
-            pep_query,
-            tuple(
-                gen_sequences.gen_possible_seq(
-                    pep_query.pep_seq,
-                    pep_query.pep_mods,
-                )
-            ),
-        )
-        for pep_query in pep_queries
+        pool.map(_map_seq, pep_queries)
     )
 
     LOGGER.info("Generating fragment ions.")
-    pool = multiprocessing.Pool(processes=cpu_count)
     fragment_mapping = OrderedDict(
         pool.map(
             _map_frag,
@@ -209,47 +208,18 @@ def validate_spectra(
             ]
         )
     )
-    # fragment_mapping = OrderedDict(
-    #     (
-    #         (pep_query, tuple(sequence)),
-    #         fragments.fragment_ions(
-    #             sequence, pep_query.pep_exp_z,
-    #         ),
-    #     )
-    #     for pep_query, sequences in sequence_mapping.items()
-    #     for sequence in sequences
-    # )
-    #
+
     LOGGER.info("Comparing predicted peaks to spectra.")
 
-    def fix(scan):
-        scan._decode()
-        # print("__dict__", list(scan.__dict__.keys()))
-        # print(dir(scan))
-        # import inspect
-        # print("inspect", [i[0] for i in inspect.getmembers(scan)])
-        # print("fix", [type(i) for i in scan._i])
-        return scan
-
-    # peak_hits = dict(
-    #     pool.map(
-    #         partial(_map_compare, scan_mapping=scan_mapping),
-    #         [
-    #             (key, (val, fix(ms_two_data[key[0].scan])))
-    #             for key, val in fragment_mapping.items()
-    #         ],
-    #     )
-    # )
-    peak_hits = {
-        (pep_query, sequence): compare.compare_spectra(
-            ms_two_data[pep_query.scan],
-            frag_ions,
-            pep_query.pep_exp_z,
-            scans.c13_num(pep_query, scan_mapping[pep_query]),
-            tol=compare.COLLISION_TOLS[scan_mapping[pep_query].collision_type],
+    peak_hits = dict(
+        pool.map(
+            partial(_map_compare, scan_mapping=scan_mapping),
+            [
+                (key, (val, ms_two_data[key[0].scan].deRef()))
+                for key, val in fragment_mapping.items()
+            ],
         )
-        for (pep_query, sequence), frag_ions in list(fragment_mapping.items())
-    }
+    )
 
     # XXX: Determine SILAC precursor masses?
 
