@@ -3,6 +3,8 @@ This module provides functionality for calculating the masses of peptide
 fragments.
 """
 
+from __future__ import absolute_import, division
+
 from collections import Counter
 
 from . import masses, ms_labels

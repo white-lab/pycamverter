@@ -3,6 +3,8 @@ This module provides functionality for generating all possible combinations of
 modifications on a peptide.
 """
 
+from __future__ import absolute_import, division
+
 import itertools
 
 

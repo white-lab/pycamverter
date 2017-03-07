@@ -3,6 +3,8 @@ This module provides functionality for comparing spectra with a list of
 fragments.
 """
 
+from __future__ import absolute_import, division
+
 from . import masses
 
 

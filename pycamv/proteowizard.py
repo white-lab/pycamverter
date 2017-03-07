@@ -2,6 +2,8 @@
 Provides functions for interacting with MS data through ProteoWizard.
 """
 
+from __future__ import absolute_import, division
+
 import cgi
 import logging
 import os

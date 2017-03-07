@@ -2,6 +2,8 @@
 This module provides functionality for interacting with mass spec scan data.
 """
 
+from __future__ import absolute_import, division
+
 import logging
 import os
 import re

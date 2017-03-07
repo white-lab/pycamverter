@@ -2,6 +2,8 @@
 Provides functionality for interacting with MASCOT data.
 """
 
+from __future__ import absolute_import, division
+
 import re
 import xml.etree.ElementTree as ET
 

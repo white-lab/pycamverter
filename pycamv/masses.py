@@ -3,7 +3,7 @@ This module provides functionality for calculating molecular masses.
 """
 
 # Built-ins
-from __future__ import division
+from __future__ import absolute_import, division
 
 from collections import Iterable
 
