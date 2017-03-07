@@ -148,6 +148,8 @@ def validate_spectra(
         except NotImplementedError:
             cpu_count = 2
 
+    LOGGER.debug("Validating data set with {} cpus".format(cpu_count))
+
     if scan_list is None:
         scan_list = []
 
