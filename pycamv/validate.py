@@ -5,7 +5,7 @@ Currently limited to importing and outputing scan lists.
 """
 
 # Built-ins
-from __future__ import division
+from __future__ import absolute_import, division
 
 from collections import OrderedDict
 from functools import partial
@@ -17,6 +17,7 @@ import tempfile
 from openpyxl import load_workbook
 
 from . import compare, fragments, gen_sequences, mascot, ms_labels, scans
+from .utils import LenGen
 
 
 LOGGER = logging.getLogger("pycamv.validate")
@@ -99,13 +100,17 @@ def _map_compare(kv, scan_mapping):
     pep_query, sequence = key
     frag_ions, scan = val
 
-    return key, compare.compare_spectra(
+    peaks = compare.compare_spectra(
         scan,
         frag_ions,
         pep_query.pep_exp_z,
         scans.c13_num(pep_query, scan_mapping[pep_query]),
         tol=compare.COLLISION_TOLS[scan_mapping[pep_query].collision_type],
     )
+
+    del scan
+
+    return key, peaks
 
 
 def validate_spectra(
@@ -203,25 +208,35 @@ def validate_spectra(
     fragment_mapping = OrderedDict(
         pool.map(
             _map_frag,
-            [
+            (
                 (pep_query, sequence)
                 for pep_query, sequences in sequence_mapping.items()
                 for sequence in sequences
-            ]
+            ),
         )
     )
 
     LOGGER.info("Comparing predicted peaks to spectra.")
 
+    def _imap_compare(kv):
+        key, val = kv
+        return (key, (val, ms_two_data[key[0].scan].deRef()))
+
     peak_hits = dict(
         pool.map(
             partial(_map_compare, scan_mapping=scan_mapping),
-            [
-                (key, (val, ms_two_data[key[0].scan].deRef()))
-                for key, val in fragment_mapping.items()
-            ],
+            LenGen(
+                (
+                    (key, (val, ms_two_data[key[0].scan].deRef()))
+                    for key, val in fragment_mapping.items()
+                ),
+                len(fragment_mapping),
+            ),
+            cpu_count * 4,
         )
     )
+
+    del pool
 
     # XXX: Determine SILAC precursor masses?
 
