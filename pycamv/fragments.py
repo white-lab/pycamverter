@@ -95,16 +95,14 @@ def _internal_fragment_ions(
             name = _sequence_name(fragment)
 
             # Also calculate any potential neutral losses from this fragment
-            losses = _generate_losses(
+            for loss_name, loss_mass in _generate_losses(
                 pep_seq=fragment,
                 max_depth=1,
                 c13_num=c13_num,
                 any_losses=any_losses,
                 aa_losses=aa_losses,
                 mod_losses=mod_losses,
-            )
-
-            for loss_name, loss_mass in losses:
+            ):
                 yield name + loss_name, mass + loss_mass
 
 
@@ -225,12 +223,10 @@ def _generate_losses(
     yield "", 0
 
     if pep_seq:
-        losses = _generate_loss_combos(
+        for loss in _generate_loss_combos(
             pep_seq,
             max_depth=max_depth,
-        )
-
-        for loss in losses:
+        ):
             loss_mass = -sum(
                 masses.MASSES[name] * count
                 for name, count in loss.items()
@@ -387,7 +383,7 @@ def fragment_ions(
         parent_max_charge = charge
 
     if fragment_max_charge is None:
-        # This correct?
+        # TODO: This correct?
         fragment_max_charge = parent_max_charge - 1
 
     if any_losses is None:
