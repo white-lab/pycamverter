@@ -16,7 +16,8 @@ from . import ms_labels
 
 RE_PROTEIN = re.compile(r"([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
 
-RE_B_Y_IONS = re.compile(r"([abcxyz]_\{[0-9]+\})\^\{\+\}(.*)")
+RE_BY_ION_POS = re.compile("([abcxyz])_\{(\d+)\}")
+RE_B_Y_IONS = re.compile(r"([abcxyz]_\{[0-9]+\})(.*)\^\{\+\}")
 SUPERSCRIPT_UNICODE_START = ord(u"\u2070")
 SUBSCRIPT_UNICODE_START = ord(u'\u2080')
 SCRIPT_MAPPING = {
@@ -302,16 +303,13 @@ def export_to_camv(
                     if name in visited:
                         continue
 
-                    name_split = re.split(r"[_\^]", name)
-                    name_split = [i.strip("{}") for i in name_split]
+                    name_match = RE_BY_ION_POS.match(name)
 
-                    ion_type, ion_pos = None, None
-
-                    if len(name_split) > 1:
-                        if name_split[0] in "abc":
-                            ion_type, ion_pos = "b", int(name_split[1])
-                        elif name_split[0] in "xyz":
-                            ion_type, ion_pos = "y", int(name_split[1])
+                    if name_match:
+                        ion_pos = int(name_match.group(2))
+                        ion_type = "b" if name_match.group(1) in "abc" else "y"
+                    else:
+                        ion_type, ion_pos = None, None
 
                     yield OrderedDict([
                         ("id", match_index[pep_seq, mods, name]),
@@ -450,6 +448,10 @@ def export_to_camv(
                 (
                     "precursorIsolationWindow",
                     scan_mapping[query].window_offset,
+                ),
+                (
+                    "collisionTpe",
+                    scan_mapping[query].collision_type,
                 ),
                 ("quantScanData", _peaks_to_dict(label_windows[query])),
                 ("quantMz", _get_labels_mz(query)),
