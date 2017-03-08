@@ -5,8 +5,6 @@ fragments.
 
 from __future__ import absolute_import, division
 
-from . import masses
-
 
 CID_TOL = 1000
 HCD_TOL = 10
@@ -63,7 +61,7 @@ def _calculate_ion_score(ion_name):
 
 
 def compare_spectra(
-    spectra, frag_ions, charge, c13_num,
+    spectra, frag_ions,
     tol=None,
 ):
     """
@@ -71,8 +69,6 @@ def compare_spectra(
     ----------
     spectra : :class:`pymzml.spec.Spectrum<spec.Spectrum>`
     frag_ions : dict of str, float
-    charge : int
-    c13_num : int
     tol : float, optional
 
     Returns
@@ -85,20 +81,31 @@ def compare_spectra(
 
     max_y = max(spectra.i)
 
-    # C13 isotope calculations
-    # XXX: Support C13 isotopes
-    delta_c13 = masses.exact_mass({"C": [-1, 1]})
-    delta_iso = [delta_c13/i for i in range(1, charge + 1)]
-
     # Iterate over each peak, looking for fragments to assign to it
     out = []
 
+    # Sort frag ions, so we only calculate ppms on peaks local to that area
+    # of the spectrum
+    frag_ions = list(sorted(frag_ions.items(), key=lambda x: x[1]))
+    # last_min_index = 0
+
     # Reprofiled Peaks? Centroided Peaks?
     for mz, intensity in spectra.centroidedPeaks:
-        # intensity, mz = np.array(intensity)
+        # peak_candidates = {}
+        # min_index_set = False
+
+        # for index, (ion_name, ion_mz) in enumerate(frag_ions[last_min_index:]
+        #     if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol:
+        #         peak_candidates[ion_name] = ion_mz, abs(ion_mz - mz)
+        #
+        #         if not min_index_set:
+        #             last_min_index = index
+        #             min_index_set = True
+        #     elif 1e6 * (ion_mz - mz) / ion_mz > 1.5 * tol:
+        #         break
         peak_candidates = {
             ion_name: (ion_mz, abs(ion_mz - mz))
-            for ion_name, ion_mz in frag_ions.items()
+            for ion_name, ion_mz in frag_ions
             if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol
         }
 

@@ -85,12 +85,13 @@ def _map_seq(kv):
     )
 
 
-def _map_frag(kv):
+def _map_frag(kv, scan_mapping):
     pep_query, sequence = kv
     return (
         (pep_query, tuple(sequence)),
         fragments.fragment_ions(
             sequence, pep_query.pep_exp_z,
+            c13_num=scans.c13_num(pep_query, scan_mapping[pep_query]),
         ),
     )
 
@@ -101,10 +102,7 @@ def _map_compare(kv, scan_mapping):
     frag_ions, scan = val
 
     peaks = compare.compare_spectra(
-        scan,
-        frag_ions,
-        pep_query.pep_exp_z,
-        scans.c13_num(pep_query, scan_mapping[pep_query]),
+        scan, frag_ions,
         tol=compare.COLLISION_TOLS[scan_mapping[pep_query].collision_type],
     )
 
@@ -213,7 +211,7 @@ def validate_spectra(
     )
     fragment_mapping = OrderedDict(
         pool.map(
-            _map_frag,
+            partial(_map_frag, scan_mapping=scan_mapping),
             (
                 (pep_query, sequence)
                 for pep_query, sequences in sequence_mapping.items()
@@ -227,10 +225,6 @@ def validate_spectra(
             len(fragment_mapping),
         )
     )
-
-    def _imap_compare(kv):
-        key, val = kv
-        return (key, (val, ms_two_data[key[0].scan].deRef()))
 
     peak_hits = dict(
         pool.map(

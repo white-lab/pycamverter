@@ -9,6 +9,8 @@ from collections import Counter
 
 from . import masses, ms_labels
 
+DELTA_C13 = masses.exact_mass({"C": [-1, 1]})
+
 
 def _sequence_mass(pep_seq):
     return sum(
@@ -29,8 +31,9 @@ def _sequence_name(pep_seq):
     )
 
 
-def internal_fragment_ions(
+def _internal_fragment_ions(
     pep_seq,
+    c13_num=0,
     any_losses=None, aa_losses=None, mod_losses=None,
 ):
     """
@@ -40,6 +43,7 @@ def internal_fragment_ions(
     ----------
     pep_seq : list of tuple of (str, list of str)
         A list of peptide letters and each residue's modification(s).
+    c13_num : int, optional
     aa_losses : list of str, optional
         Potential neutral losses for each fragment (i.e. Water, amine, CO).
         List is composed of neutral loss names.
@@ -51,8 +55,8 @@ def internal_fragment_ions(
 
     Returns
     -------
-    dict of str, float
-        Dictionary mapping ion names to ion m/z's.
+    generator of str, float
+        Ion names and their corresponding m/z's.
     """
     if any_losses is None:
         any_losses = [
@@ -79,8 +83,6 @@ def internal_fragment_ions(
         if letter not in ["N-term", "C-term"]
     ]
 
-    frag_masses = {}
-
     # Calculate the mass of the peptide cut at any two sites between the N-
     # and C-terminus
     for start in range(1, len(pep_seq)):
@@ -92,21 +94,18 @@ def internal_fragment_ions(
             mass = _sequence_mass(fragment)
             name = _sequence_name(fragment)
 
-            frag_masses[name] = mass
-
             # Also calculate any potential neutral losses from this fragment
             losses = _generate_losses(
-                fragment, max_depth=1,
+                pep_seq=fragment,
+                max_depth=1,
+                c13_num=c13_num,
                 any_losses=any_losses,
                 aa_losses=aa_losses,
                 mod_losses=mod_losses,
             )
 
             for loss_name, loss_mass in losses:
-                full_loss_name = "{}-{}".format(name, loss_name)
-                frag_masses[full_loss_name] = mass - loss_mass
-
-    return frag_masses
+                yield name + loss_name, mass - loss_mass
 
 
 def _get_frag_masses(pep_seq):
@@ -132,9 +131,22 @@ def _charged_m_zs(name, mass, max_charge):
         )
 
 
+def _generate_c13(c13_num):
+    yield "", 0
+
+    for c13 in range(1, c13_num + 1):
+        # TODO: Check + vs. - C13 delta
+        c13_mass = - c13 * DELTA_C13
+        c13_name = "+{}C^{{13}}".format(
+            "{} ".format(c13) if c13 > 1 else "",
+        )
+        yield c13_name, c13_mass
+
+
 def _generate_losses(
-    pep_seq,
+    pep_seq=None,
     max_depth=2,
+    c13_num=0,
     any_losses=None, aa_losses=None, mod_losses=None,
 ):
     def _generate_loss_combos(
@@ -210,82 +222,77 @@ def _generate_losses(
                     for new_losses in child_losses:
                         yield new_losses
 
-    losses = _generate_loss_combos(
-        pep_seq,
-        max_depth=max_depth,
-    )
-    for loss in losses:
-        loss_mass = sum(
-            masses.MASSES[loss_name] * count
-            for loss_name, count in loss.items()
-        )
-        loss_name = "-".join(
-            "{}{}".format(
-                "{} ".format(count) if count > 1 else "",
-                loss_name,
-            )
-            for loss_name, count in sorted(loss.items(), key=lambda x: x[0])
+    yield "", 0
+
+    if pep_seq:
+        losses = _generate_loss_combos(
+            pep_seq,
+            max_depth=max_depth,
         )
 
-        yield loss_name, loss_mass
+        for loss in losses:
+            loss_mass = sum(
+                masses.MASSES[name] * count
+                for name, count in loss.items()
+            )
+            loss_name = "".join(
+                "-{}{}".format(
+                    "{} ".format(count) if count > 1 else "",
+                    name,
+                )
+                for name, count in sorted(loss.items(), key=lambda x: x[0])
+            )
+
+            for c13_name, c13_mass in _generate_c13(c13_num):
+                yield loss_name + c13_name, loss_mass + c13_mass
 
 
 def _b_y_ions(
     pep_seq, frag_masses, fragment_max_charge,
+    c13_num=0,
     any_losses=None, aa_losses=None, mod_losses=None,
 ):
     def _generate_ions(seq, mass, basename):
-        # b/y ions
-        charged_mzs = _charged_m_zs(basename, mass, fragment_max_charge)
-
-        for name, mz in charged_mzs:
-            yield name, mz
-
-        losses = _generate_losses(
-            seq,
+        # b/y ions +/- losses
+        for loss_name, loss_mass in _generate_losses(
+            pep_seq=seq,
+            c13_num=c13_num,
             any_losses=any_losses,
             aa_losses=aa_losses,
             mod_losses=mod_losses,
-        )
-
-        # b/y ions with losses
-        for loss_name, loss_mass in losses:
-            charged_mzs = _charged_m_zs(
-                "{}-{}".format(basename, loss_name),
+        ):
+            for name, mz in _charged_m_zs(
+                basename + loss_name,
                 mass - loss_mass,
                 fragment_max_charge,
-            )
-
-            for name, mz in charged_mzs:
+            ):
                 yield name, mz
+
+    base_ions = {}
 
     for index in range(2, len(pep_seq) - 1):
         # XXX: iTRAQ / TMT y-adducts?
-        base_ions = {
-            "a_{{{}}}".format(index - 1):
-                sum(frag_masses[:index]) - masses.MASSES["CO"],
-            "b_{{{}}}".format(index - 1):
-                sum(frag_masses[:index]),
-        }
-
-        for ion_name, ion_mass in base_ions.items():
-            for name, mz in _generate_ions(
-                pep_seq[:index], ion_mass, ion_name,
-            ):
-                yield name, mz
+        base_ions["a_{{{}}}".format(index - 1)] = (
+            sum(frag_masses[:index]) - masses.MASSES["CO"],
+            pep_seq[:index],
+        )
+        base_ions["b_{{{}}}".format(index - 1)] = (
+            sum(frag_masses[:index]),
+            pep_seq[:index],
+        )
 
     for index in range(1, len(pep_seq) - 1):
         # y ion: 1 hydrogen added to NH group, one hydrogen on K/R
-        base_ions = {
-            "y_{{{}}}".format(len(pep_seq) - index - 1):
-                sum(frag_masses[index:]) + masses.PROTON,
-        }
+        base_ions["y_{{{}}}".format(len(pep_seq) - index - 1)] = (
+            sum(frag_masses[index:]) + masses.PROTON,
+            pep_seq[index:],
+        )
 
-        for ion_name, ion_mass in base_ions.items():
-            for name, mz in _generate_ions(
-                pep_seq[index:], ion_mass, ion_name,
-            ):
-                yield name, mz
+    for ion_name, (ion_mass, seq) in base_ions.items():
+        for name, mz in _generate_ions(
+            seq, ion_mass, ion_name,
+        ):
+            yield name, mz
 
 
 def _label_ions(pep_seq):
@@ -305,49 +312,47 @@ def _label_ions(pep_seq):
 
 def _parent_ions(
     pep_seq, frag_masses, parent_max_charge,
+    c13_num=0,
     any_losses=None, aa_losses=None, mod_losses=None,
 ):
-    parent_mass = sum(frag_masses) + masses.PROTON
+    parent_mass = sum(frag_masses) + masses.PROTON + DELTA_C13 * c13_num
 
-    for name, mz in _charged_m_zs(
-        "MH",
-        parent_mass,
-        parent_max_charge,
-    ):
-        yield name, mz
-
-    losses = _generate_losses(
-        pep_seq,
+    for loss_name, loss_mass in _generate_losses(
+        pep_seq=pep_seq,
+        c13_num=c13_num,
         any_losses=any_losses,
         aa_losses=aa_losses,
         mod_losses=mod_losses,
-    )
-
-    for loss_name, loss_mass in losses:
+    ):
         for name, mz in _charged_m_zs(
             "MH",
             parent_mass - loss_mass,
             parent_max_charge,
         ):
-            yield "{}-{}".format(name, loss_name), mz
+            yield name + loss_name, mz
 
 
-def _py_ions(pep_seq):
-    ions = {}
-
+def _py_ions(pep_seq, c13_num=0):
     if any(
         letter == "Y" and "Phospho" in mods
         for letter, mods in pep_seq
     ):
-        ions["pY"] = masses.IMMONIUM_IONS["Y"] + \
+        name = "pY"
+        mass = (
+            masses.IMMONIUM_IONS["Y"] +
             masses.MODIFICATIONS["Y", "Phospho"]
+        )
 
-    return ions
+        for loss_name, loss_mass in _generate_losses(
+            c13_num=c13_num,
+        ):
+            yield name + loss_name, mass - loss_mass
 
 
 def fragment_ions(
     pep_seq, charge,
     parent_max_charge=None, fragment_max_charge=None,
+    c13_num=0,
     any_losses=None, aa_losses=None, mod_losses=None,
 ):
     """
@@ -359,6 +364,7 @@ def fragment_ions(
     charge : int
     parent_max_charge : int, optional
     fragment_max_charge : int, optional
+    c13_num : int, optional
     any_losses : list of str, optional
         Potential neutral losses for each fragment (i.e. Water, amine, CO).
         List is composed of neutral loss names.
@@ -411,6 +417,7 @@ def fragment_ions(
     frag_ions.update(
         _b_y_ions(
             pep_seq, frag_masses, fragment_max_charge,
+            c13_num=c13_num,
             any_losses=any_losses,
             aa_losses=aa_losses,
             mod_losses=mod_losses,
@@ -421,6 +428,7 @@ def fragment_ions(
     frag_ions.update(
         _parent_ions(
             pep_seq, frag_masses, parent_max_charge,
+            c13_num=c13_num,
             any_losses=any_losses,
             aa_losses=aa_losses,
             mod_losses=mod_losses,
@@ -434,13 +442,17 @@ def fragment_ions(
 
     # Get pY peak
     frag_ions.update(
-        _py_ions(pep_seq)
+        _py_ions(
+            pep_seq,
+            c13_num=c13_num,
+        )
     )
 
     # Get internal fragments
     frag_ions.update(
-        internal_fragment_ions(
+        _internal_fragment_ions(
             pep_seq,
+            c13_num=c13_num,
             aa_losses=aa_losses,
             mod_losses=mod_losses,
         )
