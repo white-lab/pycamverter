@@ -12,6 +12,7 @@ from pycamv import validate, export, gui, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
+RAW_EXTS = [".raw"]
 
 
 def _parse_args(args):
@@ -96,7 +97,10 @@ def main(args):
                 args.xml_path = xmls[0]
 
         if args.raw_path is None:
-            raws = [i for i in args.files if i.lower().endswith(".raw")]
+            raws = [
+                i for i in args.files
+                if os.path.splitext(i.lower())[1] in RAW_EXTS
+            ]
 
             if len(raws) == 1:
                 args.raw_path = raws[0]
