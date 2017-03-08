@@ -105,7 +105,7 @@ def _internal_fragment_ions(
             )
 
             for loss_name, loss_mass in losses:
-                yield name + loss_name, mass - loss_mass
+                yield name + loss_name, mass + loss_mass
 
 
 def _get_frag_masses(pep_seq):
@@ -136,7 +136,7 @@ def _generate_c13(c13_num):
 
     for c13 in range(1, c13_num + 1):
         # TODO: Check + vs. - C13 delta
-        c13_mass = - c13 * DELTA_C13
+        c13_mass = c13 * DELTA_C13
         c13_name = "+{}C^{{13}}".format(
             "{} ".format(c13) if c13 > 1 else "",
         )
@@ -231,7 +231,7 @@ def _generate_losses(
         )
 
         for loss in losses:
-            loss_mass = sum(
+            loss_mass = -sum(
                 masses.MASSES[name] * count
                 for name, count in loss.items()
             )
@@ -263,7 +263,7 @@ def _b_y_ions(
         ):
             for name, mz in _charged_m_zs(
                 basename + loss_name,
-                mass - loss_mass,
+                mass + loss_mass,
                 fragment_max_charge,
             ):
                 yield name, mz
@@ -326,7 +326,7 @@ def _parent_ions(
     ):
         for name, mz in _charged_m_zs(
             "MH",
-            parent_mass - loss_mass,
+            parent_mass + loss_mass,
             parent_max_charge,
         ):
             yield name + loss_name, mz
@@ -346,7 +346,7 @@ def _py_ions(pep_seq, c13_num=0):
         for loss_name, loss_mass in _generate_losses(
             c13_num=c13_num,
         ):
-            yield name + loss_name, mass - loss_mass
+            yield name + loss_name, mass + loss_mass
 
 
 def fragment_ions(
