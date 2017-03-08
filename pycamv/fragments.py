@@ -117,27 +117,32 @@ def _charged_m_zs(name, mass, max_charge):
     for charge in range(1, max_charge + 1):
         yield (
             (
-                name.split("-")[0] +
+                name +
                 (
                     "^{{{:+}}}".format(charge)
                     if charge > 1 else
                     "^{+}"
-                ) +
-                "-".join([""] + name.split("-")[1:])
+                )
             ),
             (mass + charge * masses.PROTON) / charge,
         )
 
 
-def _generate_c13(c13_num):
-    yield "", 0
+def _format_loss(name, count):
+    if not name or count == 0:
+        return ""
 
-    for c13 in range(1, c13_num + 1):
-        # TODO: Check + vs. - C13 delta
+    return "{}{}{}".format(
+        "+" if count > 0 else "-",
+        "{} ".format(abs(count)) if abs(count) > 1 else "",
+        name,
+    )
+
+
+def _generate_c13(c13_num):
+    for c13 in range(0, c13_num + 1):
         c13_mass = c13 * DELTA_C13
-        c13_name = "+{}C^{{13}}".format(
-            "{} ".format(c13) if c13 > 1 else "",
-        )
+        c13_name = _format_loss("^{13}C", c13)
         yield c13_name, c13_mass
 
 
@@ -148,11 +153,16 @@ def _generate_losses(
     any_losses=None, aa_losses=None, mod_losses=None,
 ):
     def _generate_loss_combos(
-        seq,
+        seq=None,
         losses=None, max_depth=2,
     ):
+        # TODO: Check if duplicates are generated here
         if losses is None:
-            losses = Counter()
+            losses = Counter({"": 0})
+            yield losses
+
+        if not seq:
+            return
 
         if max_depth < 1:
             yield losses
@@ -162,7 +172,7 @@ def _generate_losses(
             new_losses = losses.copy()
 
             for ion in loss.split("-"):
-                new_losses[ion] += 1
+                new_losses[ion] -= 1
 
             yield new_losses
 
@@ -185,7 +195,7 @@ def _generate_losses(
                     new_losses = losses.copy()
 
                     for ion in loss.split("-"):
-                        new_losses[ion] += 1
+                        new_losses[ion] -= 1
 
                     yield new_losses
 
@@ -208,7 +218,7 @@ def _generate_losses(
                     new_losses = losses.copy()
 
                     for ion in loss.split("-"):
-                        new_losses[ion] += 1
+                        new_losses[ion] -= 1
 
                     yield new_losses
 
@@ -220,27 +230,22 @@ def _generate_losses(
                     for new_losses in child_losses:
                         yield new_losses
 
-    yield "", 0
+    for loss in _generate_loss_combos(
+        seq=pep_seq,
+        max_depth=max_depth,
+    ):
+        loss_mass = sum(
+            masses.MASSES[name] * count
+            for name, count in loss.items()
+            if name
+        )
+        loss_name = "".join(
+            _format_loss(name, count)
+            for name, count in sorted(loss.items(), key=lambda x: x[0])
+        )
 
-    if pep_seq:
-        for loss in _generate_loss_combos(
-            pep_seq,
-            max_depth=max_depth,
-        ):
-            loss_mass = -sum(
-                masses.MASSES[name] * count
-                for name, count in loss.items()
-            )
-            loss_name = "".join(
-                "-{}{}".format(
-                    "{} ".format(count) if count > 1 else "",
-                    name,
-                )
-                for name, count in sorted(loss.items(), key=lambda x: x[0])
-            )
-
-            for c13_name, c13_mass in _generate_c13(c13_num):
-                yield loss_name + c13_name, loss_mass + c13_mass
+        for c13_name, c13_mass in _generate_c13(c13_num):
+            yield loss_name + c13_name, loss_mass + c13_mass
 
 
 def _b_y_ions(
@@ -321,11 +326,11 @@ def _parent_ions(
         mod_losses=mod_losses,
     ):
         for name, mz in _charged_m_zs(
-            "MH",
+            "MH" + loss_name,
             parent_mass + loss_mass,
             parent_max_charge,
         ):
-            yield name + loss_name, mz
+            yield name, mz
 
 
 def _py_ions(pep_seq, c13_num=0):
