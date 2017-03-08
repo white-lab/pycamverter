@@ -24,9 +24,6 @@ def gen_possible_seq(pep_seq, var_mods):
     -------
     generator of list of tuple of (str, list of str)
     """
-    pep_seq = ["N-term"] + list(pep_seq) + ["C-term"]
-    tmp_seq = list(zip(pep_seq, [() for _ in pep_seq]))
-
     def _gen_mods(seq, mods):
         if not mods:
             yield seq
@@ -61,7 +58,12 @@ def gen_possible_seq(pep_seq, var_mods):
             for new_seq in _gen_mods(tmp_seq, mods[1:]):
                 yield new_seq
 
+    tmp_seq = ["N-term"] + list(pep_seq) + ["C-term"]
+
     # Ideally we would use py>3.3 syntax: yield from, but we are also
     # supporting py2.7
-    for seq in _gen_mods(tmp_seq, var_mods):
+    for seq in _gen_mods(
+        seq=list(zip(tmp_seq, [() for _ in tmp_seq])),
+        mods=var_mods,
+    ):
         yield seq
