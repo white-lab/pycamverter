@@ -77,6 +77,7 @@ def exact_mass(atoms):
         for atom, counts in atoms.items()
     )
 
+
 PROTON = exact_mass({"H": [1]})
 
 C_TERM = exact_mass({"H": [1], "O": [1]})
@@ -184,7 +185,7 @@ MODIFICATIONS = {
     # Modified Amino Acids
     ("K", "Acetyl"): ACETYL_LYSINE,
     ("M", "Oxidation"): OXY_METHIONINE,
-    ("N", "Dioxidation"): DIOXY_METHIONINE,
+    ("M", "Dioxidation"): DIOXY_METHIONINE,
     ("C", "Carbamidomethyl"): CARBAMIDOMETHYL_CYSTEINE,
     ("S", "Phospho"): PHOSPHO_SERINE,
     ("T", "Phospho"): PHOSPHO_THREONINE,
