@@ -87,27 +87,35 @@ def compare_spectra(
     # Sort frag ions, so we only calculate ppms on peaks local to that area
     # of the spectrum
     frag_ions = list(sorted(frag_ions.items(), key=lambda x: x[1]))
-    # last_min_index = 0
+    last_frag_index = 0
+    last_mz = 0
 
     # Reprofiled Peaks? Centroided Peaks?
     for mz, intensity in spectra.centroidedPeaks:
-        # peak_candidates = {}
-        # min_index_set = False
+        assert mz >= last_mz
+        last_mz = mz
 
-        # for index, (ion_name, ion_mz) in enumerate(frag_ions[last_min_index:]
-        #     if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol:
-        #         peak_candidates[ion_name] = ion_mz, abs(ion_mz - mz)
-        #
-        #         if not min_index_set:
-        #             last_min_index = index
-        #             min_index_set = True
-        #     elif 1e6 * (ion_mz - mz) / ion_mz > 1.5 * tol:
-        #         break
-        peak_candidates = {
-            ion_name: (ion_mz, abs(ion_mz - mz))
-            for ion_name, ion_mz in frag_ions
-            if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol
-        }
+        peak_candidates = {}
+        min_index_set = False
+
+        for index, (ion_name, ion_mz) in enumerate(
+            frag_ions[last_frag_index:]
+        ):
+            # non-abs ppm should be monoisotopically increasing around mz
+            if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol:
+                peak_candidates[ion_name] = ion_mz, abs(ion_mz - mz)
+
+                if not min_index_set:
+                    last_frag_index = index
+                    min_index_set = True
+            elif 1e6 * (ion_mz - mz) / ion_mz > 1.5 * tol:
+                break
+
+        # peak_candidates = {
+        #     ion_name: (ion_mz, abs(ion_mz - mz))
+        #     for ion_name, ion_mz in frag_ions
+        #     if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol
+        # }
 
         if not peak_candidates:
             # XXX: AA Identification?
