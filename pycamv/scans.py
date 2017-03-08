@@ -25,23 +25,26 @@ class ScanQuery:
     window_offset : tuple of (int, int) or None
     precursor_scan : int or None
     collision_type : str or None
+    c13_num : int
     """
     def __init__(
         self, scan,
         isolation_mz=None, window_offset=None, precursor_scan=None,
-        collision_type=None,
+        collision_type=None, c13_num=0,
     ):
         self.scan = scan
         self.precursor_scan = precursor_scan
         self.window_offset = window_offset
         self.isolation_mz = isolation_mz
         self.collision_type = collision_type
+        self.c13_num = c13_num
 
 
-def _scanquery_from_spectrum(spectrum):
+def _scanquery_from_spectrum(pep_query, spectrum):
     """
     Parameters
     ----------
+    pep_query : :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
     spectrum : :class:`pymzml.spec.Spectrum<spec.Spectrum>`
 
     Returns
@@ -90,10 +93,11 @@ def _scanquery_from_spectrum(spectrum):
         window_offset=window_offset,
         isolation_mz=isolation_mz,
         collision_type=collision_type,
+        c13_num=_c13_num(pep_query, isolation_mz)
     )
 
 
-def c13_num(pep_query, scan_query):
+def _c13_num(pep_query, isolation_mz):
     """
     Counts the number of C13 atoms in a query, based on the mass-error between
     the expected and isolated m/z values.
@@ -101,7 +105,7 @@ def c13_num(pep_query, scan_query):
     Parameters
     ----------
     pep_query : :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
-    scan_query : :class:`ScanQuery<pycamv.scans.ScanQuery>`
+    isolation_mz : float
 
     Returns
     -------
@@ -110,7 +114,7 @@ def c13_num(pep_query, scan_query):
     return int(
         round(
             pep_query.pep_exp_z *
-            abs(pep_query.pep_exp_mz - scan_query.isolation_mz)
+            abs(pep_query.pep_exp_mz - isolation_mz)
         )
     )
 
@@ -211,13 +215,8 @@ def get_scan_data(raw_path, pep_queries, out_dir=None):
     )
 
     # Build a list of scan queries, including data about each scan
-    # scan_queries = [
-    #     _scanquery_from_spectrum(spectrum)
-    #     for spectrum in ms2_data
-    #     if spectrum["ms level"] == 2
-    # ]
     scan_queries = [
-        _scanquery_from_spectrum(ms2_data[pep_query.scan])
+        _scanquery_from_spectrum(pep_query, ms2_data[pep_query.scan])
         for pep_query in pep_queries
     ]
 

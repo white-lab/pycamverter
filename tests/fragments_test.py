@@ -192,3 +192,86 @@ class FragmentIonsTest(TestCase):
             for name, mz in hits.items():
                 self.assertIn(name, frag_ions)
                 self.assertLess(abs(frag_ions[name] - mz), 0.01)
+
+    def test_no_by_losses(self):
+        frag_ions = fragments.fragment_ions(
+            (
+                ("N-term", ("TMT6plex",)),
+                ("S", ()),
+                ("V", ()),
+                ("Y", ("Phospho",)),
+                ("T", ()),
+                ("E", ()),
+                ("I", ()),
+                ("K", ("TMT6plex",)),
+                ("C-term", ()),
+            ),
+            2,
+        )
+
+        for ion in [
+            "b_{1}-HPO_3^{+}",
+            "b_{2}-HPO_3^{+}",
+            "y_{1}-HPO_3^{+}",
+            "y_{2}-HPO_3^{+}",
+            "y_{3}-HPO_3^{+}",
+            "y_{4}-HPO_3^{+}",
+        ]:
+            self.assertNotIn(ion, frag_ions)
+
+    def test_c13(self):
+        frag_ions = fragments.fragment_ions(
+            (
+                ("N-term", ("TMT6plex",)),
+                ("S", ()),
+                ("V", ()),
+                ("Y", ("Phospho",)),
+                ("T", ()),
+                ("E", ()),
+                ("I", ()),
+                ("K", ("TMT6plex",)),
+                ("C-term", ()),
+            ),
+            2,
+        )
+
+        self.assertNotIn("MH+^{13}C^{+}", frag_ions)
+        self.assertNotIn("MH+2 ^{13}C^{+}", frag_ions)
+
+        frag_ions = fragments.fragment_ions(
+            (
+                ("N-term", ("TMT6plex",)),
+                ("S", ()),
+                ("V", ()),
+                ("Y", ("Phospho",)),
+                ("T", ()),
+                ("E", ()),
+                ("I", ()),
+                ("K", ("TMT6plex",)),
+                ("C-term", ()),
+            ),
+            2,
+            c13_num=1,
+        )
+
+        self.assertIn("MH+^{13}C^{+}", frag_ions)
+        self.assertNotIn("MH+2 ^{13}C^{+}", frag_ions)
+
+        frag_ions = fragments.fragment_ions(
+            (
+                ("N-term", ("TMT6plex",)),
+                ("S", ()),
+                ("V", ()),
+                ("Y", ("Phospho",)),
+                ("T", ()),
+                ("E", ()),
+                ("I", ()),
+                ("K", ("TMT6plex",)),
+                ("C-term", ()),
+            ),
+            2,
+            c13_num=2,
+        )
+
+        self.assertIn("MH+^{13}C^{+}", frag_ions)
+        self.assertIn("MH+2 ^{13}C^{+}", frag_ions)

@@ -7,12 +7,15 @@ from __future__ import absolute_import, division
 
 from collections import OrderedDict
 import gzip
+import logging
 import json
 import re
 
 from .utils import DefaultOrderedDict
 from . import ms_labels
 
+
+LOGGER = logging.getLogger("pycamv.export")
 
 RE_PROTEIN = re.compile(r"([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
 
@@ -449,10 +452,8 @@ def export_to_camv(
                     "precursorIsolationWindow",
                     scan_mapping[query].window_offset,
                 ),
-                (
-                    "collisionTpe",
-                    scan_mapping[query].collision_type,
-                ),
+                ("collisionType", scan_mapping[query].collision_type),
+                ("c13Num", scan_mapping[query].c13_num),
                 ("quantScanData", _peaks_to_dict(label_windows[query])),
                 ("quantMz", _get_labels_mz(query)),
                 (
@@ -513,6 +514,8 @@ def export_to_camv(
         ("peptideData", _get_peptide_data()),
         ("scanData", _get_scan_data()),
     ])
+
+    LOGGER.info("Exporting CAMV data to {}".format(out_path))
 
     if out_path.endswith(".gz"):
         with gzip.GzipFile(out_path, 'w') as f:

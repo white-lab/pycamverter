@@ -91,7 +91,7 @@ def _map_frag(kv, scan_mapping):
         (pep_query, tuple(sequence)),
         fragments.fragment_ions(
             sequence, pep_query.pep_exp_z,
-            c13_num=scans.c13_num(pep_query, scan_mapping[pep_query]),
+            c13_num=scan_mapping[pep_query].c13_num,
         ),
     )
 
