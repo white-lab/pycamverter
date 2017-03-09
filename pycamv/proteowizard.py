@@ -23,7 +23,7 @@ LOGGER = logging.getLogger("pycamv.proteowizard")
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 PROTEOWIZARD_DIR = os.path.join(THIS_DIR, "ProteoWizard")
 
-PROTEOWIZARD_VERSION = "3.0.10505"
+PROTEOWIZARD_VERSION = "3.0.10577"
 PROTEOWIZARD_PATH = os.path.join(
     PROTEOWIZARD_DIR,
     "ProteoWizard {}".format(PROTEOWIZARD_VERSION),
