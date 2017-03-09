@@ -32,8 +32,8 @@ PROTEOWIZARD_PATH = os.path.join(
 PROTEOWIZARD_MSI_32_URLS = [
     (
         (
-            "https://www.dropbox.com/s/k46o01dmaf2np3m/"
-            "pwiz-setup-3.0.10505-x86.msi?dl=1"
+            "https://www.dropbox.com/s/we46o1hvkzlpel7/"
+            "pwiz-setup-3.0.10577-x86.msi?dl=1"
         ),
         "GET",
         None,
@@ -48,8 +48,8 @@ PROTEOWIZARD_MSI_32_URLS = [
 PROTEOWIZARD_MSI_64_URLS = [
     (
         (
-            "https://www.dropbox.com/s/05n6c678d5qvwn0/"
-            "pwiz-setup-3.0.10505-x86_64.msi?dl=1"
+            "https://www.dropbox.com/s/9rawc44u84jr9ip/"
+            "pwiz-setup-3.0.10577-x86_64.msi?dl=1"
         ),
         "GET",
         None,
