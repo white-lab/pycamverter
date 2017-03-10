@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.1.2 (2017-03-10)
+
+Features
+
+  - Upped ProteoWizard version to 3.0.10577
+  - Added C13 isotope labeling
+  - Improved speed of spectra matching
+
 ## 0.1.1 (2017-03-07)
 
 Features
