@@ -147,7 +147,6 @@ def _parse_mascot_2_4_1(root):
                     prot_desc,
                     query,
                     filename,
-                    # rank,
                     pep_score,
                     exp_mz,
                     exp_z,
