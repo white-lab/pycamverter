@@ -5,14 +5,14 @@ import logging
 import os
 import sys
 
-# try:
-#     from . import validate, export, gui
-# except SystemError:
-from pycamv import validate, export, gui, __version__
+from pycamv import validate, export, gui, search, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
-RAW_EXTS = [".raw"]
+
+RAW_EXTS = [".raw", ".mgf", ".d", ".wiff"]
+SEARCH_EXTS = list(search.BACKENDS.keys())
+SCANS_EXTS = [".xlsx"]
 
 
 def _parse_args(args):
@@ -50,7 +50,8 @@ def _parse_args(args):
         "--raw_path",
     )
     parser.add_argument(
-        "--xml_path",
+        "--search_path",
+        help="MASCOT or ProteomeDiscoverer search files."
     )
     parser.add_argument(
         "--scans_path",
@@ -90,11 +91,14 @@ def main(args):
     if args.show_gui:
         gui.run_gui(args)
     else:
-        if args.xml_path is None:
-            xmls = [i for i in args.files if i.lower().endswith(".xml")]
+        if args.search_path is None:
+            searches = [
+                i for i in args.files
+                if os.path.splitext(i.lower())[1] in SEARCH_EXTS
+            ]
 
-            if len(xmls) == 1:
-                args.xml_path = xmls[0]
+            if len(searches) == 1:
+                args.search_path = searches[0]
 
         if args.raw_path is None:
             raws = [
@@ -106,22 +110,25 @@ def main(args):
                 args.raw_path = raws[0]
 
         if args.scans_path is None:
-            scans = [i for i in args.files if i.lower().endswith(".xlsx")]
+            scans = [
+                i for i in args.files
+                if os.path.splitext(i.lower())[1] in SCANS_EXTS
+            ]
 
             if len(scans) == 1:
                 args.scans_path = scans[0]
 
         if (
-            args.xml_path is None or
+            args.search_path is None or
             args.raw_path is None
         ):
             raise Exception(
-                "Missing either input xml / raw paths"
+                "Missing either input search / raw paths"
             )
 
         options, peak_hits, scan_mapping, precursor_windows, label_windows = (
             validate.validate_spectra(
-                xml_path=args.xml_path,
+                search_path=args.search_path,
                 raw_path=args.raw_path,
                 scans_path=args.scans_path,
                 scan_list=args.scans,

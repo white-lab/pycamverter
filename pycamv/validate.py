@@ -16,7 +16,7 @@ import tempfile
 
 from openpyxl import load_workbook
 
-from . import compare, fragments, gen_sequences, mascot, ms_labels, scans
+from . import compare, fragments, gen_sequences, search, ms_labels, scans
 from .utils import LenGen
 
 
@@ -25,7 +25,7 @@ LOGGER = logging.getLogger("pycamv.validate")
 
 class SearchOptions:
     """
-    Contains options used to search a data set in MASCOT.
+    Contains options used by a peptide search.
 
     Attributes
     ----------
@@ -112,7 +112,7 @@ def _map_compare(kv, scan_mapping):
 
 
 def validate_spectra(
-    xml_path,
+    search_path,
     raw_path,
     scans_path=None,
     scan_list=None,
@@ -123,7 +123,7 @@ def validate_spectra(
 
     Parameters
     ----------
-    xml_path : str
+    search_path : str
     raw_path : str
     scans_path : str, optional
     scan_list : list of int, optional
@@ -132,16 +132,16 @@ def validate_spectra(
     Returns
     -------
     options : :class:`pycamv.validate.SearchOptions`
-    peak_hits : dict of (tuple of :class:`pycamv.mascot.PeptideQuery`, list),
+    peak_hits : dict of (tuple of :class:`pycamv.search.PeptideQuery`, list),
     list of :class:`pycamv.compare.PeptideHit`
         Dictionary mapping peptide queries and their sequences to peptide hits.
-    scan_mapping : OrderedDict of :class:`pycamv.mascot.PeptideQuery`,
+    scan_mapping : OrderedDict of :class:`pycamv.search.PeptideQuery`,
     :class:`pycamv.scans.ScanQuery`
         Dictionary mapping peptide queries to their scan data, including
         collision type and size of isolation window.
-    precursor_windows : dict of :class:`pycamv.mascot.PeptideQuery`, list
+    precursor_windows : dict of :class:`pycamv.search.PeptideQuery`, list
         Dictionary mapping peptide queries to peak lists for precursor scans.
-    label_windows : dict of :class:`pycamv.mascot.PeptideQuery`, list
+    label_windows : dict of :class:`pycamv.search.PeptideQuery`, list
         Dictionary mapping peptide queries to peak lists for quantification
         channels.
     """
@@ -159,8 +159,10 @@ def validate_spectra(
     if scans_path is not None:
         scan_list += load_scan_list(scans_path)
 
-    # Read MASCOT xml file
-    fixed_mods, var_mods, pep_queries = mascot.read_mascot_xml(xml_path)
+    # Read peptide search file
+    fixed_mods, var_mods, pep_queries = search.read_search_file(search_path)
+
+    LOGGER.info("Found info for {} peptides".format(len(pep_queries)))
 
     # Optionally filter queries using a scan list
     if scan_list:
@@ -185,10 +187,14 @@ def validate_spectra(
     out_dir = tempfile.mkdtemp()
 
     LOGGER.info("Getting scan data.")
+    # print([i.scan for i in pep_queries])
 
     scan_queries, ms_two_data, ms_data = scans.get_scan_data(
         raw_path, pep_queries, out_dir,
     )
+
+    LOGGER.info("Found info for {} scans".format(len(scan_queries)))
+    # assert(len(pep_queries) == len(scan_queries))
 
     scan_mapping = OrderedDict(
         (pep_query, scan_query)
