@@ -39,6 +39,7 @@ def gen_possible_seq(pep_seq, var_mods):
         ]
 
         if len(indices) < count:
+            LOGGER.error(len(indices), count, seq, mods, var_mods)
             raise Exception(
                 (
                     "Too few sites for modification \"{} {} ({})\" "
@@ -59,6 +60,10 @@ def gen_possible_seq(pep_seq, var_mods):
                 yield new_seq
 
     tmp_seq = ["N-term"] + list(pep_seq) + ["C-term"]
+
+    # Sort var mods so that we assign more restricted sites first
+    # (i.e. pY before pSTY)
+    var_mods = sorted(var_mods, key=lambda x: len(x[2]))
 
     # Ideally we would use py>3.3 syntax: yield from, but we are also
     # supporting py2.7
