@@ -211,11 +211,16 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
 
         accession, prot_desc = RE_DESCRIPTION.match(full_prot_desc).group(1, 2)
 
+        if not accession:
+            raise Exception(
+                "Unable to find accession ID for {}".format(full_prot_desc)
+            )
+
         out.append(
             search.PeptideQuery(
                 accession,
                 prot_desc,
-                query,
+                pep_id,
                 filename,
                 # rank,
                 # pep_score,
@@ -227,7 +232,24 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
                 scan,
             )
         )
-        # print(pep_id, pep_seq, pep_var_mods)
+
+        # LOGGER.info(
+        #     (
+        #         accession,
+        #         prot_desc,
+        #         pep_id,
+        #         filename,
+        #         # rank,
+        #         # pep_score,
+        #         exp_mz,
+        #         exp_z,
+        #         pep_seq,
+        #         pep_var_mods,
+        #         pep_fixed_mods,
+        #         scan,
+        #     )
+        # )
+        # break
 
     out = sorted(out, key=lambda x: x.scan)
 
