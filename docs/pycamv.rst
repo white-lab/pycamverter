@@ -22,6 +22,14 @@ pycamv.compare module
     :undoc-members:
     :show-inheritance:
 
+pycamv.discoverer module
+---------------------
+
+.. automodule:: pycamv.discoverer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pycamv.export module
 ---------------------
 
@@ -98,6 +106,14 @@ pycamv.scans module
 -------------------
 
 .. automodule:: pycamv.scans
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycamv.search module
+---------------------
+
+.. automodule:: pycamv.search
     :members:
     :undoc-members:
     :show-inheritance:

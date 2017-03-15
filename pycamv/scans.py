@@ -44,7 +44,7 @@ def _scanquery_from_spectrum(pep_query, spectrum):
     """
     Parameters
     ----------
-    pep_query : :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
+    pep_query : :class:`PeptideQuery<pycamv.search.PeptideQuery>`
     spectrum : :class:`pymzml.spec.Spectrum<spec.Spectrum>`
 
     Returns
@@ -104,7 +104,7 @@ def _c13_num(pep_query, isolation_mz):
 
     Parameters
     ----------
-    pep_query : :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
+    pep_query : :class:`PeptideQuery<pycamv.search.PeptideQuery>`
     isolation_mz : float
 
     Returns
@@ -125,7 +125,7 @@ def get_precursor_peak_window(scan_queries, ms_data, window_size=1):
 
     Parameters
     ----------
-    pep_queries : list of :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
+    pep_queries : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
 
     Returns
@@ -156,7 +156,7 @@ def get_label_peak_window(pep_queries, ms2_data, window_size=1):
 
     Parameters
     ----------
-    pep_queries : list of :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
+    pep_queries : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
 
     Returns
@@ -195,7 +195,7 @@ def get_scan_data(raw_path, pep_queries, out_dir=None):
     Parameters
     ----------
     raw_path : str
-    pep_queries : list of :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
+    pep_queries : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
     out_dir : str, optional
 
     Returns
