@@ -367,7 +367,7 @@ def export_to_camv(
         return [
             OrderedDict([
                 ("id", index),
-                ("proteinName", prot_name)
+                ("proteinName", prot_name),
                 ("peptideSequence", pep_seq),
                 (
                     "modificationStates",
