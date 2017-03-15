@@ -83,7 +83,7 @@ def _parse_mascot_2_4_1(root):
         for peptide in hit.findall("mascot:protein/mascot:peptide", MASCOT_NS):
             query = int(peptide.get("query"))
             rank = int(peptide.get("rank"))
-            # pep_score = float(peptide.find("mascot:pep_score", MASCOT_NS).text)
+            pep_score = float(peptide.find("mascot:pep_score", MASCOT_NS).text)
             exp_mz = float(peptide.find("mascot:pep_exp_mz", MASCOT_NS).text)
             exp_z = int(peptide.find("mascot:pep_exp_z", MASCOT_NS).text)
             pep_seq = peptide.find("mascot:pep_seq", MASCOT_NS).text
@@ -147,8 +147,8 @@ def _parse_mascot_2_4_1(root):
                     prot_desc,
                     query,
                     filename,
-                    rank,
-                    # pep_score,
+                    # rank,
+                    pep_score,
                     exp_mz,
                     exp_z,
                     pep_seq,

@@ -180,12 +180,14 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
         Peptides.PeptideID,
         ProteinAnnotations.Description,
         Peptides.Sequence,
+        PeptideScores.ScoreValue,
         SpectrumHeaders.FirstScan,
         Masspeaks.Mass,
         Masspeaks.Charge,
         FileInfos.FileName
         FROM
         Peptides JOIN
+        PeptideScores JOIN
         PeptidesProteins JOIN
         ProteinAnnotations JOIN
         SpectrumHeaders JOIN
@@ -193,7 +195,8 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
         Masspeaks
         WHERE
         Peptides.SearchEngineRank=1 AND
-        Peptides.PeptideID=PeptidesProteins.PeptideID AND
+        PeptideScore.PeptideID=Peptides.PeptideID AND
+        PeptidesProteins.PeptideID=Peptides.PeptideID AND
         ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID AND
         SpectrumHeaders.SpectrumID=Peptides.SpectrumID AND
         Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID AND
@@ -202,7 +205,9 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
     )
 
     for (
-        pep_id, full_prot_desc, pep_seq, scan, exp_mz, exp_z, filename,
+        pep_id, full_prot_desc,
+        pep_seq, pep_score,
+        scan, exp_mz, exp_z, filename,
     ) in query:
         # print(pep_id, full_prot_desc, pep_seq, scan, exp_mz, exp_z, filename)
         pep_var_mods, pep_fixed_mods = _get_pep_mods(
@@ -222,8 +227,7 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
                 prot_desc,
                 pep_id,
                 filename,
-                # rank,
-                # pep_score,
+                pep_score,
                 exp_mz,
                 exp_z,
                 pep_seq,

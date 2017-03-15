@@ -30,8 +30,7 @@ class PeptideQuery:
     protein : str
     query : int
     filename: str
-    # pep_rank : int
-    # pep_score : float
+    pep_score : float
     pep_exp_mz : float
     pep_exp_z : int
     pep_seq : str
@@ -42,8 +41,7 @@ class PeptideQuery:
     """
     def __init__(
         self, gi, protein, query, filename,
-        # pep_rank,
-        # pep_score,
+        pep_score,
         pep_exp_mz, pep_exp_z,
         pep_seq,
         pep_var_mods, pep_fixed_mods, scan,
@@ -54,8 +52,7 @@ class PeptideQuery:
         self.protein = protein
         self.query = query
         self.filename = filename
-        # self.pep_rank = pep_rank
-        # self.pep_score = pep_score
+        self.pep_score = pep_score
         self.pep_exp_mz = pep_exp_mz
         self.pep_exp_z = pep_exp_z
         self.pep_seq = pep_seq
