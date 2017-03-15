@@ -226,11 +226,11 @@ def export_to_camv(
 
     # Peptide Data IDs
     pep_data_index = {
-        pep_seq: index
+        (prot_name, pep_seq): index
         for index, pep_seq in enumerate(
             sorted(
                 pep_seq
-                for peptides in prot_dict.values()
+                for prot_name, peptides in prot_dict.items()
                 for pep_seq in peptides
             )
         )
@@ -366,13 +366,17 @@ def export_to_camv(
         """
         return [
             OrderedDict([
-                ("id", pep_data_index[pep_seq]),
+                ("id", index),
+                ("proteinName", prot_name)
                 ("peptideSequence", pep_seq),
-                ("modificationStates", _get_mod_states(pep_seq, mod_states)),
+                (
+                    "modificationStates",
+                    _get_mod_states(pep_seq, pep_dict[pep_seq]),
+                ),
             ])
-            for pep_seq, mod_states in sorted(
-                pep_dict.items(),
-                key=lambda x: pep_data_index[x[0]],
+            for (prot_name, pep_seq), index in sorted(
+                pep_data_index.items(),
+                key=lambda x: x[1],
             )
         ]
 
@@ -467,7 +471,7 @@ def export_to_camv(
             )
         ]
 
-    def _get_peptide_scan_data(peptides):
+    def _get_peptide_scan_data(prot_name, peptides):
         """
         Map peptides to their data IDs, scans, and candidate modification
         states.
@@ -475,7 +479,7 @@ def export_to_camv(
         return [
             OrderedDict([
                 ("peptideId", pep_index[pep_seq, mod_state]),
-                ("peptideDataId", pep_data_index[pep_seq]),
+                ("peptideDataId", pep_data_index[prot_name, pep_seq]),
                 ("modificationStateId", mod_state_index[pep_seq, mod_state]),
                 ("scans", _get_scans(pep_seq, mod_state)),
             ])
@@ -498,7 +502,7 @@ def export_to_camv(
             OrderedDict([
                 ("proteinName", prot_name),
                 ("proteinId", prot_index[prot_name]),
-                ("peptides", _get_peptide_scan_data(peptides)),
+                ("peptides", _get_peptide_scan_data(prot_name, peptides)),
             ])
             for prot_name, peptides in sorted(
                 prot_dict.items(),
