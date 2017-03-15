@@ -202,7 +202,7 @@ def export_to_camv(
     for query, seq in peak_hits.keys():
         mods_dict[query.pep_seq, _extract_mods(seq)].append(query)
 
-    # Mapping for queries -> sequence + modifications
+    # Mapping back from queries -> sequence + modifications
     query_dict = DefaultOrderedDict(list)
 
     for query, seq in peak_hits.keys():
@@ -516,6 +516,7 @@ def export_to_camv(
     ])
 
     LOGGER.info("Exporting CAMV data to {}".format(out_path))
+    LOGGER.info("Exported {} peptide data, {} scan data".format(len(data["peptideData"]), len(data["scanData"])))
 
     if out_path.endswith(".gz"):
         with gzip.GzipFile(out_path, 'w') as f:
