@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.2.0 (2017-03-\*)
+
+Features
+
+  - Added support for using ProteomeDiscoverer search files, alongside MASCOT.
+  - Started annotating export files with generator's pycamverter version.
+
+Bugfixes
+
+  - Fixed issue with peptideData being blank when ambiguous peptides were
+    present.
+
 ## 0.1.2 (2017-03-10)
 
 Features
