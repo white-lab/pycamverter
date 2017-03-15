@@ -195,7 +195,7 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
         Masspeaks
         WHERE
         Peptides.SearchEngineRank=1 AND
-        PeptideScore.PeptideID=Peptides.PeptideID AND
+        PeptideScores.PeptideID=Peptides.PeptideID AND
         PeptidesProteins.PeptideID=Peptides.PeptideID AND
         ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID AND
         SpectrumHeaders.SpectrumID=Peptides.SpectrumID AND
