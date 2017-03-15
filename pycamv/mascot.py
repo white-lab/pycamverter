@@ -4,11 +4,11 @@ Provides functionality for interacting with MASCOT data.
 
 from __future__ import absolute_import, division
 
+import logging
 import re
 import xml.etree.ElementTree as ET
 
-from .utils import nCr
-from . import ms_labels
+from . import search
 
 
 MASCOT_NS = {
@@ -16,90 +16,7 @@ MASCOT_NS = {
         "http://www.matrixscience.com/xmlns/schema/mascot_search_results_2",
 }
 
-
-class PeptideQuery:
-    """
-    Attributes
-    ----------
-    gi : str
-    protein : str
-    query : int
-    filename: str
-    pep_rank : int
-    pep_score : float
-    pep_exp_mz : float
-    pep_exp_z : int
-    pep_seq : str
-    pep_var_mods : list of tuple of (int, str, tuple of str)
-    pep_fixed_mods : list of tuple of (int, str, tuple of str)
-    scan : int
-    num_comb : int
-    """
-    def __init__(
-        self, gi, protein, query, filename,
-        pep_rank, pep_score, pep_exp_mz, pep_exp_z, pep_seq,
-        pep_var_mods, pep_fixed_mods, scan,
-    ):
-        self.gi = gi
-        self.protein = protein
-        self.query = query
-        self.filename = filename
-        self.pep_rank = pep_rank
-        self.pep_score = pep_score
-        self.pep_exp_mz = pep_exp_mz
-        self.pep_exp_z = pep_exp_z
-        self.pep_seq = pep_seq
-        self.pep_var_mods = pep_var_mods
-        self.pep_fixed_mods = pep_fixed_mods
-        self.scan = scan
-        self.num_comb = self._calc_num_comb()
-
-    def _unique_tuple(self):
-        return (
-            self.gi,
-            self.query,
-            self.pep_seq,
-            self.scan,
-        )
-
-    def __hash__(self):
-        return hash(self._unique_tuple())
-
-    def __eq__(self, other):
-        if not isinstance(other, PeptideQuery):
-            raise TypeError(other)
-        return self._unique_tuple() == other._unique_tuple()
-
-    @property
-    def pep_mods(self):
-        return self.pep_var_mods + self.pep_fixed_mods
-
-    @property
-    def get_label_mods(self):
-        return [
-            mod
-            for _, mod, letters in self.pep_mods
-            if mod in ms_labels.LABEL_NAMES and "N-term" in letters
-        ]
-
-    def _calc_num_comb(self):
-        num_comb = 1
-
-        for count, mod, letters in self.pep_var_mods:
-            if mod == "Phospho" and letters == ["S", "T"]:
-                letters = ["S", "T", "Y"]
-
-            potential_mod_sites = sum(self.pep_seq.count(i) for i in letters)
-
-            # Subtract sites that will be taken up by another modification
-            # (i.e. Oxidation and Dioxidation of M)
-            for o_count, o_mod, o_letters in self.pep_var_mods:
-                if o_letters == letters and o_mod != mod:
-                    potential_mod_sites -= o_count
-
-            num_comb *= nCr(potential_mod_sites, count)
-
-        return num_comb
+LOGGER = logging.getLogger("pycamv.mascot")
 
 
 def _count_instances(pep_seq, letters):
@@ -129,9 +46,7 @@ def _parse_letters(letters):
     return tuple(letters)
 
 
-def _parse_mascot_2_4_1(root):
-    filename = root.find("mascot:header/mascot:FILENAME", MASCOT_NS).text
-    filename = filename.split(":", 1)[1].strip()
+def _get_fixed_var_mods(root):
     fixed_mods = [
         i.text
         for i in root.findall(
@@ -139,13 +54,20 @@ def _parse_mascot_2_4_1(root):
             MASCOT_NS,
         )
     ]
-    variable_mods = [
+    var_mods = [
         i.text
         for i in root.findall(
             "mascot:variable_mods/mascot:modification/mascot:name",
             MASCOT_NS,
         )
     ]
+    return fixed_mods, var_mods
+
+
+def _parse_mascot_2_4_1(root):
+    filename = root.find("mascot:header/mascot:FILENAME", MASCOT_NS).text
+    filename = filename.split(":", 1)[1].strip()
+    fixed_mods, var_mods = _get_fixed_var_mods(root)
 
     scan_used = {}
     index = 0
@@ -155,22 +77,22 @@ def _parse_mascot_2_4_1(root):
         accession = hit.find("mascot:protein", MASCOT_NS).get("accession")
         prot_desc = hit.find("mascot:protein/mascot:prot_desc", MASCOT_NS).text
 
+        if "FGR" in prot_desc.upper() or "FGR" in accession.upper():
+            LOGGER.info(accession, prot_desc)
+
         for peptide in hit.findall("mascot:protein/mascot:peptide", MASCOT_NS):
             query = int(peptide.get("query"))
             rank = int(peptide.get("rank"))
-            pep_score = float(peptide.find("mascot:pep_score", MASCOT_NS).text)
+            # pep_score = float(peptide.find("mascot:pep_score", MASCOT_NS).text)
             exp_mz = float(peptide.find("mascot:pep_exp_mz", MASCOT_NS).text)
             exp_z = int(peptide.find("mascot:pep_exp_z", MASCOT_NS).text)
             pep_seq = peptide.find("mascot:pep_seq", MASCOT_NS).text
 
-            var_mods = peptide.find("mascot:pep_var_mod", MASCOT_NS).text
+            pep_var_mods = peptide.find("mascot:pep_var_mod", MASCOT_NS).text
 
             if fixed_mods:
                 pep_fixed_mods = [
-                    re.match(
-                        r"(.+) \((.+)\)",
-                        mod.strip()
-                    ).group(1, 2)
+                    search.RE_DYN_MODS.match(mod.strip()).group(3, 4)
                     for mod in fixed_mods
                 ]
                 pep_fixed_mods = [
@@ -189,21 +111,18 @@ def _parse_mascot_2_4_1(root):
             else:
                 pep_fixed_mods = []
 
-            if var_mods:
+            if pep_var_mods:
                 # i.e. "2 Phospho (STY)""
-                var_mods = [
-                    re.match(
-                        r"((\d+) )?(.+) \((.+)\)",
-                        mod.strip()
-                    ).group(2, 3, 4)
-                    for mod in var_mods.split(";")
+                pep_var_mods = [
+                    search.RE_DYN_MODS.match(mod.strip()).group(2, 3, 4)
+                    for mod in pep_var_mods.split(";")
                 ]
-                var_mods = [
+                pep_var_mods = [
                     (int(count) if count else 1, name, _parse_letters(letters))
-                    for count, name, letters in var_mods
+                    for count, name, letters in pep_var_mods
                 ]
             else:
-                var_mods = []
+                pep_var_mods = []
 
             scan = int(
                 re.search(
@@ -223,17 +142,17 @@ def _parse_mascot_2_4_1(root):
 
             scan_used[scan] = (index, rank)
             out.append(
-                PeptideQuery(
+                search.PeptideQuery(
                     accession,
                     prot_desc,
                     query,
                     filename,
                     rank,
-                    pep_score,
+                    # pep_score,
                     exp_mz,
                     exp_z,
                     pep_seq,
-                    var_mods,
+                    pep_var_mods,
                     pep_fixed_mods,
                     scan,
                 )
@@ -242,7 +161,7 @@ def _parse_mascot_2_4_1(root):
 
     out = sorted(out, key=lambda x: x.scan)
 
-    return fixed_mods, variable_mods, out
+    return fixed_mods, var_mods, out
 
 
 def read_mascot_xml(xml_path):
@@ -258,7 +177,7 @@ def read_mascot_xml(xml_path):
     -------
     fixed_mods : list of str
     var_mods : list of str
-    out : list of :class:`PeptideQuery<pycamv.mascot.PeptideQuery>`
+    out : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
     """
     tree = ET.parse(xml_path)
     root = tree.getroot()
