@@ -9,8 +9,8 @@ class PeptideQuery:
     """
     Attributes
     ----------
-    gi : str
-    protein : str
+    accessions : list of str
+    proteins : list of str
     query : int
     filename: str
     pep_score : float
@@ -23,7 +23,7 @@ class PeptideQuery:
     num_comb : int
     """
     def __init__(
-        self, gi, protein, query, filename,
+        self, accessions, proteins, query, filename,
         pep_score,
         pep_exp_mz, pep_exp_z,
         pep_seq,
@@ -31,14 +31,14 @@ class PeptideQuery:
     ):
         assert _check_mods(pep_var_mods)
         assert _check_mods(pep_fixed_mods)
-        self.gi = gi
-        self.protein = protein
+        self.accessions = accessions
+        self.proteins = proteins
         self.query = query
         self.filename = filename
         self.pep_score = pep_score
         self.pep_exp_mz = pep_exp_mz
         self.pep_exp_z = pep_exp_z
-        self.pep_seq = pep_seq
+        self.pep_seq = pep_seq.upper()
         self.pep_var_mods = pep_var_mods
         self.pep_fixed_mods = pep_fixed_mods
         self.scan = scan
@@ -46,7 +46,7 @@ class PeptideQuery:
 
     def _unique_tuple(self):
         return (
-            self.gi,
+            tuple(self.accessions),
             self.query,
             self.pep_seq,
             self.scan,
@@ -59,6 +59,9 @@ class PeptideQuery:
         if not isinstance(other, PeptideQuery):
             raise TypeError(other)
         return self._unique_tuple() == other._unique_tuple()
+
+    def get_prot_name(self):
+        return " / ".join(self.prot_desc)
 
     @property
     def pep_mods(self):

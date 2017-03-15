@@ -11,7 +11,7 @@ import logging
 import json
 
 from .utils import DefaultOrderedDict
-from . import ms_labels, regexes
+from . import ms_labels, regexes, version
 
 
 LOGGER = logging.getLogger("pycamv.export")
@@ -172,7 +172,7 @@ def export_to_camv(
     prot_dict = DefaultOrderedDict(set)
 
     for query, _ in peak_hits.keys():
-        prot_name = regexes.RE_PROTEIN.match(query.protein).group(1)
+        prot_name = query.get_prot_name()
         prot_dict[prot_name].add(query.pep_seq)
 
     pep_dict = DefaultOrderedDict(set)
@@ -227,9 +227,9 @@ def export_to_camv(
     # Peptide Data IDs
     pep_data_index = {
         (prot_name, pep_seq): index
-        for index, pep_seq in enumerate(
+        for index, (prot_name, pep_seq) in enumerate(
             sorted(
-                pep_seq
+                (prot_name, pep_seq)
                 for prot_name, peptides in prot_dict.items()
                 for pep_seq in peptides
             )
@@ -510,7 +510,10 @@ def export_to_camv(
             )
         ]
 
+    print(pep_data_index)
+
     data = OrderedDict([
+        ("pycamverterVersion", version.__version__),
         ("peptideData", _get_peptide_data()),
         ("scanData", _get_scan_data()),
     ])

@@ -158,6 +158,42 @@ def _get_pep_mods(cursor, pep_id, pep_seq, var_mods, fixed_mods):
     return pep_var_mods, pep_fixed_mods
 
 
+def _get_prot_info(cursor, peptide_id):
+    cursor = cursor.connection.cursor()
+    proteins = cursor.execute(
+        """
+        SELECT
+        ProteinAnnotations.Description
+        FROM
+        PeptidesProteins JOIN
+        ProteinAnnotations
+        WHERE
+        PeptidesProteins.PeptideID=:pepID AND
+        ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID
+        """,
+        {
+            "pepID": peptide_id,
+        }
+    )
+
+    accessions, descriptions = [], []
+
+    for full_prot_desc, in proteins:
+        accession, prot_desc = regexes.RE_DESCRIPTION.match(
+            full_prot_desc,
+        ).group(1, 2)
+
+        if not accession:
+            raise Exception(
+                "Unable to find accession ID for {}".format(full_prot_desc)
+            )
+
+        accessions.append(accession)
+        descriptions.append(prot_desc)
+
+    return accessions, descriptions
+
+
 def _get_peptide_queries(cursor, fixed_mods, var_mods):
     out = []
     # index = 0
@@ -175,7 +211,6 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
         """
         SELECT
         Peptides.PeptideID,
-        ProteinAnnotations.Description,
         Peptides.Sequence,
         PeptideScores.ScoreValue,
         SpectrumHeaders.FirstScan,
@@ -202,8 +237,7 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
     )
 
     for (
-        pep_id, full_prot_desc,
-        pep_seq, pep_score,
+        pep_id, pep_seq, pep_score,
         scan, exp_mz, exp_z, filename,
     ) in query:
         # print(pep_id, full_prot_desc, pep_seq, scan, exp_mz, exp_z, filename)
@@ -211,19 +245,12 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
             cursor, pep_id, pep_seq, var_mods, fixed_mods,
         )
 
-        accession, prot_desc = regexes.RE_DESCRIPTION.match(
-            full_prot_desc
-        ).group(1, 2)
-
-        if not accession:
-            raise Exception(
-                "Unable to find accession ID for {}".format(full_prot_desc)
-            )
+        accessions, descriptions = _get_prot_info(cursor, pep_id)
 
         out.append(
             pep_query.PeptideQuery(
-                accession,
-                prot_desc,
+                accessions,
+                descriptions,
                 pep_id,
                 filename,
                 pep_score,

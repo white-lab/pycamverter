@@ -5,7 +5,6 @@ Provides functionality for interacting with MASCOT data.
 from __future__ import absolute_import, division
 
 import logging
-import re
 import xml.etree.ElementTree as ET
 
 from . import pep_query, regexes
@@ -142,8 +141,8 @@ def _parse_mascot_2_4_1(root):
             scan_used[scan] = (index, rank)
             out.append(
                 pep_query.PeptideQuery(
-                    accession,
-                    prot_desc,
+                    [accession],
+                    [prot_desc],
                     query,
                     filename,
                     pep_score,
