@@ -9,18 +9,13 @@ from collections import OrderedDict
 import gzip
 import logging
 import json
-import re
 
 from .utils import DefaultOrderedDict
-from . import ms_labels
+from . import ms_labels, regexes
 
 
 LOGGER = logging.getLogger("pycamv.export")
 
-RE_PROTEIN = re.compile(r"([A-Za-z0-9\(\)\[\]\\/\',\. \-\+]+) OS=")
-
-RE_BY_ION_POS = re.compile("([abcxyz])_\{(\d+)\}")
-RE_B_Y_IONS = re.compile(r"([abcxyz]_\{[0-9]+\})(.*)\^\{\+\}")
 SUPERSCRIPT_UNICODE_START = ord(u"\u2070")
 SUBSCRIPT_UNICODE_START = ord(u'\u2080')
 SCRIPT_MAPPING = {
@@ -34,7 +29,7 @@ SCRIPT_MAPPING[")"] = 13
 
 
 def _rewrite_ion_name(name):
-    m = RE_B_Y_IONS.match(name)
+    m = regexes.RE_B_Y_IONS.match(name)
 
     if m:
         name = "".join(m.group(1, 2))
@@ -177,7 +172,8 @@ def export_to_camv(
     prot_dict = DefaultOrderedDict(set)
 
     for query, _ in peak_hits.keys():
-        prot_dict[RE_PROTEIN.match(query.protein).group(1)].add(query.pep_seq)
+        prot_name = regexes.RE_PROTEIN.match(query.protein).group(1)
+        prot_dict[prot_name].add(query.pep_seq)
 
     pep_dict = DefaultOrderedDict(set)
 
@@ -306,7 +302,7 @@ def export_to_camv(
                     if name in visited:
                         continue
 
-                    name_match = RE_BY_ION_POS.match(name)
+                    name_match = regexes.RE_BY_ION_POS.match(name)
 
                     if name_match:
                         ion_pos = int(name_match.group(2))

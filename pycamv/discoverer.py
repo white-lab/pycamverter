@@ -7,15 +7,12 @@ from __future__ import absolute_import, division
 from collections import Counter
 import logging
 import os
-import re
 import sqlite3
 
-from . import search
+from . import regexes, pep_query
 
 
 LOGGER = logging.getLogger("pycamv.discoverer")
-
-RE_DESCRIPTION = re.compile(r"^>sp\|[\dA-Za-z]+\|([\dA-Za-z_]+) (.*)$")
 
 
 def _parse_letters(letters):
@@ -166,11 +163,11 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
     # index = 0
     # scan_used = {}
     fixed_mods = [
-        search.RE_DYN_MODS.match(i).group(3, 4)
+        regexes.RE_DYN_MODS.match(i).group(3, 4)
         for i in fixed_mods
     ]
     var_mods = [
-        search.RE_DYN_MODS.match(i).group(3, 4)
+        regexes.RE_DYN_MODS.match(i).group(3, 4)
         for i in var_mods
     ]
 
@@ -214,7 +211,9 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
             cursor, pep_id, pep_seq, var_mods, fixed_mods,
         )
 
-        accession, prot_desc = RE_DESCRIPTION.match(full_prot_desc).group(1, 2)
+        accession, prot_desc = regexes.RE_DESCRIPTION.match(
+            full_prot_desc
+        ).group(1, 2)
 
         if not accession:
             raise Exception(
@@ -222,7 +221,7 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
             )
 
         out.append(
-            search.PeptideQuery(
+            pep_query.PeptideQuery(
                 accession,
                 prot_desc,
                 pep_id,
@@ -255,7 +254,7 @@ def read_discoverer_msf(msf_path):
     -------
     fixed_mods : list of str
     var_mods : list of str
-    out : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
+    out : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     """
     LOGGER.info(
         "Loading ProteomeDiscoverer peptides from \"{}\"".format(

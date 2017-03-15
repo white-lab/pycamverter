@@ -8,7 +8,7 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 
-from . import search
+from . import pep_query, regexes
 
 
 MASCOT_NS = {
@@ -92,7 +92,7 @@ def _parse_mascot_2_4_1(root):
 
             if fixed_mods:
                 pep_fixed_mods = [
-                    search.RE_DYN_MODS.match(mod.strip()).group(3, 4)
+                    regexes.RE_DYN_MODS.match(mod.strip()).group(3, 4)
                     for mod in fixed_mods
                 ]
                 pep_fixed_mods = [
@@ -114,7 +114,7 @@ def _parse_mascot_2_4_1(root):
             if pep_var_mods:
                 # i.e. "2 Phospho (STY)""
                 pep_var_mods = [
-                    search.RE_DYN_MODS.match(mod.strip()).group(2, 3, 4)
+                    regexes.RE_DYN_MODS.match(mod.strip()).group(2, 3, 4)
                     for mod in pep_var_mods.split(";")
                 ]
                 pep_var_mods = [
@@ -125,8 +125,7 @@ def _parse_mascot_2_4_1(root):
                 pep_var_mods = []
 
             scan = int(
-                re.search(
-                    r"(scans:|Cmpd_)(\d+)",
+                regexes.RE_SCAN_NUM.search(
                     peptide.find("mascot:pep_scan_title", MASCOT_NS).text
                 ).group(2)
             )
@@ -142,7 +141,7 @@ def _parse_mascot_2_4_1(root):
 
             scan_used[scan] = (index, rank)
             out.append(
-                search.PeptideQuery(
+                pep_query.PeptideQuery(
                     accession,
                     prot_desc,
                     query,
@@ -176,7 +175,7 @@ def read_mascot_xml(xml_path):
     -------
     fixed_mods : list of str
     var_mods : list of str
-    out : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
+    out : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     """
     tree = ET.parse(xml_path)
     root = tree.getroot()

@@ -6,11 +6,10 @@ from __future__ import absolute_import, division
 
 import logging
 import os
-import re
 import tempfile
 import xml.etree.ElementTree as ET
 
-from . import ms_labels, proteowizard
+from . import ms_labels, proteowizard, regexes
 
 
 LOGGER = logging.getLogger("pycamv.scans")
@@ -44,7 +43,7 @@ def _scanquery_from_spectrum(pep_query, spectrum):
     """
     Parameters
     ----------
-    pep_query : :class:`PeptideQuery<pycamv.search.PeptideQuery>`
+    pep_query : :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     spectrum : :class:`pymzml.spec.Spectrum<spec.Spectrum>`
 
     Returns
@@ -59,8 +58,7 @@ def _scanquery_from_spectrum(pep_query, spectrum):
         spectrum["isolation window lower offset"],
         spectrum["isolation window upper offset"],
     )
-    collision_type = re.search(
-        r".*@([A-Za-z]+)\d+",
+    collision_type = regexes.RE_COLLISION_TYPE.search(
         spectrum["filter string"]
     ).group(1).upper()
 
@@ -85,7 +83,9 @@ def _scanquery_from_spectrum(pep_query, spectrum):
 
     spectrum_ref = precursor.get("spectrumRef")
 
-    precursor_scan = int(re.search(r"scan=(\d+)", spectrum_ref).group(1))
+    precursor_scan = int(
+        regexes.RE_PRECURSOR_SCAN.search(spectrum_ref).group(1)
+    )
 
     return ScanQuery(
         scan,
@@ -104,7 +104,7 @@ def _c13_num(pep_query, isolation_mz):
 
     Parameters
     ----------
-    pep_query : :class:`PeptideQuery<pycamv.search.PeptideQuery>`
+    pep_query : :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     isolation_mz : float
 
     Returns
@@ -125,7 +125,7 @@ def get_precursor_peak_window(scan_queries, ms_data, window_size=1):
 
     Parameters
     ----------
-    pep_queries : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
+    pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
 
     Returns
@@ -156,7 +156,7 @@ def get_label_peak_window(pep_queries, ms2_data, window_size=1):
 
     Parameters
     ----------
-    pep_queries : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
+    pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
 
     Returns
@@ -195,7 +195,7 @@ def get_scan_data(raw_path, pep_queries, out_dir=None):
     Parameters
     ----------
     raw_path : str
-    pep_queries : list of :class:`PeptideQuery<pycamv.search.PeptideQuery>`
+    pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     out_dir : str, optional
 
     Returns

@@ -132,16 +132,16 @@ def validate_spectra(
     Returns
     -------
     options : :class:`pycamv.validate.SearchOptions`
-    peak_hits : dict of (tuple of :class:`pycamv.search.PeptideQuery`, list),
+    peak_hits : dict of (tuple of :class:`pycamv.pep_query.PeptideQuery`, list),
     list of :class:`pycamv.compare.PeptideHit`
         Dictionary mapping peptide queries and their sequences to peptide hits.
-    scan_mapping : OrderedDict of :class:`pycamv.search.PeptideQuery`,
+    scan_mapping : OrderedDict of :class:`pycamv.pep_query.PeptideQuery`,
     :class:`pycamv.scans.ScanQuery`
         Dictionary mapping peptide queries to their scan data, including
         collision type and size of isolation window.
-    precursor_windows : dict of :class:`pycamv.search.PeptideQuery`, list
+    precursor_windows : dict of :class:`pycamv.pep_query.PeptideQuery`, list
         Dictionary mapping peptide queries to peak lists for precursor scans.
-    label_windows : dict of :class:`pycamv.search.PeptideQuery`, list
+    label_windows : dict of :class:`pycamv.pep_query.PeptideQuery`, list
         Dictionary mapping peptide queries to peak lists for quantification
         channels.
     """
