@@ -233,24 +233,6 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
             )
         )
 
-        # LOGGER.info(
-        #     (
-        #         accession,
-        #         prot_desc,
-        #         pep_id,
-        #         filename,
-        #         # rank,
-        #         # pep_score,
-        #         exp_mz,
-        #         exp_z,
-        #         pep_seq,
-        #         pep_var_mods,
-        #         pep_fixed_mods,
-        #         scan,
-        #     )
-        # )
-        # break
-
     out = sorted(out, key=lambda x: x.scan)
 
     return out
@@ -282,7 +264,5 @@ def read_discoverer_msf(msf_path):
 
         fixed_mods, var_mods = _get_fixed_var_mods(cursor)
         out = _get_peptide_queries(cursor, fixed_mods, var_mods)
-
-    # print(fixed_mods, var_mods, out)
 
     return fixed_mods, var_mods, out

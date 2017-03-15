@@ -187,14 +187,12 @@ def validate_spectra(
     out_dir = tempfile.mkdtemp()
 
     LOGGER.info("Getting scan data.")
-    # print([i.scan for i in pep_queries])
 
     scan_queries, ms_two_data, ms_data = scans.get_scan_data(
         raw_path, pep_queries, out_dir,
     )
 
     LOGGER.info("Found info for {} scans".format(len(scan_queries)))
-    # assert(len(pep_queries) == len(scan_queries))
 
     scan_mapping = OrderedDict(
         (pep_query, scan_query)
