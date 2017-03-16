@@ -179,7 +179,7 @@ def _get_prot_info(cursor, peptide_id):
     accessions, descriptions = [], []
 
     for full_prot_desc, in proteins:
-        accession, prot_desc = regexes.RE_DESCRIPTION.match(
+        accession, prot_desc = regexes.RE_DISCOVERER_DESCRIPTION.match(
             full_prot_desc,
         ).group(1, 2)
 

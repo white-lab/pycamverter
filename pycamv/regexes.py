@@ -1,7 +1,12 @@
 
 import re
 
-RE_DESCRIPTION = re.compile(r"^>sp\|[\dA-Za-z]+\|([\dA-Za-z_]+) (.+) OS=(.+)$")
+RE_DISCOVERER_DESCRIPTION = re.compile(
+    r"^>sp\|[\dA-Za-z]+\|([\dA-Za-z_]+) (.+) OS=(.+)$"
+)
+RE_MASCOT_DESCRIPTION = re.compile(
+    r"^(.+) OS=(.+)$"
+)
 RE_DYN_MODS = re.compile(r"((\d+) )?(.+) \((.+)\)")
 RE_BY_ION_POS = re.compile("([abcxyz])_\{(\d+)\}")
 RE_B_Y_IONS = re.compile(r"([abcxyz]_\{[0-9]+\})(.*)\^\{\+\}")

@@ -79,6 +79,11 @@ def _parse_mascot_2_4_1(root):
         if "FGR" in prot_desc.upper() or "FGR" in accession.upper():
             LOGGER.info(accession, prot_desc)
 
+        match = regexes.RE_MASCOT_DESCRIPTION.match(prot_desc)
+
+        if match:
+            prot_desc = match.group(1)
+
         for peptide in hit.findall("mascot:protein/mascot:peptide", MASCOT_NS):
             query = int(peptide.get("query"))
             rank = int(peptide.get("rank"))
