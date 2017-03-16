@@ -60,7 +60,8 @@ class PeptideQuery:
             raise TypeError(other)
         return self._unique_tuple() == other._unique_tuple()
 
-    def get_prot_name(self):
+    @property
+    def prot_name(self):
         return " / ".join(sorted(self.prot_descs))
 
     @property
