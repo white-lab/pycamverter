@@ -172,37 +172,42 @@ def export_to_camv(
     prot_dict = DefaultOrderedDict(set)
 
     for query, _ in peak_hits.keys():
-        prot_name = query.get_prot_name()
-        prot_dict[prot_name].add(query.pep_seq)
+        prot_dict[query.prot_name].add(query.pep_seq)
 
     pep_dict = DefaultOrderedDict(set)
 
     for query, _ in peak_hits.keys():
-        pep_dict[query.pep_seq].add(tuple(query.pep_var_mods))
+        pep_dict[query.prot_name, query.pep_seq].add(tuple(query.pep_var_mods))
 
     mod_states_dict = DefaultOrderedDict(set)
 
     for query, seq in peak_hits.keys():
-        mod_states_dict[query.pep_seq, tuple(query.pep_var_mods)].add(
-            _extract_mods(seq)
-        )
+        mod_states_dict[
+            query.prot_name, query.pep_seq, tuple(query.pep_var_mods)
+        ].add(_extract_mods(seq))
 
     mod_query_dict = DefaultOrderedDict(set)
 
     for query, seq in peak_hits.keys():
-        mod_query_dict[query.pep_seq, tuple(query.pep_var_mods)].add(query)
+        mod_query_dict[
+            query.prot_name, query.pep_seq, tuple(query.pep_var_mods)
+        ].add(query)
 
     # Mapping for modifications -> queries
     mods_dict = DefaultOrderedDict(list)
 
     for query, seq in peak_hits.keys():
-        mods_dict[query.pep_seq, _extract_mods(seq)].append(query)
+        mods_dict[
+            query.prot_name, query.pep_seq, _extract_mods(seq)
+        ].append(query)
 
     # Mapping back from queries -> sequence + modifications
     query_dict = DefaultOrderedDict(list)
 
     for query, seq in peak_hits.keys():
-        query_dict[query].append((query.pep_seq, _extract_mods(seq)))
+        query_dict[query].append(
+            (query.prot_name, query.pep_seq, _extract_mods(seq))
+        )
 
     ###
     # Pre-calculate IDs for later reference
@@ -215,8 +220,8 @@ def export_to_camv(
 
     # Peptide IDs
     pep_index = {
-        (pep_seq, mod_states): index
-        for peptides in prot_dict.values()
+        (prot_name, pep_seq, mod_states): index
+        for prot_name, peptides in prot_dict.items()
         for index, (pep_seq, mod_states) in enumerate(
             (pep_seq, mod_states)
             for pep_seq in peptides
@@ -238,26 +243,26 @@ def export_to_camv(
 
     # Mod State IDs
     mod_state_index = {
-        (pep_seq, mod_state): index
-        for pep_seq, mod_states in pep_dict.items()
-        for index, mod_state in enumerate(mod_states)
+        (prot_name, pep_seq, mod_state): index
+        for (prot_name, pep_seq), mod_states in pep_dict.items()
+        for index, mod_state in enumerate(sorted(mod_states))
     }
 
     # Modification IDs
     mod_index = {
-        (pep_seq, mod): index
-        for (pep_seq, _), mods in mod_states_dict.items()
-        for index, mod in enumerate(mods)
+        (prot_name, pep_seq, mod): index
+        for (prot_name, pep_seq, _), mods in mod_states_dict.items()
+        for index, mod in enumerate(sorted(mods))
     }
 
     # Scan IDs
     scan_index = {
         query: index
-        for pep_seq, mod_states in pep_dict.items()
+        for (prot_name, pep_seq), mod_states in pep_dict.items()
         for mod_state in mod_states
         for index, query in enumerate(
             sorted(
-                mod_query_dict[pep_seq, mod_state],
+                mod_query_dict[prot_name, pep_seq, mod_state],
                 key=lambda x: x.scan,
             )
         )
@@ -265,8 +270,8 @@ def export_to_camv(
 
     # Peak Match IDs
     match_index = {
-        (pep_seq, mods, name): index
-        for (pep_seq, mods), queries in mods_dict.items()
+        (prot_name, pep_seq, mods, name): index
+        for (prot_name, pep_seq, mods), queries in mods_dict.items()
         for index, name in enumerate(
             name
             for name in sorted(
@@ -286,12 +291,12 @@ def export_to_camv(
     ###
     # Individual data parsing functions
     ###
-    def _gen_match_data(pep_seq, mods):
+    def _gen_match_data(prot_name, pep_seq, mods):
         """
         Generate a list of all potential peak matches
         """
         visited = set()
-        queries = mods_dict[pep_seq, mods]
+        queries = mods_dict[prot_name, pep_seq, mods]
 
         for query in queries:
             for peak_hit in peak_hits[query, _join_seq_mods(pep_seq, mods)]:
@@ -311,7 +316,13 @@ def export_to_camv(
                         ion_type, ion_pos = None, None
 
                     yield OrderedDict([
-                        ("id", match_index[pep_seq, mods, name]),
+                        (
+                            "id",
+                            match_index[
+                                query.prot_name, query.pep_seq,
+                                tuple(query.pep_var_mods), name,
+                            ]
+                        ),
                         ("mz", mz),
                         ("name", _rewrite_ion_name(name)),
                         ("ionType", ion_type),
@@ -320,42 +331,43 @@ def export_to_camv(
 
                     visited.add(name)
 
-    def _get_match_data(pep_seq, mods):
+    def _get_match_data(prot_name, pep_seq, mods):
         return sorted(
-            _gen_match_data(pep_seq, mods),
+            _gen_match_data(prot_name, pep_seq, mods),
             key=lambda x: x["id"],
         )
 
-    def _get_mod_data(pep_seq, mods):
+    def _get_mod_data(prot_name, pep_seq, mods):
         return [
             OrderedDict([
-                ("id", mod_index[pep_seq, mod]),
+                ("id", mod_index[prot_name, pep_seq, mod]),
                 ("position", _mod_positions(mod)),
                 ("name", _pep_mod_name(pep_seq, mod)),
-                ("matchData", _get_match_data(pep_seq, mod)),
+                ("matchData", _get_match_data(prot_name, pep_seq, mod)),
             ])
             for mod in sorted(
                 mods,
-                key=lambda x: mod_index[pep_seq, x],
+                key=lambda x: mod_index[prot_name, pep_seq, x],
             )
         ]
 
-    def _get_mod_states(pep_seq, mod_states):
+    def _get_mod_states(prot_name, pep_seq, mod_states):
         return [
             OrderedDict([
-                ("id", mod_state_index[pep_seq, mod_state]),
+                ("id", mod_state_index[prot_name, pep_seq, mod_state]),
                 ("modDesc", _get_mods_description(pep_seq, mod_state)),
                 (
                     "mods",
                     _get_mod_data(
+                        prot_name,
                         pep_seq,
-                        mod_states_dict[pep_seq, mod_state],
+                        mod_states_dict[prot_name, pep_seq, mod_state],
                     ),
                 ),
             ])
             for mod_state in sorted(
                 mod_states,
-                key=lambda x: mod_state_index[pep_seq, x],
+                key=lambda x: mod_state_index[prot_name, pep_seq, x],
             )
         ]
 
@@ -371,7 +383,7 @@ def export_to_camv(
                 ("peptideSequence", pep_seq),
                 (
                     "modificationStates",
-                    _get_mod_states(pep_seq, pep_dict[pep_seq]),
+                    _get_mod_states(prot_name, pep_seq, pep_dict[pep_seq]),
                 ),
             ])
             for (prot_name, pep_seq), index in sorted(
@@ -380,22 +392,22 @@ def export_to_camv(
             )
         ]
 
-    def _get_default_choice_data(pep_seq, mod_state):
+    def _get_default_choice_data(prot_name, pep_seq, mod_state):
         return [
             OrderedDict([
-                ("modsId", mod_index[pep_seq, mod]),
+                ("modsId", mod_index[prot_name, pep_seq, mod]),
                 ("state", None),  # null
             ])
             for mod in sorted(
-                mod_states_dict[pep_seq, mod_state],
-                key=lambda x: mod_index[pep_seq, x],
+                mod_states_dict[prot_name, pep_seq, mod_state],
+                key=lambda x: mod_index[prot_name, pep_seq, x],
             )
         ]
 
-    def _get_matches(peak_index, query):
+    def _get_matches(prot_name, peak_index, query):
         return [
             OrderedDict([
-                ("modsId", mod_index[seq, mods]),
+                ("modsId", mod_index[prot_name, seq, mods]),
                 (
                     "matchId",
                     match_index.get(
@@ -424,7 +436,10 @@ def export_to_camv(
             OrderedDict([
                 ("mz", peak_hit.mz),
                 ("into", peak_hit.intensity),
-                ("matchInfo", _get_matches(peak_index, query)),
+                (
+                    "matchInfo",
+                    _get_matches(query.prot_name, peak_index, query)
+                ),
             ])
             for peak_index, peak_hit in sorted(
                 enumerate(peak_hits[query, _join_seq_mods(seq, mod)]),
@@ -432,7 +447,7 @@ def export_to_camv(
             )
         ]
 
-    def _get_scans(pep_seq, mod_state):
+    def _get_scans(prot_name, pep_seq, mod_state):
         """
         Return information on individual scans, including peaks, precursor
         ions, and peptide modification assignments.
@@ -458,7 +473,7 @@ def export_to_camv(
                 ("quantMz", _get_labels_mz(query)),
                 (
                     "choiceData",
-                    _get_default_choice_data(pep_seq, mod_state),
+                    _get_default_choice_data(prot_name, pep_seq, mod_state),
                 ),
                 (
                     "scanData",
@@ -466,7 +481,7 @@ def export_to_camv(
                 ),
             ])
             for query in sorted(
-                mod_query_dict[pep_seq, mod_state],
+                mod_query_dict[prot_name, pep_seq, mod_state],
                 key=lambda x: scan_index[x],
             )
         ]
@@ -478,14 +493,17 @@ def export_to_camv(
         """
         return [
             OrderedDict([
-                ("peptideId", pep_index[pep_seq, mod_state]),
+                ("peptideId", pep_index[prot_name, pep_seq, mod_state]),
                 ("peptideDataId", pep_data_index[prot_name, pep_seq]),
-                ("modificationStateId", mod_state_index[pep_seq, mod_state]),
-                ("scans", _get_scans(pep_seq, mod_state)),
+                (
+                    "modificationStateId",
+                    mod_state_index[prot_name, pep_seq, mod_state],
+                ),
+                ("scans", _get_scans(prot_name, pep_seq, mod_state)),
             ])
             for pep_seq, mod_state in sorted(
                 (
-                    (pep_seq, mod_state)
+                    (_, pep_seq, mod_state)
                     for pep_seq in peptides
                     for mod_state in pep_dict[pep_seq]
                 ),
@@ -510,8 +528,6 @@ def export_to_camv(
             )
         ]
 
-    print(pep_data_index)
-
     data = OrderedDict([
         ("pycamverterVersion", version.__version__),
         ("peptideData", _get_peptide_data()),
@@ -519,7 +535,6 @@ def export_to_camv(
     ])
 
     LOGGER.info("Exporting CAMV data to {}".format(out_path))
-    LOGGER.info("Exported {} peptide data, {} scan data".format(len(data["peptideData"]), len(data["scanData"])))
 
     if out_path.endswith(".gz"):
         with gzip.GzipFile(out_path, 'w') as f:
