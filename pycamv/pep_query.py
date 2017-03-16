@@ -10,7 +10,7 @@ class PeptideQuery:
     Attributes
     ----------
     accessions : list of str
-    proteins : list of str
+    prot_descs : list of str
     query : int
     filename: str
     pep_score : float
@@ -23,7 +23,7 @@ class PeptideQuery:
     num_comb : int
     """
     def __init__(
-        self, accessions, proteins, query, filename,
+        self, accessions, prot_descs, query, filename,
         pep_score,
         pep_exp_mz, pep_exp_z,
         pep_seq,
@@ -32,7 +32,7 @@ class PeptideQuery:
         assert _check_mods(pep_var_mods)
         assert _check_mods(pep_fixed_mods)
         self.accessions = accessions
-        self.proteins = proteins
+        self.prot_descs = prot_descs
         self.query = query
         self.filename = filename
         self.pep_score = pep_score
@@ -61,7 +61,7 @@ class PeptideQuery:
         return self._unique_tuple() == other._unique_tuple()
 
     def get_prot_name(self):
-        return " / ".join(self.prot_desc)
+        return " / ".join(self.prot_descs)
 
     @property
     def pep_mods(self):
