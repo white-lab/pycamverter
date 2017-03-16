@@ -61,7 +61,7 @@ class PeptideQuery:
         return self._unique_tuple() == other._unique_tuple()
 
     def get_prot_name(self):
-        return " / ".join(self.prot_descs)
+        return " / ".join(sorted(self.prot_descs))
 
     @property
     def pep_mods(self):
