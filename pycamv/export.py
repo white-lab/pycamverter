@@ -225,7 +225,7 @@ def export_to_camv(
         for index, (pep_seq, mod_states) in enumerate(
             (pep_seq, mod_states)
             for pep_seq in peptides
-            for mod_states in pep_dict[pep_seq]
+            for mod_states in pep_dict[prot_name, pep_seq]
         )
     }
 
@@ -320,7 +320,7 @@ def export_to_camv(
                             "id",
                             match_index[
                                 query.prot_name, query.pep_seq,
-                                tuple(query.pep_var_mods), name,
+                                mods, name,
                             ]
                         ),
                         ("mz", mz),
@@ -383,7 +383,9 @@ def export_to_camv(
                 ("peptideSequence", pep_seq),
                 (
                     "modificationStates",
-                    _get_mod_states(prot_name, pep_seq, pep_dict[pep_seq]),
+                    _get_mod_states(
+                        prot_name, pep_seq, pep_dict[prot_name, pep_seq],
+                    ),
                 ),
             ])
             for (prot_name, pep_seq), index in sorted(
@@ -412,6 +414,7 @@ def export_to_camv(
                     "matchId",
                     match_index.get(
                         (
+                            prot_name,
                             seq,
                             mods,
                             peak_hits[
@@ -423,14 +426,14 @@ def export_to_camv(
                     ),
                 ),
             ])
-            for seq, mods in sorted(
+            for _, seq, mods in sorted(
                 query_dict[query],
                 key=lambda x: mod_index[x],
             )
         ]
 
     def _get_scan_assignments(query, seq):
-        mod = query_dict[query][0][1]
+        mod = query_dict[query][0][-1]
 
         return [
             OrderedDict([
@@ -501,11 +504,11 @@ def export_to_camv(
                 ),
                 ("scans", _get_scans(prot_name, pep_seq, mod_state)),
             ])
-            for pep_seq, mod_state in sorted(
+            for _, pep_seq, mod_state in sorted(
                 (
-                    (_, pep_seq, mod_state)
+                    (prot_name, pep_seq, mod_state)
                     for pep_seq in peptides
-                    for mod_state in pep_dict[pep_seq]
+                    for mod_state in pep_dict[prot_name, pep_seq]
                 ),
                 key=lambda x: pep_index[x],
             )
