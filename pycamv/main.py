@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import multiprocessing
 import os
 import sys
 
@@ -155,6 +156,7 @@ def main(args):
         )
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     # is_frozen_executable = getattr(sys, u'frozen', False)
     #
     # if is_frozen_executable:

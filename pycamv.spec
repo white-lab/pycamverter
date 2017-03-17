@@ -1,6 +1,7 @@
 # -*- mode: python -*-
 
 import pymzml
+from pycamv.proteowizard import PROTEOWIZARD_PATH
 
 block_cipher = None
 
@@ -18,7 +19,7 @@ a = Analysis(
         pathex=[],
         binaries=None,
         datas=[
-            ('pycamv/ProteoWizard/*', 'pycamv/ProteoWizard/ProteoWizard 3.0.10505/'),
+            ('pycamv/ProteoWizard/*', PROTEOWIZARD_PATH),
         ],
         hiddenimports=[],
         hookspath=[],
