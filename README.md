@@ -10,7 +10,7 @@
 
 Utility for converting searched mass spec data into a format readable by CAMV.
 
-![pycamverter demo](http://i.imgur.com/wgAovHa.png)
+![pycamverter demo](https://zippy.gfycat.com/CleverGrotesqueErmine.gif)
 
 ## Installation
 
