@@ -11,6 +11,8 @@ Bugfixes
 
   - Fixed issue with peptideData being blank when ambiguous peptides were
     present.
+  - Fixed issues with viewing peptides with similar types of modifications
+  - Merge proteins from ambiguous peptide matches
 
 ## 0.1.2 (2017-03-10)
 
