@@ -1,9 +1,14 @@
 # -*- mode: python -*-
 
 import pymzml
-from pycamv.proteowizard import PROTEOWIZARD_PATH
 
 block_cipher = None
+
+def get_proteowizard_version():
+    with open(os.path.join("pycamv", "proteowizard.py")) as f:
+        for line in f:
+            if line.startswith("PROTEOWIZARD_VERSION"):
+                return line.split("=")[1].strip('" ')
 
 def dir_files(path, rel):
     ret = []
@@ -19,7 +24,12 @@ a = Analysis(
         pathex=[],
         binaries=None,
         datas=[
-            ('pycamv/ProteoWizard/*', PROTEOWIZARD_PATH),
+            (
+                'pycamv/ProteoWizard/*',
+                'pycamv/ProteoWizard/ProteoWizard ' +
+                get_proteowizard_version() +
+                '/',
+            ),
         ],
         hiddenimports=[],
         hookspath=[],
