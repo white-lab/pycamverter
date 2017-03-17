@@ -12,10 +12,44 @@ Utility for converting searched mass spec data into a format readable by CAMV.
 
 ## Installation
 
-To install the core pycamverter package, run the following command:
+To download a completely packaged Windows executable, visit our [releases page](https://github.com/white-lab/pycamverter/releases)
+
+To install the core pycamverter python library, run the following command:
 
 ```
 pip install pycamverter
 ```
 
-or download a Windows executable from our [releases page](https://github.com/white-lab/pycamverter/releases)
+## Usage
+
+To use pycamverter, select your raw data file, your search files (either MASCOT .xml or ProteomeDiscoverer .msf), and an optional excel listing scan numbers in a file browser. Then simply drag-and-drop them onto PyCAMVerter.exe.
+
+After a few minutes of processing, you should see the output .camv.gz file in the same directory as your raw file.
+
+For a full list of arguments, run PyCAMVerter.exe from the command line:
+
+```
+usage: PyCAMVerter [-h] [-v] [-q] [-V] [--show_gui] [--raw_path RAW_PATH]
+                   [--search_path SEARCH_PATH] [--scans_path SCANS_PATH]
+                   [--scans [SCANS [SCANS ...]]] [--out_path OUT_PATH]
+                   [files [files ...]]
+
+Aww yeah, mass specs!
+
+positional arguments:
+  files
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         Increase verbosity of output.
+  -q, --quiet           Decrease verbosity of output.
+  -V, --version         show program's version number and exit
+  --show_gui            Show GUI for converting files.
+  --raw_path RAW_PATH
+  --search_path SEARCH_PATH
+                        MASCOT or ProteomeDiscoverer search files.
+  --scans_path SCANS_PATH
+  --scans [SCANS [SCANS ...]]
+                        Individual scans to select for validation.
+  --out_path OUT_PATH
+```
