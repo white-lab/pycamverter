@@ -7,6 +7,8 @@ Currently limited to importing and outputing scan lists.
 # Built-ins
 from __future__ import absolute_import, division
 
+from . import multi
+
 from collections import OrderedDict
 from functools import partial
 import logging

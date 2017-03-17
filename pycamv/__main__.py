@@ -4,6 +4,8 @@ Main module for running pycamv from the commandline.
 
 from __future__ import absolute_import, division
 
+from . import multi
+
 import multiprocessing
 import sys
 

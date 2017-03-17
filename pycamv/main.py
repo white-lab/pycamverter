@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from . import multi
+
 import argparse
 import logging
 import multiprocessing
