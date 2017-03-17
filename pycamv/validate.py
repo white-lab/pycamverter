@@ -14,9 +14,8 @@ import multiprocessing
 import re
 import tempfile
 
-from openpyxl import load_workbook
-
-from . import compare, fragments, gen_sequences, search, ms_labels, scans
+from . import compare, fragments, gen_sequences, search, ms_labels, scans, \
+    scan_list
 from .utils import LenGen
 
 
@@ -64,12 +63,6 @@ def _remap_pst(pep_mods):
         )
         for count, mod, letters in pep_mods
     ]
-
-
-def load_scan_list(scans_path):
-    wb = load_workbook(scans_path)
-    ws = wb.active
-    return [row[0].value for row in ws.iter_rows()]
 
 
 def _map_seq(kv):
@@ -157,7 +150,7 @@ def validate_spectra(
         scan_list = []
 
     if scans_path is not None:
-        scan_list += load_scan_list(scans_path)
+        scan_list += scan_list.load_scan_list(scans_path)
 
     # Read peptide search file
     fixed_mods, var_mods, pep_queries = search.read_search_file(search_path)

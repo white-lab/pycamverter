@@ -5,14 +5,14 @@ import logging
 import os
 import sys
 
-from pycamv import validate, export, gui, search, __version__
+from pycamv import validate, export, gui, scan_list, search, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
 
 RAW_EXTS = [".raw", ".mgf", ".d", ".wiff"]
 SEARCH_EXTS = list(search.BACKENDS.keys())
-SCANS_EXTS = [".xlsx"]
+SCANS_EXTS = list(scan_list.BACKENDS.keys())
 
 
 def _parse_args(args):

@@ -6,6 +6,7 @@ Features
 
   - Added support for using ProteomeDiscoverer search files, alongside MASCOT.
   - Started annotating export files with generator's pycamverter version.
+  - Support csv scan lists.
 
 Bugfixes
 
