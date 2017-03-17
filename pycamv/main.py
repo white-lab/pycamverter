@@ -73,11 +73,11 @@ def _parse_args(args):
     parser.add_argument(
         'files', nargs='*',
     )
-    return parser.parse_args(args)
+    return parser, parser.parse_args(args)
 
 
 def main(args):
-    args = _parse_args(args)
+    parser, args = _parse_args(args)
 
     verbosity = (args.verbose or 0) - (args.quiet or 0)
 
@@ -145,6 +145,7 @@ def main(args):
             args.search_path is None or
             args.raw_path is None
         ):
+            parser.print_help()
             raise Exception(
                 "Missing either input search / raw paths"
             )
