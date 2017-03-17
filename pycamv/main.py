@@ -92,10 +92,21 @@ def main(args):
     elif verbosity > 0:
         level = logging.DEBUG
 
-    logging.basicConfig(
-        # filename="pycamv.log",
-        level=level,
+    logger = logging.getLogger('pycamv')
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(level)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    fh = logging.FileHandler('pycamv.log')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
     LOGGER.debug(sys.argv)
     LOGGER.debug(args)
