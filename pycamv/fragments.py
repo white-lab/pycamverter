@@ -9,6 +9,9 @@ from collections import Counter
 
 from . import masses, ms_labels
 
+from .losses import PEPTIDE_LOSSES, INTERNAL_LOSSES, AA_LOSSES, MOD_LOSSES
+
+
 DELTA_C13 = masses.exact_mass({"C": [-1, 1]})
 
 
@@ -59,23 +62,13 @@ def _internal_fragment_ions(
         Ion names and their corresponding m/z's.
     """
     if any_losses is None:
-        any_losses = [
-            "H_2O",
-            "NH_3",
-            "CO",
-        ]
+        any_losses = INTERNAL_LOSSES
 
     if aa_losses is None:
-        aa_losses = {}
+        aa_losses = AA_LOSSES
 
     if mod_losses is None:
-        mod_losses = {
-            ("M", "Oxidation"): ["SOCH_4"],
-            ("M", "Dioxidation"): ["SO_2CH_4"],
-            ("S", "Phospho"): ["H_3PO_4"],
-            ("T", "Phospho"): ["H_3PO_4"],
-            ("Y", "Phospho"): ["HPO_3", "HPO_3-H_2O"],
-        }
+        mod_losses = MOD_LOSSES
 
     pep_seq = [
         (letter, mods)
@@ -392,22 +385,13 @@ def fragment_ions(
         fragment_max_charge = parent_max_charge - 1
 
     if any_losses is None:
-        any_losses = [
-            "H_2O",
-            "NH_3",
-        ]
+        any_losses = PEPTIDE_LOSSES
 
     if aa_losses is None:
-        aa_losses = {}
+        aa_losses = AA_LOSSES
 
     if mod_losses is None:
-        mod_losses = {
-            ("S", "Phospho"): ["H_3PO_4"],
-            ("T", "Phospho"): ["H_3PO_4"],
-            ("Y", "Phospho"): ["HPO_3", "HPO_3-H_2O"],
-            ("M", "Oxidation"): ["SOCH_4"],
-            ("M", "Dioxidation"): ["SO_2CH_4"],
-        }
+        mod_losses = MOD_LOSSES
 
     # First calculate the masses of each residue along the backbone
     frag_masses = _get_frag_masses(pep_seq)
