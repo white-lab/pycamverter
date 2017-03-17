@@ -37,6 +37,11 @@ def _parse_args(args):
         help="Increase verbosity of output.",
     )
     parser.add_argument(
+        "-q", "--quiet",
+        action="count",
+        help="Decrease verbosity of output.",
+    )
+    parser.add_argument(
         '-V', '--version',
         action="version",
         version="%(prog)s {}".format(__version__),
@@ -73,11 +78,17 @@ def _parse_args(args):
 def main(args):
     args = _parse_args(args)
 
-    if not args.verbose:
+    verbosity = (args.verbose or 0) - (args.quiet or 0)
+
+    if verbosity <= -2:
+        level = logging.CRITICAL
+    elif verbosity == -2:
+        level = logging.ERROR
+    elif verbosity == -1:
         level = logging.WARNING
-    elif args.verbose in [1]:
+    elif verbosity == 0:
         level = logging.INFO
-    elif args.verbose >= 2:
+    elif verbosity > 0:
         level = logging.DEBUG
 
     logging.basicConfig(
