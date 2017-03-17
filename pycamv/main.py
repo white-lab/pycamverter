@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pycamv import multi
-
 import argparse
 import logging
 import multiprocessing
