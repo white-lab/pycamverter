@@ -8,7 +8,7 @@
 [![PyPI](https://img.shields.io/pypi/v/pycamverter.svg)](https://pypi.python.org/pypi/pycamverter)
 
 
-Utility for converting searched mass spec data into a format readable by CAMV.
+Utility for converting searched mass spec data into a format readable by [CAMV](https://github.com/white-lab/pycamverter/blob/master/README.md).
 
 ![pycamverter demo](https://zippy.gfycat.com/CleverGrotesqueErmine.gif)
 
