@@ -14,8 +14,8 @@ import multiprocessing
 import re
 import tempfile
 
-from . import compare, fragments, gen_sequences, search, ms_labels, scans, \
-    scan_list
+from . import compare, fragments, gen_sequences, search, ms_labels, scans
+from .scan_list import load_scan_list
 from .utils import LenGen
 
 
@@ -150,7 +150,7 @@ def validate_spectra(
         scan_list = []
 
     if scans_path is not None:
-        scan_list += scan_list.load_scan_list(scans_path)
+        scan_list += load_scan_list(scans_path)
 
     # Read peptide search file
     fixed_mods, var_mods, pep_queries = search.read_search_file(search_path)
