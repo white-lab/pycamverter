@@ -8,7 +8,7 @@ def get_proteowizard_version():
     with open(os.path.join("pycamv", "proteowizard.py")) as f:
         for line in f:
             if line.startswith("PROTEOWIZARD_VERSION"):
-                return line.split("=")[1].strip('" ')
+                return line.split("=")[1].strip('" \n')
 
 def dir_files(path, rel):
     ret = []
