@@ -57,7 +57,7 @@ exe = EXE(
         a.zipfiles,
         a.datas,
         name='PyCAMVerter',
-        debug=True,
+        debug=False,
         strip=False,
         upx=True,
         console=True,
