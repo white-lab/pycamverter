@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import multi
+from pycamv import multi
 
 import argparse
 import logging
