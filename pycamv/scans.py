@@ -122,11 +122,13 @@ def _c13_num(pep_query, isolation_mz):
     )
 
 
+def get_precursor_peak_window(scan_query, ms_data, window_size=1):
     """
     Get ion peaks around each peptide's precursor m/z range.
 
     Parameters
     ----------
+    scan_query : :class:`ScanQuery<pycamv.scan_query.ScanQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
     window_size : float, optional
 
@@ -135,8 +137,11 @@ def _c13_num(pep_query, isolation_mz):
     list of list of tuple of (float, float)
     """
     window = (
+        scan_query.isolation_mz - window_size,
+        scan_query.isolation_mz + window_size,
     )
 
+    scan = ms_data[scan_query.basename][scan_query.precursor_scan]
 
     return [
         (mz, i)
@@ -145,11 +150,13 @@ def _c13_num(pep_query, isolation_mz):
     ]
 
 
+def get_label_peak_window(pep_query, ms2_data, window_size=1):
     """
     Get ion peaks around each peptide's label m/z range.
 
     Parameters
     ----------
+    pep_query : :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
     window_size : float, optional
 
@@ -157,6 +164,7 @@ def _c13_num(pep_query, isolation_mz):
     -------
     list of list of tuple of (float, float)
     """
+    label_mods = pep_query.get_label_mods
 
     if not label_mods:
         return []
@@ -167,6 +175,7 @@ def _c13_num(pep_query, isolation_mz):
         window[1] + window_size
     )
 
+    scan = ms2_data[pep_query.basename][pep_query.scan]
 
     return [
         (mz, i)
