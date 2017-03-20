@@ -73,9 +73,13 @@ def _map_seq(kv):
     return (
         pep_query,
         tuple(
-            gen_sequences.gen_possible_seq(
-                pep_query.pep_seq,
-                pep_query.pep_mods,
+            seq
+            for index, seq in zip(
+                range(10),
+                gen_sequences.gen_possible_seq(
+                    pep_query.pep_seq,
+                    pep_query.pep_mods,
+                )
             )
         ),
     )
@@ -177,8 +181,6 @@ def validate_spectra(
     # Extract MASCOT search options
     options = SearchOptions(fixed_mods, var_mods)
 
-    # Remove peptides with an excess of modification combinations
-
     # Get scan data from RAW file
     required_raws = set(query.filename for query in pep_queries)
     base_raw_paths = [os.path.basename(path) for path in raw_paths]
@@ -191,6 +193,23 @@ def validate_spectra(
                 "Unable to find {} in input RAW files: {}"
                 .format(base_raw, base_raw_paths)
             )
+
+    # Generate sequences
+    LOGGER.info(
+        "Generating all possible sequence-modification combinations."
+    )
+    pool = multiprocessing.Pool(processes=cpu_count)
+    sequence_mapping = OrderedDict(
+        pool.map(_map_seq, pep_queries)
+    )
+
+    LOGGER.info(
+        "Generating fragment ions for {} queries ({} sequences)."
+        .format(
+            len(sequence_mapping),
+            sum(len(i) for i in sequence_mapping.values())
+        )
+    )
 
     out_dir = tempfile.mkdtemp()
 
@@ -207,20 +226,6 @@ def validate_spectra(
         for pep_query, scan_query in zip(pep_queries, scan_queries)
     )
 
-    # Generate sequences
-    LOGGER.info(
-        "Generating all possible sequence-modification combinations."
-    )
-    pool = multiprocessing.Pool(processes=cpu_count)
-    sequence_mapping = OrderedDict(
-        pool.map(_map_seq, pep_queries)
-    )
-
-    LOGGER.info(
-        "Generating fragment ions for {} queries.".format(
-            len(sequence_mapping),
-        )
-    )
     fragment_mapping = OrderedDict(
         pool.map(
             partial(_map_frag, scan_mapping=scan_mapping),
