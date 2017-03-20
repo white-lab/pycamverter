@@ -6,7 +6,7 @@ import multiprocessing
 import os
 import sys
 
-from pycamv import validate, export, gui, scan_list, search, __version__
+from pycamv import validate, gui, scan_list, search, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
@@ -55,6 +55,7 @@ def _parse_args(args):
     parser.add_argument(
         "--raw_paths",
         nargs="+",
+        help="Raw data file(s) containing mass spec data.",
     )
     parser.add_argument(
         "--search_path",
@@ -62,6 +63,7 @@ def _parse_args(args):
     )
     parser.add_argument(
         "--scans_path",
+        help=".xlsx or .csv file listing scans to select for validation.",
     )
     parser.add_argument(
         "--scans",
@@ -70,9 +72,12 @@ def _parse_args(args):
     )
     parser.add_argument(
         "--out_path",
+        help="Output path for CAMV export.",
     )
     parser.add_argument(
-        'files', nargs='*',
+        'files',
+        nargs='*',
+        help="Raw, search, or scan list files, determined by file extension."
     )
     return parser, parser.parse_args(args)
 
@@ -154,22 +159,14 @@ def main(args):
                 "Missing either input search / raw paths"
             )
 
-        options, peak_hits, scan_mapping, precursor_windows, label_windows = (
-            validate.validate_spectra(
-                search_path=args.search_path,
-                raw_paths=args.raw_paths,
-                scans_path=args.scans_path,
-                scan_list=args.scans,
-            )
+        validate.validate_spectra(
+            search_path=args.search_path,
+            raw_paths=args.raw_paths,
+            scans_path=args.scans_path,
+            scan_list=args.scans,
+            out_path=args.out_path,
         )
 
-        if args.out_path is None:
-            args.out_path = os.path.splitext(args.search_path)[0] + ".camv.gz"
-
-        export.export_to_camv(
-            args.out_path,
-            peak_hits, scan_mapping, precursor_windows, label_windows,
-        )
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()

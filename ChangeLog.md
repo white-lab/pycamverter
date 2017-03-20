@@ -5,6 +5,11 @@
 Features
 
   - Added support for ProteomeDiscoverer 2.1
+  - Several optimizations to get working on pS/T data sets.
+
+Bugfixes
+
+  - Cleanup temp data files after runs.
 
 ## 0.2.0 (2017-03-17)
 

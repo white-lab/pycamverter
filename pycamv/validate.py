@@ -15,8 +15,10 @@ import multiprocessing
 import os
 import re
 import tempfile
+import shutil
 
-from . import compare, fragments, gen_sequences, search, ms_labels, scans
+from . import compare, export, fragments, gen_sequences, search, ms_labels, \
+    scans
 from .scan_list import load_scan_list
 from .utils import LenGen
 
@@ -109,6 +111,7 @@ def validate_spectra(
     raw_paths,
     scans_path=None,
     scan_list=None,
+    out_path=None,
     cpu_count=None,
 ):
     """
@@ -120,24 +123,8 @@ def validate_spectra(
     raw_paths : list of str
     scans_path : str, optional
     scan_list : list of int, optional
+    out_path : str, optional
     cpu_count : int, optional
-
-    Returns
-    -------
-    options : :class:`pycamv.validate.SearchOptions`
-    peak_hits :
-    dict of (tuple of :class:`pycamv.pep_query.PeptideQuery`, list),
-    list of :class:`pycamv.compare.PeptideHit`
-        Dictionary mapping peptide queries and their sequences to peptide hits.
-    scan_mapping : OrderedDict of :class:`pycamv.pep_query.PeptideQuery`,
-    :class:`pycamv.scans.ScanQuery`
-        Dictionary mapping peptide queries to their scan data, including
-        collision type and size of isolation window.
-    precursor_windows : dict of :class:`pycamv.pep_query.PeptideQuery`, list
-        Dictionary mapping peptide queries to peak lists for precursor scans.
-    label_windows : dict of :class:`pycamv.pep_query.PeptideQuery`, list
-        Dictionary mapping peptide queries to peak lists for quantification
-        channels.
     """
     if cpu_count is None:
         try:
@@ -152,6 +139,9 @@ def validate_spectra(
 
     if scans_path is not None:
         scan_list += load_scan_list(scans_path)
+
+    if out_path is None:
+        out_path = os.path.splitext(search_path)[0] + ".camv.gz"
 
     # Read peptide search file
     fixed_mods, var_mods, pep_queries = search.read_search_file(search_path)
@@ -171,9 +161,6 @@ def validate_spectra(
     for pep_query in pep_queries:
         pep_query.pep_var_mods = _remap_pst(pep_query.pep_var_mods)
         pep_query.pep_fixed_mods = _remap_pst(pep_query.pep_fixed_mods)
-
-    # Extract MASCOT search options
-    options = SearchOptions(fixed_mods, var_mods)
 
     # Get scan data from RAW file
     required_raws = set(query.basename for query in pep_queries)
@@ -271,7 +258,9 @@ def validate_spectra(
     # Check each assignment to each scan
 
     # Output data
+    export.export_to_camv(
+        out_path,
+        peak_hits, scan_mapping, precursor_windows, label_windows,
+    )
 
-    # shutil.rmtree(out_dir)
-
-    return options, peak_hits, scan_mapping, precursor_windows, label_windows
+    shutil.rmtree(out_dir)
