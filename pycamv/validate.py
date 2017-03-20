@@ -101,7 +101,7 @@ def _map_frag_compare(kv):
 
     del scan
 
-    return (pep_query, sequence), peaks
+    return (pep_query, tuple(sequence)), peaks
 
 
 def validate_spectra(
@@ -191,8 +191,8 @@ def validate_spectra(
         "Generating all possible sequence-modification combinations."
     )
     pool = multiprocessing.Pool(processes=cpu_count)
-    sequence_mapping = OrderedDict(
-        pool.imap(_map_seq, pep_queries)
+    sequence_mapping = dict(
+        pool.imap_unordered(_map_seq, pep_queries)
     )
 
     total_num_seq = sum(len(i) for i in sequence_mapping.values())
@@ -226,7 +226,7 @@ def validate_spectra(
     )
 
     peak_hits = dict(
-        pool.map(
+        pool.imap_unordered(
             _map_frag_compare,
             LenGen(
                 (

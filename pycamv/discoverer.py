@@ -324,7 +324,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
                 pep_seq,
                 pep_var_mods,
                 pep_fixed_mods,
-                int(scan),
+                scan,
             )
         )
 
