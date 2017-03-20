@@ -24,34 +24,6 @@ from .utils import LenGen
 LOGGER = logging.getLogger("pycamv.validate")
 
 
-class SearchOptions:
-    """
-    Contains options used by a peptide search.
-
-    Attributes
-    ----------
-    label_type : tuple of (str, int)
-    """
-    def __init__(self, fixed_mods, var_mods):
-        self.label_type = (None, 0)
-
-        for mod in fixed_mods:
-            mod = re.sub(r"([\w-]+) \([\w-]+\)", r"\1", mod)
-            num = ms_labels.LABEL_NUMBERS.get(mod, 0)
-
-            if num > 0:
-                self.label_type = ("Fixed", num)
-
-        for mod in var_mods:
-            mod = re.sub(r"([\w-]+) \([\w-]+\)", r"\1", mod)
-            num = ms_labels.LABEL_NUMBERS.get(mod, 0)
-
-            if num > 0:
-                self.label_type = ("Variable", num)
-
-        # TODO: Parse out SILAC, C-mod, phospho, etc
-
-
 def _remap_pst(pep_mods):
     return [
         (
