@@ -53,7 +53,8 @@ def _parse_args(args):
         help="Show GUI for converting files.",
     )
     parser.add_argument(
-        "--raw_path",
+        "--raw_paths",
+        nargs="+",
     )
     parser.add_argument(
         "--search_path",
@@ -123,14 +124,17 @@ def main(args):
             if len(searches) == 1:
                 args.search_path = searches[0]
 
-        if args.raw_path is None:
+        if args.raw_paths is None:
             raws = [
                 i for i in args.files
                 if os.path.splitext(i.lower())[1] in RAW_EXTS
             ]
 
-            if len(raws) == 1:
-                args.raw_path = raws[0]
+            if len(raws) > 0:
+                if args.raw_paths:
+                    args.raw_paths += raws
+                else:
+                    args.raw_paths = raws
 
         if args.scans_path is None:
             scans = [
@@ -143,7 +147,7 @@ def main(args):
 
         if (
             args.search_path is None or
-            args.raw_path is None
+            args.raw_paths is None
         ):
             parser.print_help()
             raise Exception(
@@ -153,14 +157,14 @@ def main(args):
         options, peak_hits, scan_mapping, precursor_windows, label_windows = (
             validate.validate_spectra(
                 search_path=args.search_path,
-                raw_path=args.raw_path,
+                raw_paths=args.raw_paths,
                 scans_path=args.scans_path,
                 scan_list=args.scans,
             )
         )
 
         if args.out_path is None:
-            args.out_path = os.path.splitext(args.raw_path)[0] + ".camv.gz"
+            args.out_path = os.path.splitext(args.search_path)[0] + ".camv.gz"
 
         export.export_to_camv(
             args.out_path,

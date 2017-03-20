@@ -188,13 +188,13 @@ def get_label_peak_window(pep_queries, ms2_data, window_size=1):
     ]
 
 
-def get_scan_data(raw_path, pep_queries, out_dir=None):
+def get_scan_data(raw_paths, pep_queries, out_dir=None):
     """
     Gets MS^2 and MS data for all scans in queries.
 
     Parameters
     ----------
-    raw_path : str
+    raw_path : list of str
     pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     out_dir : str, optional
 
@@ -208,23 +208,31 @@ def get_scan_data(raw_path, pep_queries, out_dir=None):
         out_dir = tempfile.mkdtemp()
 
     # Collect MS^2 data
-    LOGGER.info("Converting MS^2 data.")
-    ms2_data = proteowizard.raw_to_mzml(
-        raw_path, os.path.join(out_dir, "ms2"),
-        scans=sorted(set(pep_query.scan for pep_query in pep_queries)),
-    )
+    ms_data = {}
+    ms2_data = {}
+    scan_queries = []
 
-    # Build a list of scan queries, including data about each scan
-    scan_queries = [
-        _scanquery_from_spectrum(pep_query, ms2_data[pep_query.scan])
-        for pep_query in pep_queries
-    ]
+    for raw_path in raw_paths:
+        LOGGER.info("Converting MS^2 data for {}".format(raw_path))
+        ms2_data[raw_path] = proteowizard.raw_to_mzml(
+            raw_path, os.path.join(out_dir, "ms2"),
+            scans=sorted(set(pep_query.scan for pep_query in pep_queries)),
+        )
 
-    # Collect MS^1 data
-    LOGGER.info("Converting MS^1 data.")
-    ms_data = proteowizard.raw_to_mzml(
-        raw_path, os.path.join(out_dir, "ms"),
-        scans=sorted(set(i.precursor_scan for i in scan_queries)),
-    )
+        # Build a list of scan queries, including data about each scan
+        scan_queries += [
+            _scanquery_from_spectrum(
+                pep_query,
+                ms2_data[raw_path][pep_query.scan],
+            )
+            for pep_query in pep_queries
+        ]
+
+        # Collect MS^1 data
+        LOGGER.info("Converting MS^1 data for {}".format(raw_path))
+        ms_data[raw_path] = proteowizard.raw_to_mzml(
+            raw_path, os.path.join(out_dir, "ms"),
+            scans=sorted(set(i.precursor_scan for i in scan_queries)),
+        )
 
     return scan_queries, ms2_data, ms_data

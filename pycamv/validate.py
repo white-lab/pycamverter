@@ -13,6 +13,7 @@ from collections import OrderedDict
 from functools import partial
 import logging
 import multiprocessing
+import os
 import re
 import tempfile
 
@@ -108,7 +109,7 @@ def _map_compare(kv, scan_mapping):
 
 def validate_spectra(
     search_path,
-    raw_path,
+    raw_paths,
     scans_path=None,
     scan_list=None,
     cpu_count=None,
@@ -119,7 +120,7 @@ def validate_spectra(
     Parameters
     ----------
     search_path : str
-    raw_path : str
+    raw_paths : list of str
     scans_path : str, optional
     scan_list : list of int, optional
     cpu_count : int, optional
@@ -179,12 +180,24 @@ def validate_spectra(
     # Remove peptides with an excess of modification combinations
 
     # Get scan data from RAW file
+    required_raws = set(query.filename for query in pep_queries)
+    base_raw_paths = [os.path.basename(path) for path in raw_paths]
+
+    for raw in required_raws:
+        base_raw = os.path.basename(raw)
+
+        if base_raw not in base_raw_paths:
+            raise Exception(
+                "Unable to find {} in input RAW files: {}"
+                .format(base_raw, base_raw_paths)
+            )
+
     out_dir = tempfile.mkdtemp()
 
     LOGGER.info("Getting scan data.")
 
     scan_queries, ms_two_data, ms_data = scans.get_scan_data(
-        raw_path, pep_queries, out_dir,
+        raw_paths, pep_queries, out_dir,
     )
 
     LOGGER.info("Found info for {} scans".format(len(scan_queries)))
@@ -230,7 +243,13 @@ def validate_spectra(
             partial(_map_compare, scan_mapping=scan_mapping),
             LenGen(
                 (
-                    (key, (val, ms_two_data[key[0].scan].deRef()))
+                    (
+                        key,
+                        (
+                            val,
+                            ms_two_data[key[0].filename][key[0].scan].deRef()
+                        )
+                    )
                     for key, val in fragment_mapping.items()
                 ),
                 len(fragment_mapping),
