@@ -258,9 +258,11 @@ def validate_spectra(
     # Check each assignment to each scan
 
     # Output data
+    LOGGER.info("Exporting data to {}.".format(out_path))
     export.export_to_camv(
         out_path,
         peak_hits, scan_mapping, precursor_windows, label_windows,
     )
 
+    LOGGER.info("Removing directory of temporary files.")
     shutil.rmtree(out_dir)
