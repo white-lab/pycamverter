@@ -25,11 +25,12 @@ class ScanQuery:
     precursor_scan : int or None
     collision_type : str or None
     c13_num : int
+    filename : str or None
     """
     def __init__(
         self, scan,
         isolation_mz=None, window_offset=None, precursor_scan=None,
-        collision_type=None, c13_num=0,
+        collision_type=None, c13_num=0, filename=None,
     ):
         self.scan = scan
         self.precursor_scan = precursor_scan
@@ -37,6 +38,7 @@ class ScanQuery:
         self.isolation_mz = isolation_mz
         self.collision_type = collision_type
         self.c13_num = c13_num
+        self.filename = filename
 
 
 def _scanquery_from_spectrum(pep_query, spectrum):
@@ -93,7 +95,8 @@ def _scanquery_from_spectrum(pep_query, spectrum):
         window_offset=window_offset,
         isolation_mz=isolation_mz,
         collision_type=collision_type,
-        c13_num=_c13_num(pep_query, isolation_mz)
+        c13_num=_c13_num(pep_query, isolation_mz),
+        filename=pep_query.filename,
     )
 
 
@@ -213,10 +216,24 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
     scan_queries = []
 
     for raw_path in raw_paths:
+
+        ms2_scan_filter = sorted(
+            set(
+                pep_query.scan
+                for pep_query in pep_queries
+                if os.path.basename(pep_query.filename) ==
+                os.path.basename(raw_path)
+            )
+        )
+
+        if not ms2_scan_filter:
+            continue
+
         LOGGER.info("Converting MS^2 data for {}".format(raw_path))
+
         ms2_data[raw_path] = proteowizard.raw_to_mzml(
             raw_path, os.path.join(out_dir, "ms2"),
-            scans=sorted(set(pep_query.scan for pep_query in pep_queries)),
+            scans=ms2_scan_filter,
         )
 
         # Build a list of scan queries, including data about each scan
@@ -230,9 +247,19 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
 
         # Collect MS^1 data
         LOGGER.info("Converting MS^1 data for {}".format(raw_path))
+
+        ms_scan_filter = sorted(
+            set(
+                scan_query.precursor_scan
+                for scan_query in scan_queries
+                if os.path.basename(scan_query.filename) ==
+                os.path.basename(raw_path)
+            )
+        )
+
         ms_data[raw_path] = proteowizard.raw_to_mzml(
             raw_path, os.path.join(out_dir, "ms"),
-            scans=sorted(set(i.precursor_scan for i in scan_queries)),
+            scans=ms_scan_filter,
         )
 
     return scan_queries, ms2_data, ms_data
