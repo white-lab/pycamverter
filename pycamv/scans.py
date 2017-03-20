@@ -25,12 +25,12 @@ class ScanQuery:
     precursor_scan : int or None
     collision_type : str or None
     c13_num : int
-    filename : str or None
+    basename : str or None
     """
     def __init__(
         self, scan,
         isolation_mz=None, window_offset=None, precursor_scan=None,
-        collision_type=None, c13_num=0, filename=None,
+        collision_type=None, c13_num=0, basename=None,
     ):
         self.scan = scan
         self.precursor_scan = precursor_scan
@@ -38,7 +38,7 @@ class ScanQuery:
         self.isolation_mz = isolation_mz
         self.collision_type = collision_type
         self.c13_num = c13_num
-        self.filename = filename
+        self.basename = basename
 
 
 def _scanquery_from_spectrum(pep_query, spectrum):
@@ -96,7 +96,7 @@ def _scanquery_from_spectrum(pep_query, spectrum):
         isolation_mz=isolation_mz,
         collision_type=collision_type,
         c13_num=_c13_num(pep_query, isolation_mz),
-        filename=pep_query.filename,
+        basename=pep_query.basename,
     )
 
 
@@ -141,9 +141,11 @@ def get_precursor_peak_window(scan_queries, ms_data, window_size=1):
             query.isolation_mz + window_size,
         )
 
+        scan = ms_data[query.basename][query.precursor_scan]
+
         return [
             (mz, i)
-            for mz, i in ms_data[query.precursor_scan].centroidedPeaks
+            for mz, i in scan.centroidedPeaks
             if mz > window[0] and mz < window[1]
         ]
 
@@ -179,9 +181,11 @@ def get_label_peak_window(pep_queries, ms2_data, window_size=1):
             window[1] + window_size
         )
 
+        scan = ms2_data[query.basename][query.scan]
+
         return [
             (mz, i)
-            for mz, i in ms2_data[query.scan].centroidedPeaks
+            for mz, i in scan.centroidedPeaks
             if mz > window[0] and mz < window[1]
         ]
 
@@ -216,14 +220,14 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
     scan_queries = []
 
     for raw_path in raw_paths:
+        base_raw = os.path.basename(raw_path)
 
         ms2_scan_filter = sorted(
             set(
                 pep_query.scan
                 for pep_query in pep_queries
-                if os.path.basename(pep_query.filename) ==
-                os.path.basename(raw_path)
-            )
+                if pep_query.basename == os.path.basename(raw_path)
+            ),
         )
 
         if not ms2_scan_filter:
@@ -231,7 +235,7 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
 
         LOGGER.info("Converting MS^2 data for {}".format(raw_path))
 
-        ms2_data[raw_path] = proteowizard.raw_to_mzml(
+        ms2_data[base_raw] = proteowizard.raw_to_mzml(
             raw_path, os.path.join(out_dir, "ms2"),
             scans=ms2_scan_filter,
         )
@@ -240,7 +244,7 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
         scan_queries += [
             _scanquery_from_spectrum(
                 pep_query,
-                ms2_data[raw_path][pep_query.scan],
+                ms2_data[base_raw][pep_query.scan],
             )
             for pep_query in pep_queries
         ]
@@ -252,12 +256,11 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
             set(
                 scan_query.precursor_scan
                 for scan_query in scan_queries
-                if os.path.basename(scan_query.filename) ==
-                os.path.basename(raw_path)
-            )
+                if scan_query.basename == os.path.basename(raw_path)
+            ),
         )
 
-        ms_data[raw_path] = proteowizard.raw_to_mzml(
+        ms_data[base_raw] = proteowizard.raw_to_mzml(
             raw_path, os.path.join(out_dir, "ms"),
             scans=ms_scan_filter,
         )
