@@ -11,12 +11,10 @@ from collections import OrderedDict
 import logging
 import multiprocessing
 import os
-import re
 import tempfile
 import shutil
 
-from . import compare, export, fragments, gen_sequences, search, ms_labels, \
-    scans
+from . import compare, export, fragments, gen_sequences, scans, search
 from .scan_list import load_scan_list
 from .utils import LenGen
 
