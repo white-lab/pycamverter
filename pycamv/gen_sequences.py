@@ -39,7 +39,6 @@ def gen_possible_seq(pep_seq, var_mods):
         ]
 
         if len(indices) < count:
-            LOGGER.error(len(indices), count, seq, mods, var_mods)
             raise Exception(
                 (
                     "Too few sites for modification \"{} {} ({})\" "
