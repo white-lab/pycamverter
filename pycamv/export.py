@@ -319,7 +319,7 @@ def export_to_camv(
                             match_index[
                                 query.prot_name, query.pep_seq,
                                 exact_mods, name,
-                            ]
+                            ],
                         ),
                         ("mz", mz),
                         ("name", _rewrite_ion_name(name)),
