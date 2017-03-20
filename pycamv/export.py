@@ -8,7 +8,7 @@ from __future__ import absolute_import, division
 from collections import OrderedDict
 import gzip
 import logging
-import json
+import simplejson as json
 
 from .utils import DefaultOrderedDict
 from . import ms_labels, regexes, version
@@ -347,7 +347,7 @@ def export_to_camv(
         )
 
     def _get_exact_mod_data(prot_name, pep_seq, mod_state):
-        return [
+        return (
             OrderedDict([
                 (
                     "exactModsId",
@@ -365,10 +365,10 @@ def export_to_camv(
                     prot_name, pep_seq, mod_state, x
                 ],
             )
-        ]
+        )
 
     def _get_mod_states(prot_name, pep_seq, mod_states):
-        return [
+        return (
             OrderedDict([
                 ("modStateId", mod_state_index[prot_name, pep_seq, mod_state]),
                 ("modDesc", _get_mods_description(pep_seq, mod_state)),
@@ -385,14 +385,14 @@ def export_to_camv(
                 mod_states,
                 key=lambda x: mod_state_index[prot_name, pep_seq, x],
             )
-        ]
+        )
 
     def _get_peptide_data():
         """
         Return all information mapping (modified) peptides to their sequence,
         descriptions, ion fragmentation patterns, etc.
         """
-        return [
+        return (
             OrderedDict([
                 ("proteinId", index),
                 ("proteinName", prot_name),
@@ -408,10 +408,10 @@ def export_to_camv(
                 pep_data_index.items(),
                 key=lambda x: x[1],
             )
-        ]
+        )
 
     def _get_default_choice_data(prot_name, pep_seq, mod_state):
-        return [
+        return (
             OrderedDict([
                 (
                     "modsId",
@@ -426,10 +426,10 @@ def export_to_camv(
                     prot_name, pep_seq, mod_state, x
                 ],
             )
-        ]
+        )
 
     def _get_matches(prot_name, peak_index, query):
-        return [
+        return (
             OrderedDict([
                 (
                     "modsId",
@@ -455,12 +455,12 @@ def export_to_camv(
                 query_dict[query],
                 key=lambda x: exact_mods_index[x],
             )
-        ]
+        )
 
     def _get_scan_assignments(query, seq):
         exact_mods = query_dict[query][0][-1]
 
-        return [
+        return (
             OrderedDict([
                 ("mz", peak_hit.mz),
                 ("into", peak_hit.intensity),
@@ -473,14 +473,14 @@ def export_to_camv(
                 enumerate(peak_hits[query, _join_seq_mods(seq, exact_mods)]),
                 key=lambda x: x[1].mz,
             )
-        ]
+        )
 
     def _get_scans(prot_name, pep_seq, mod_state):
         """
         Return information on individual scans, including peaks, precursor
         ions, and peptide modification assignments.
         """
-        return [
+        return (
             OrderedDict([
                 ("scanId", scan_index[query]),
                 ("fileName", query.filename),
@@ -512,14 +512,14 @@ def export_to_camv(
                 mod_query_dict[prot_name, pep_seq, mod_state],
                 key=lambda x: scan_index[x],
             )
-        ]
+        )
 
     def _get_peptide_scan_data(prot_name, peptides):
         """
         Map peptides to their data IDs, scans, and candidate modification
         states.
         """
-        return [
+        return (
             OrderedDict([
                 ("peptideId", pep_index[prot_name, pep_seq, mod_state]),
                 ("peptideDataId", pep_data_index[prot_name, pep_seq]),
@@ -537,14 +537,14 @@ def export_to_camv(
                 ),
                 key=lambda x: pep_index[x],
             )
-        ]
+        )
 
     def _get_scan_data():
         """
         Return all information mapping proteins / peptides to their scans and
         a list of candidate modification patterns.
         """
-        return [
+        return (
             OrderedDict([
                 ("proteinId", prot_index[prot_name]),
                 ("proteinName", prot_name),
@@ -554,7 +554,7 @@ def export_to_camv(
                 prot_dict.items(),
                 key=lambda x: prot_index[x[0]],
             )
-        ]
+        )
 
     data = OrderedDict([
         ("pycamverterVersion", version.__version__),
@@ -566,9 +566,19 @@ def export_to_camv(
 
     if out_path.endswith(".gz"):
         with gzip.GzipFile(out_path, 'w') as f:
-            f.write(json.dumps(data, indent=None).encode("utf-8"))
+            f.write(
+                json.dumps(
+                    data,
+                    indent=None,
+                    iterable_as_array=True,
+                ).encode("utf-8")
+            )
     else:
         with open(out_path, "w") as f:
-            json.dump(data, f, indent=None)
+            json.dump(
+                data, f,
+                indent=None,
+                iterable_as_array=True,
+            )
 
     return data
