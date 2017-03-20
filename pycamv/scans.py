@@ -163,6 +163,7 @@ def get_label_peak_window(pep_queries, ms2_data, window_size=1):
     ----------
     pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
+    window_size : float, optional
 
     Returns
     -------

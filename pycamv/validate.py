@@ -265,4 +265,6 @@ def validate_spectra(
     )
 
     LOGGER.info("Removing directory of temporary files.")
+    del ms_data
+    del ms_two_data
     shutil.rmtree(out_dir)
