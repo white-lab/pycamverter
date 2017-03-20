@@ -1,6 +1,8 @@
 
 from __future__ import absolute_import, division
 
+import os
+
 from .utils import nCr
 from . import ms_labels
 
@@ -59,6 +61,10 @@ class PeptideQuery:
         if not isinstance(other, PeptideQuery):
             raise TypeError(other)
         return self._unique_tuple() == other._unique_tuple()
+
+    @property
+    def basename(self):
+        return os.path.basename(self.filename)
 
     @property
     def prot_name(self):
