@@ -10,7 +10,6 @@ from __future__ import absolute_import, division
 from . import multi
 
 from collections import OrderedDict
-from functools import partial
 import logging
 import multiprocessing
 import os
@@ -85,30 +84,24 @@ def _map_seq(kv):
     )
 
 
-def _map_frag(kv, scan_mapping):
-    pep_query, sequence = kv
-    return (
-        (pep_query, tuple(sequence)),
-        fragments.fragment_ions(
-            sequence, pep_query.pep_exp_z,
-            c13_num=scan_mapping[pep_query].c13_num,
-        ),
+def _map_frag_compare(kv):
+    pep_query, scan_query, sequence, scan = kv
+
+    frag_ions = fragments.fragment_ions(
+        sequence, pep_query.pep_exp_z,
+        c13_num=scan_query.c13_num,
     )
 
-
-def _map_compare(kv, scan_mapping):
-    key, val = kv
-    pep_query, sequence = key
-    frag_ions, scan = val
+    LOGGER.debug("{} - {} ions".format(pep_query.pep_seq, len(frag_ions)))
 
     peaks = compare.compare_spectra(
         scan, frag_ions,
-        tol=compare.COLLISION_TOLS[scan_mapping[pep_query].collision_type],
+        tol=compare.COLLISION_TOLS[scan_query.collision_type],
     )
 
     del scan
 
-    return key, peaks
+    return (pep_query, sequence), peaks
 
 
 def validate_spectra(
@@ -132,7 +125,8 @@ def validate_spectra(
     Returns
     -------
     options : :class:`pycamv.validate.SearchOptions`
-    peak_hits : dict of (tuple of :class:`pycamv.pep_query.PeptideQuery`, list),
+    peak_hits :
+    dict of (tuple of :class:`pycamv.pep_query.PeptideQuery`, list),
     list of :class:`pycamv.compare.PeptideHit`
         Dictionary mapping peptide queries and their sequences to peptide hits.
     scan_mapping : OrderedDict of :class:`pycamv.pep_query.PeptideQuery`,
@@ -162,7 +156,7 @@ def validate_spectra(
     # Read peptide search file
     fixed_mods, var_mods, pep_queries = search.read_search_file(search_path)
 
-    LOGGER.info("Found info for {} peptides".format(len(pep_queries)))
+    LOGGER.info("Found info for {} peptide queries".format(len(pep_queries)))
 
     # Optionally filter queries using a scan list
     if scan_list:
@@ -182,12 +176,10 @@ def validate_spectra(
     options = SearchOptions(fixed_mods, var_mods)
 
     # Get scan data from RAW file
-    required_raws = set(query.filename for query in pep_queries)
+    required_raws = set(query.basename for query in pep_queries)
     base_raw_paths = [os.path.basename(path) for path in raw_paths]
 
-    for raw in required_raws:
-        base_raw = os.path.basename(raw)
-
+    for base_raw in required_raws:
         if base_raw not in base_raw_paths:
             raise Exception(
                 "Unable to find {} in input RAW files: {}"
@@ -200,14 +192,15 @@ def validate_spectra(
     )
     pool = multiprocessing.Pool(processes=cpu_count)
     sequence_mapping = OrderedDict(
-        pool.map(_map_seq, pep_queries)
+        pool.imap(_map_seq, pep_queries)
     )
 
+    total_num_seq = sum(len(i) for i in sequence_mapping.values())
+
     LOGGER.info(
-        "Generating fragment ions for {} queries ({} sequences)."
+        "Generating fragment ions for {} possible sequences."
         .format(
-            len(sequence_mapping),
-            sum(len(i) for i in sequence_mapping.values())
+            total_num_seq,
         )
     )
 
@@ -219,45 +212,35 @@ def validate_spectra(
         raw_paths, pep_queries, out_dir,
     )
 
-    LOGGER.info("Found info for {} scans".format(len(scan_queries)))
+    LOGGER.info("Found data for {} scans".format(len(scan_queries)))
 
     scan_mapping = OrderedDict(
         (pep_query, scan_query)
         for pep_query, scan_query in zip(pep_queries, scan_queries)
     )
 
-    fragment_mapping = OrderedDict(
-        pool.map(
-            partial(_map_frag, scan_mapping=scan_mapping),
-            (
-                (pep_query, sequence)
-                for pep_query, sequences in sequence_mapping.items()
-                for sequence in sequences
-            ),
-        )
-    )
-
     LOGGER.info(
         "Comparing predicted to actual peaks for {} spectra.".format(
-            len(fragment_mapping),
+            len(scan_mapping),
         )
     )
 
     peak_hits = dict(
         pool.map(
-            partial(_map_compare, scan_mapping=scan_mapping),
+            _map_frag_compare,
             LenGen(
                 (
                     (
-                        key,
-                        (
-                            val,
-                            ms_two_data[key[0].filename][key[0].scan].deRef()
-                        )
+                        pep_query,
+                        scan_mapping[pep_query],
+                        sequence,
+                        ms_two_data[pep_query.basename][pep_query.scan]
+                        .deRef(),
                     )
-                    for key, val in fragment_mapping.items()
+                    for pep_query, sequences in sequence_mapping.items()
+                    for sequence in sequences
                 ),
-                len(fragment_mapping),
+                total_num_seq,
             ),
             cpu_count * 4,
         )
