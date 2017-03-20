@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.3.0 (2017-03-20)
+
+Features
+
+  - Added support for ProteomeDiscoverer 2.1
+
 ## 0.2.0 (2017-03-17)
 
 Features

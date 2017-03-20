@@ -8,6 +8,7 @@ from collections import Counter
 import logging
 import os
 import sqlite3
+import xml.etree.ElementTree as ET
 
 from . import regexes, pep_query
 
@@ -35,16 +36,50 @@ def _parse_letters(letters):
     return tuple(letters)
 
 
-def _get_fixed_var_mods(cursor):
+def _get_fixed_var_mods_pd21(cursor):
     query = cursor.execute(
         """
         SELECT
-        ProcessingNodeParameters.ParameterName,
-        ProcessingNodeParameters.ParameterValue
+        Workflows.WorkflowXML
         FROM
-        ProcessingNodeParameters
-        """,
+        Workflows
+        """
     )
+
+    fixed_mods = []
+    var_mods = []
+
+    for xml, in query:
+        root = ET.fromstring(xml)
+        params = root.findall(
+            "WorkflowTree/WorkflowNode/"
+            "ProcessingNodeParameters/ProcessingNodeParameter"
+        )
+        for param in params:
+            if not param.get("IsValueSet", False) or not param.text:
+                continue
+
+            if param.get("Name", "").startswith("DynMod_"):
+                var_mods.append(param.text)
+            elif param.get("Name", "").startswith("StaticMod_"):
+                fixed_mods.append(param.text)
+
+    return fixed_mods, var_mods
+
+
+def _get_fixed_var_mods(cursor):
+    try:
+        query = cursor.execute(
+            """
+            SELECT
+            ProcessingNodeParameters.ParameterName,
+            ProcessingNodeParameters.ParameterValue
+            FROM
+            ProcessingNodeParameters
+            """,
+        )
+    except sqlite3.OperationalError:
+        return _get_fixed_var_mods_pd21(cursor)
 
     fixed_mods = []
     var_mods = []
@@ -207,34 +242,64 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
         for i in var_mods
     ]
 
-    query = cursor.execute(
-        """
-        SELECT
-        Peptides.PeptideID,
-        Peptides.Sequence,
-        PeptideScores.ScoreValue,
-        SpectrumHeaders.FirstScan,
-        Masspeaks.Mass,
-        Masspeaks.Charge,
-        FileInfos.FileName
-        FROM
-        Peptides JOIN
-        PeptideScores JOIN
-        PeptidesProteins JOIN
-        ProteinAnnotations JOIN
-        SpectrumHeaders JOIN
-        FileInfos JOIN
-        Masspeaks
-        WHERE
-        Peptides.SearchEngineRank=1 AND
-        PeptideScores.PeptideID=Peptides.PeptideID AND
-        PeptidesProteins.PeptideID=Peptides.PeptideID AND
-        ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID AND
-        SpectrumHeaders.SpectrumID=Peptides.SpectrumID AND
-        Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID AND
-        FileInfos.FileID=MassPeaks.FileID
-        """
-    )
+    try:
+        query = cursor.execute(
+            """
+            SELECT
+            Peptides.PeptideID,
+            Peptides.Sequence,
+            PeptideScores.ScoreValue,
+            SpectrumHeaders.FirstScan,
+            Masspeaks.Mass,
+            Masspeaks.Charge,
+            FileInfos.FileName
+            FROM
+            Peptides JOIN
+            PeptideScores JOIN
+            PeptidesProteins JOIN
+            ProteinAnnotations JOIN
+            SpectrumHeaders JOIN
+            FileInfos JOIN
+            Masspeaks
+            WHERE
+            Peptides.SearchEngineRank=1 AND
+            PeptideScores.PeptideID=Peptides.PeptideID AND
+            PeptidesProteins.PeptideID=Peptides.PeptideID AND
+            ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID AND
+            SpectrumHeaders.SpectrumID=Peptides.SpectrumID AND
+            Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID AND
+            FileInfos.FileID=MassPeaks.FileID
+            """
+        )
+    except sqlite3.OperationalError:
+        query = cursor.execute(
+            """
+            SELECT
+            Peptides.PeptideID,
+            Peptides.Sequence,
+            PeptideScores.ScoreValue,
+            SpectrumHeaders.FirstScan,
+            Masspeaks.Mass,
+            Masspeaks.Charge,
+            WorkflowInputFiles.FileName
+            FROM
+            Peptides JOIN
+            PeptideScores JOIN
+            PeptidesProteins JOIN
+            ProteinAnnotations JOIN
+            SpectrumHeaders JOIN
+            WorkflowInputFiles JOIN
+            Masspeaks
+            WHERE
+            Peptides.SearchEngineRank=1 AND
+            PeptideScores.PeptideID=Peptides.PeptideID AND
+            PeptidesProteins.PeptideID=Peptides.PeptideID AND
+            ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID AND
+            SpectrumHeaders.SpectrumID=Peptides.SpectrumID AND
+            Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID AND
+            WorkflowInputFiles.FileID=MassPeaks.FileID
+            """
+        )
 
     for (
         pep_id, pep_seq, pep_score,
