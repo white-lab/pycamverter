@@ -36,8 +36,8 @@ def _parse_letters(letters):
     return tuple(letters)
 
 
-def _get_fixed_var_mods_pd21(cursor):
-    query = cursor.execute(
+def _get_fixed_var_mods_pd21(conn):
+    query = conn.cursor().execute(
         """
         SELECT
         Workflows.WorkflowXML
@@ -67,9 +67,9 @@ def _get_fixed_var_mods_pd21(cursor):
     return fixed_mods, var_mods
 
 
-def _get_fixed_var_mods(cursor):
+def _get_fixed_var_mods(conn):
     try:
-        query = cursor.execute(
+        query = conn.cursor().execute(
             """
             SELECT
             ProcessingNodeParameters.ParameterName,
@@ -79,7 +79,7 @@ def _get_fixed_var_mods(cursor):
             """,
         )
     except sqlite3.OperationalError:
-        return _get_fixed_var_mods_pd21(cursor)
+        return _get_fixed_var_mods_pd21(conn)
 
     fixed_mods = []
     var_mods = []
@@ -108,9 +108,8 @@ def _count_mods(mod_list):
     ]
 
 
-def _get_pep_mods(cursor, pep_id, pep_seq, var_mods, fixed_mods):
-    cursor = cursor.connection.cursor()
-    aa_mods = cursor.execute(
+def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
+    aa_mods = conn.cursor().execute(
         """
         SELECT
         AminoAcidModifications.ModificationName,
@@ -145,11 +144,13 @@ def _get_pep_mods(cursor, pep_id, pep_seq, var_mods, fixed_mods):
             pep_fixed_mods.append(mod)
             continue
 
+        # print(pep_id, pep_seq, abbrev, pos)
+
         raise Exception(
             "Unexpected modification: {} {}".format(letter, abbrev)
         )
 
-    term_mods = cursor.execute(
+    term_mods = conn.cursor().execute(
         """
         SELECT
         AminoAcidModifications.ModificationName,
@@ -193,9 +194,8 @@ def _get_pep_mods(cursor, pep_id, pep_seq, var_mods, fixed_mods):
     return pep_var_mods, pep_fixed_mods
 
 
-def _get_prot_info(cursor, peptide_id):
-    cursor = cursor.connection.cursor()
-    proteins = cursor.execute(
+def _get_prot_info(conn, peptide_id):
+    proteins = conn.cursor().execute(
         """
         SELECT
         ProteinAnnotations.Description
@@ -229,7 +229,7 @@ def _get_prot_info(cursor, peptide_id):
     return accessions, descriptions
 
 
-def _get_peptide_queries(cursor, fixed_mods, var_mods):
+def _get_peptide_queries(conn, fixed_mods, var_mods):
     out = []
     # index = 0
     # scan_used = {}
@@ -243,7 +243,7 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
     ]
 
     try:
-        query = cursor.execute(
+        query = conn.cursor().execute(
             """
             SELECT
             Peptides.PeptideID,
@@ -272,7 +272,7 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
             """
         )
     except sqlite3.OperationalError:
-        query = cursor.execute(
+        query = conn.cursor().execute(
             """
             SELECT
             Peptides.PeptideID,
@@ -307,10 +307,10 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
     ) in query:
         # print(pep_id, full_prot_desc, pep_seq, scan, exp_mz, exp_z, filename)
         pep_var_mods, pep_fixed_mods = _get_pep_mods(
-            cursor, pep_id, pep_seq, var_mods, fixed_mods,
+            conn, pep_id, pep_seq, var_mods, fixed_mods,
         )
 
-        accessions, descriptions = _get_prot_info(cursor, pep_id)
+        accessions, descriptions = _get_prot_info(conn, pep_id)
 
         out.append(
             pep_query.PeptideQuery(
@@ -324,7 +324,7 @@ def _get_peptide_queries(cursor, fixed_mods, var_mods):
                 pep_seq,
                 pep_var_mods,
                 pep_fixed_mods,
-                scan,
+                int(scan),
             )
         )
 
@@ -355,9 +355,7 @@ def read_discoverer_msf(msf_path):
     )
 
     with sqlite3.connect(msf_path) as conn:
-        cursor = conn.cursor()
-
-        fixed_mods, var_mods = _get_fixed_var_mods(cursor)
-        out = _get_peptide_queries(cursor, fixed_mods, var_mods)
+        fixed_mods, var_mods = _get_fixed_var_mods(conn)
+        out = _get_peptide_queries(conn, fixed_mods, var_mods)
 
     return fixed_mods, var_mods, out
