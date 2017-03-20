@@ -5,14 +5,13 @@ format).
 
 from __future__ import absolute_import, division
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import gzip
 import logging
 import simplejson as json
 
-from .utils import DefaultOrderedDict
-from . import ms_labels, regexes, version
-
+from . import ms_labels, regexes, scans, version
+from .utils import StrToBin
 
 LOGGER = logging.getLogger("pycamv.export")
 
@@ -136,7 +135,7 @@ def _get_labels_mz(query):
 
 def export_to_camv(
     out_path, peak_hits, scan_mapping,
-    precursor_windows, label_windows,
+    ms_data, ms_two_data,
 ):
     """
     Export data to .camv file.
@@ -146,48 +145,38 @@ def export_to_camv(
     out_path : str
     peak_hits
     scan_mapping
-    precursor_windows
-    label_windows
+    ms_data
+    ms_two_data
 
     Returns
     -------
     data : dict
         Dictionary of data written to file.
-
-    Example
-    -------
-    >>> from pycamv import export, validate
-    >> name = "2016-06-27-CKX13-pY-NTA-elute-pre67-col77"
-    >>> options, peak_hits, scan_mapping, precursor_windows, label_windows = \
-    ...     validate.validate_spectra(name)
-    >>> json_out = export.export_to_camv(
-    ...     "{}.camv".format(name),
-    ...     peak_hits, scan_mapping, precursor_windows, label_windows,
-    ... )
     """
     ###
     # Mappings between proteins, peptides, modifications, queries, and peaks
     ###
+
     # Mapping for protein -> peptides
-    prot_dict = DefaultOrderedDict(set)
+    prot_dict = defaultdict(set)
 
     for query, _ in peak_hits.keys():
         prot_dict[query.prot_name].add(query.pep_seq)
 
-    pep_dict = DefaultOrderedDict(set)
+    pep_dict = defaultdict(set)
 
     for query, _ in peak_hits.keys():
         # query.pep_var_mods => "mod_state" / "+1 pSTY"
         pep_dict[query.prot_name, query.pep_seq].add(tuple(query.pep_var_mods))
 
-    mod_states_dict = DefaultOrderedDict(set)
+    mod_states_dict = defaultdict(set)
 
     for query, seq in peak_hits.keys():
         mod_states_dict[
             query.prot_name, query.pep_seq, tuple(query.pep_var_mods)
         ].add(_extract_mods(seq))
 
-    mod_query_dict = DefaultOrderedDict(set)
+    mod_query_dict = defaultdict(set)
 
     for query, seq in peak_hits.keys():
         mod_query_dict[
@@ -195,7 +184,7 @@ def export_to_camv(
         ].add(query)
 
     # Mapping for modifications -> queries
-    exact_mods_dict = DefaultOrderedDict(list)
+    exact_mods_dict = defaultdict(list)
 
     for query, seq in peak_hits.keys():
         exact_mods_dict[
@@ -203,7 +192,7 @@ def export_to_camv(
         ].append(query)
 
     # Mapping back from queries -> sequence + modifications
-    query_dict = DefaultOrderedDict(list)
+    query_dict = defaultdict(list)
 
     for query, seq in peak_hits.keys():
         # _extract_mods(seq) => "exact_mods" / "pY100, oxM102"
@@ -488,7 +477,11 @@ def export_to_camv(
                 ("chargeState", query.pep_exp_z),
                 (
                     "precursorScanData",
-                    _peaks_to_dict(precursor_windows[query]),
+                    _peaks_to_dict(
+                        scans.get_precursor_peak_window(
+                            scan_mapping[query], ms_data
+                        ),
+                    ),
                 ),
                 ("precursorMz", query.pep_exp_mz),
                 (
@@ -497,7 +490,12 @@ def export_to_camv(
                 ),
                 ("collisionType", scan_mapping[query].collision_type),
                 ("c13Num", scan_mapping[query].c13_num),
-                ("quantScanData", _peaks_to_dict(label_windows[query])),
+                (
+                    "quantScanData",
+                    _peaks_to_dict(
+                        scans.get_label_peak_window(query, ms_two_data),
+                    ),
+                ),
                 ("quantMz", _get_labels_mz(query)),
                 (
                     "choiceData",
@@ -565,13 +563,13 @@ def export_to_camv(
     LOGGER.info("Exporting CAMV data to {}".format(out_path))
 
     if out_path.endswith(".gz"):
-        with gzip.GzipFile(out_path, 'w') as f:
-            f.write(
-                json.dumps(
-                    data,
-                    indent=None,
-                    iterable_as_array=True,
-                ).encode("utf-8")
+        with gzip.GzipFile(out_path, 'wb') as f:
+            json.dump(
+                data,
+                StrToBin(f, encoding="utf-8"),
+                encoding='utf-8',
+                indent=None,
+                iterable_as_array=True,
             )
     else:
         with open(out_path, "w") as f:

@@ -122,46 +122,34 @@ def _c13_num(pep_query, isolation_mz):
     )
 
 
-def get_precursor_peak_window(scan_queries, ms_data, window_size=1):
     """
     Get ion peaks around each peptide's precursor m/z range.
 
     Parameters
     ----------
-    pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
+    window_size : float, optional
 
     Returns
     -------
     list of list of tuple of (float, float)
     """
-    def _get_percursor_peaks(query):
-        window = (
-            query.isolation_mz - window_size,
-            query.isolation_mz + window_size,
-        )
+    window = (
+    )
 
-        scan = ms_data[query.basename][query.precursor_scan]
-
-        return [
-            (mz, i)
-            for mz, i in scan.centroidedPeaks
-            if mz > window[0] and mz < window[1]
-        ]
 
     return [
-        _get_percursor_peaks(query)
-        for query in scan_queries
+        (mz, i)
+        for mz, i in scan.centroidedPeaks
+        if mz > window[0] and mz < window[1]
     ]
 
 
-def get_label_peak_window(pep_queries, ms2_data, window_size=1):
     """
     Get ion peaks around each peptide's label m/z range.
 
     Parameters
     ----------
-    pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
     window_size : float, optional
 
@@ -170,29 +158,20 @@ def get_label_peak_window(pep_queries, ms2_data, window_size=1):
     list of list of tuple of (float, float)
     """
 
-    def _get_labels_peaks(query):
-        label_mods = query.get_label_mods
+    if not label_mods:
+        return []
 
-        if not label_mods:
-            return []
+    window = ms_labels.LABEL_MZ_WINDOW[label_mods[0]]
+    window = (
+        window[0] - window_size,
+        window[1] + window_size
+    )
 
-        window = ms_labels.LABEL_MZ_WINDOW[label_mods[0]]
-        window = (
-            window[0] - window_size,
-            window[1] + window_size
-        )
-
-        scan = ms2_data[query.basename][query.scan]
-
-        return [
-            (mz, i)
-            for mz, i in scan.centroidedPeaks
-            if mz > window[0] and mz < window[1]
-        ]
 
     return [
-        _get_labels_peaks(pep_query)
-        for pep_query in pep_queries
+        (mz, i)
+        for mz, i in scan.centroidedPeaks
+        if mz > window[0] and mz < window[1]
     ]
 
 

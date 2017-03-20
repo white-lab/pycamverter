@@ -7,8 +7,6 @@ Currently limited to importing and outputing scan lists.
 # Built-ins
 from __future__ import absolute_import, division
 
-from . import multi
-
 from collections import OrderedDict
 import logging
 import multiprocessing
@@ -237,31 +235,15 @@ def validate_spectra(
 
     # XXX: Determine SILAC precursor masses?
 
-    LOGGER.info("Collecting precursor ion peaks.")
-    precursor_windows = OrderedDict(
-        zip(
-            pep_queries,
-            scans.get_precursor_peak_window(scan_queries, ms_data)
-        )
-    )
-
-    LOGGER.info("Collecting peptide label peaks.")
-    label_windows = OrderedDict(
-        zip(
-            pep_queries,
-            scans.get_label_peak_window(pep_queries, ms_two_data)
-        )
-    )
-
     # XXX: Remove precursor contaminated scans from validation list?
 
     # Check each assignment to each scan
 
     # Output data
-    LOGGER.info("Exporting data to {}.".format(out_path))
     export.export_to_camv(
         out_path,
-        peak_hits, scan_mapping, precursor_windows, label_windows,
+        peak_hits, scan_mapping,
+        ms_data, ms_two_data,
     )
 
     LOGGER.info("Removing directory of temporary files.")

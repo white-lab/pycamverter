@@ -82,3 +82,12 @@ class DefaultOrderedDict(OrderedDict):
             self.default_factory,
             OrderedDict.__repr__(self),
         )
+
+
+class StrToBin(object):
+    def __init__(self, f, encoding="utf-8"):
+        self.f = f
+        self.encoding = encoding
+
+    def write(self, data):
+        self.f.write(data.encode(self.encoding))
