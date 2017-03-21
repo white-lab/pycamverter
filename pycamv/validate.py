@@ -217,6 +217,12 @@ def validate_spectra(
     )
 
     LOGGER.info("Removing directory of temporary files.")
-    del ms_data
-    del ms_two_data
+
+    for raw in ms_data.values():
+        raw.info['fileObject'].close()
+        raw.seeker.close()
+    for raw in ms_two_data.values():
+        raw.info['fileObject'].close()
+        raw.seeker.close()
+
     shutil.rmtree(out_dir)
