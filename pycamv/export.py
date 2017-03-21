@@ -89,7 +89,7 @@ def _extract_pep_seq(sequence):
     return "".join(
         letter
         for letter, _ in sequence
-        if letter not in ["N-term", "C-term"]
+        if letter not in ["N-term", "C-term", "C=O"]
     )
 
 

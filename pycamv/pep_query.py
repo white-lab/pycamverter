@@ -110,10 +110,3 @@ def _check_mods(mods):
         all(isinstance(i, str) for i in letters)
         for count, abbrev, letters in mods
     )
-
-
-def _count_instances(pep_seq, letters):
-    return sum(
-        (["N-term"] + list(pep_seq) + ["C-term"]).count(letter)
-        for letter in letters
-    )

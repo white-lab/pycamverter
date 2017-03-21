@@ -70,6 +70,10 @@ class FragmentIonsTest(TestCase):
                 2,
             ): {
                 "IyD": 472.15,
+                "IyD-CO": 444.16,
+                "IyD-NH_3": 455.12,
+                "IyD-H_2O": 454.14,
+                "IyD-HPO_3": 392.18,
             },
             (
                 (

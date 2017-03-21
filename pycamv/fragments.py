@@ -30,7 +30,7 @@ def _sequence_name(pep_seq):
     return "".join(
         letter.lower() if mods else letter.upper()
         for letter, mods in pep_seq
-        if letter not in ["N-term", "C-term"]
+        if letter not in ["N-term", "C-term", "C=O"]
     )
 
 
@@ -70,19 +70,17 @@ def _internal_fragment_ions(
     if mod_losses is None:
         mod_losses = MOD_LOSSES
 
-    pep_seq = [
-        (letter, mods)
-        for letter, mods in pep_seq
-        if letter not in ["N-term", "C-term"]
-    ]
-
     # Calculate the mass of the peptide cut at any two sites between the N-
     # and C-terminus
-    for start in range(1, len(pep_seq)):
-        for end in range(start + 1, len(pep_seq)):
+    for start in range(2, len(pep_seq) - 2):
+        for end in range(start + 1, len(pep_seq) - 1):
             # Only add the mass of an N-terminus, cleavage will be between
             # C=O and N-H bond, adding a hydrogen to N-H
-            fragment = [("N-term", [])] + pep_seq[start:end]
+            fragment = (
+                [("N-term", ())] +
+                list(pep_seq[start:end]) +
+                [("C=O", ())]
+            )
 
             mass = _sequence_mass(fragment)
             name = _sequence_name(fragment)
@@ -202,7 +200,7 @@ def _generate_losses(
 
         for (aa, mod), m_losses in mod_losses.items():
             for index, (letter, mods) in enumerate(seq):
-                if aa != letter or mod not in mods:
+                if aa != letter or (mod and mod not in mods):
                     continue
 
                 new_seq = seq[:index] + seq[index + 1:]

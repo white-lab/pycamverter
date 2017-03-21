@@ -174,6 +174,7 @@ AMINO_ACIDS = {
     # N- and C-terminus
     "N-term": N_TERM,
     "C-term": C_TERM,
+    "C=O": 0,
 }
 
 IMMONIUM_IONS = {
