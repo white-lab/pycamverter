@@ -184,7 +184,8 @@ def raw_to_mzml(raw_path, out_dir, scans=None, mz_window=None):
     ]
 
     out = subprocess.check_output(cmd)
-    LOGGER.debug(out.decode(sys.stdout.encoding))
+    encoding = sys.stdout.encoding or "utf-8"
+    LOGGER.debug(out.decode(encoding))
 
     os.remove(config_path)
 

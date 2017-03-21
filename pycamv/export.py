@@ -26,6 +26,10 @@ SCRIPT_MAPPING["-"] = 11
 SCRIPT_MAPPING["("] = 12
 SCRIPT_MAPPING[")"] = 13
 
+try:
+    unichr
+except NameError:
+    unichr = chr
 
 def _rewrite_ion_name(name):
     m = regexes.RE_B_Y_IONS.match(name)
@@ -58,9 +62,9 @@ def _rewrite_ion_name(name):
             elif char == "3":
                 ret += u"\u00B3"
             else:
-                ret += chr(SUPERSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
+                ret += unichr(SUPERSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
         elif sub:
-            ret += chr(SUBSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
+            ret += unichr(SUBSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
         else:
             ret += char
 
