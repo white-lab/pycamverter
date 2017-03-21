@@ -31,6 +31,7 @@ try:
 except NameError:
     unichr = chr
 
+
 def _rewrite_ion_name(name):
     m = regexes.RE_B_Y_IONS.match(name)
 

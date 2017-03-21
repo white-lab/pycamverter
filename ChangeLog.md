@@ -10,6 +10,7 @@ Features
   - Added support for runs with multiple raw files.
   - Limit generated sequences to 10 combinations per peptide to reduce pS/T
     file sizes.
+  - Reduced memory usage by using python generators.
 
 Bugfixes
 
