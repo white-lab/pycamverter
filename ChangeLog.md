@@ -1,15 +1,20 @@
 # Change Log
 
-## 0.3.0 (2017-03-20)
+## 0.3.0 (2017-\*-\*)
 
 Features
 
-  - Added support for ProteomeDiscoverer 2.1
+  - Added support for ProteomeDiscoverer 2.1.
   - Several optimizations to get working on pS/T data sets.
+  - Added pypy support.
+  - Added support for runs with multiple raw files.
+  - Limit generated sequences to 10 combinations per peptide to reduce pS/T
+    file sizes.
 
 Bugfixes
 
   - Cleanup temp data files after runs.
+  - Fixed py2.7 errors.
 
 ## 0.2.0 (2017-03-17)
 
