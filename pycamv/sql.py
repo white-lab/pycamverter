@@ -3,9 +3,12 @@ import sqlite3
 
 from . import ms_labels, regexes, scans, utils
 
+DB_EXTS = [".db", ".sql"]
+
 CAMV_SCHEMA = """
 PRAGMA foreign_keys = ON;
 
+-- Individual protein names (i.e. Src)
 CREATE TABLE proteins
 (
     protein_id              integer primary key autoincrement not null,
@@ -13,6 +16,7 @@ CREATE TABLE proteins
     UNIQUE(protein_name)
 );
 
+-- Individual peptide sequences (i.e. IVLEYK)
 CREATE TABLE peptides
 (
     peptide_id              integer primary key autoincrement not null,
@@ -20,6 +24,7 @@ CREATE TABLE peptides
     UNIQUE(peptide_seq)
 );
 
+-- Mapping between proteins and peptides
 CREATE TABLE protein_peptide
 (
     prot_pep_id             integer primary key autoincrement not null,
@@ -30,6 +35,7 @@ CREATE TABLE protein_peptide
     UNIQUE(peptide_id, protein_id)
 );
 
+-- Peptides with unmapped modifications (i.e. +1 pY)
 CREATE TABLE mod_states
 (
     mod_state_id            integer primary key autoincrement not null,
@@ -39,6 +45,7 @@ CREATE TABLE mod_states
     UNIQUE(peptide_id, mod_desc)
 );
 
+-- Peptides with modifications exactly positioned (i.e pY114)
 CREATE TABLE ptms
 (
     ptm_id                  integer primary key autoincrement not null,
@@ -47,16 +54,6 @@ CREATE TABLE ptms
     full_name               text,
     FOREIGN KEY(mod_state_id) REFERENCES mod_states(mod_state_id),
     UNIQUE(mod_state_id, full_name)
-);
-
-CREATE TABLE scan_ptms
-(
-    scan_id                 integer not null,
-    ptm_id                  integer not null,
-    choice                  text,
-    mascot_score            real,
-    FOREIGN KEY(scan_id) REFERENCES scan_info(scan_id)
-    FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
 );
 
 CREATE TABLE fragments
@@ -82,7 +79,11 @@ CREATE TABLE files
 CREATE TABLE scan_data
 (
     data_id                 integer primary key autoincrement not null,
-    data_blob               blob
+    scan_id                 integer,
+    data_type               text,
+    data_blob               blob,
+    FOREIGN KEY(scan_id) REFERENCES scan_info(scan_id),
+    UNIQUE(scan_id, data_type)
 );
 
 -- Set of peaks that are used for quantitation
@@ -113,27 +114,28 @@ CREATE TABLE scan_info
     quant_mz_id             integer,
     c13_num                 integer,
     file_id                 integer,
-    ms_two_data_id          integer,
-    precursor_data_id       integer,
-    quant_data_id           integer,
     FOREIGN KEY(quant_mz_id) REFERENCES quant_mz(quant_mz_id),
     FOREIGN KEY(file_id) REFERENCES files(file_id),
-    FOREIGN KEY(ms_two_data_id) REFERENCES scan_data(data_id),
-    FOREIGN KEY(precursor_data_id) REFERENCES scan_data(data_id),
-    FOREIGN KEY(quant_data_id) REFERENCES scan_data(data_id)
+    UNIQUE(scan_num, file_id)
 );
 
-CREATE TABLE scan_hits
+CREATE TABLE scan_ptms
 (
-    scan_id                 integer,
-    mods_state_id           integer,
-    FOREIGN KEY(scan_id) REFERENCES scan_info(scan_id),
-    FOREIGN KEY(mods_state_id) REFERENCES mod_states(mods_state_id)
+    scan_ptm_id             integer primary key autoincrement not null,
+    scan_id                 integer not null,
+    ptm_id                  integer not null,
+    choice                  text,
+    mascot_score            real,
+    FOREIGN KEY(scan_id) REFERENCES scan_info(scan_id)
+    FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
 );
 """
 
 
-def _insert_or_update_row(cursor, table, id, data):
+def _insert_or_update_row(cursor, table, id, data, unique_on=None):
+    if unique_on is None:
+        unique_on = list(data.keys())
+
     row_id = None
 
     for row in cursor.execute(
@@ -144,9 +146,9 @@ def _insert_or_update_row(cursor, table, id, data):
         """.format(
             id,
             table,
-            " and ".join("{}=(?)".format(i) for i in data.keys())
+            " and ".join("{}=(?)".format(i) for i in unique_on)
         ),
-        list(data.values()),
+        [data[i] for i in unique_on],
     ):
         row_id = row[0]
 
@@ -169,12 +171,15 @@ def _insert_or_update_row(cursor, table, id, data):
 
 
 def insert_protein(cursor, query):
-    return _insert_or_update_row(
-        cursor, "proteins", "protein_id",
-        {
-            "protein_name": query.prot_name,
-        },
-    )
+    return [
+        _insert_or_update_row(
+            cursor, "proteins", "protein_id",
+            {
+                "protein_name": prot_desc,
+            },
+        )
+        for prot_desc in query.prot_descs
+    ]
 
 
 def insert_peptide(cursor, query):
@@ -186,14 +191,17 @@ def insert_peptide(cursor, query):
     )
 
 
-def insert_pep_prot(cursor, pep_id, prot_id):
-    return _insert_or_update_row(
-        cursor, "protein_peptide", "prot_pep_id",
-        {
-            "peptide_id": pep_id,
-            "protein_id": prot_id,
-        },
-    )
+def insert_pep_prot(cursor, pep_id, prot_ids):
+    return [
+        _insert_or_update_row(
+            cursor, "protein_peptide", "prot_pep_id",
+            {
+                "peptide_id": pep_id,
+                "protein_id": prot_id,
+            },
+        )
+        for prot_id in prot_ids
+    ]
 
 
 def _get_labels_mz(query):
@@ -262,83 +270,77 @@ def _peaks_to_blob(peaks):
     )
 
 
-def insert_peaks(cursor, peaks):
-    return cursor.execute(
-        """
-        INSERT INTO scan_data (data_blob)
-        VALUES (?)
-        """,
-        (
-            _peaks_to_blob(peaks),
-        ),
-    ).lastrowid
+def insert_peaks(cursor, peaks, scan_id):
+    return _insert_or_update_row(
+        cursor, "scan_data", "data_id",
+        {
+            "scan_id": scan_id,
+            "data_type": "ms2",
+            "data_blob": _peaks_to_blob(peaks),
+        },
+        ["scan_id", "data_type"],
+    )
 
 
-def insert_precursor_peaks(cursor, scan_query, ms_data):
-    return cursor.execute(
-        """
-        INSERT INTO scan_data (data_blob)
-        VALUES (?)
-        """,
-        (
-            _peaks_to_blob(
+def insert_precursor_peaks(cursor, scan_query, ms_data, scan_id):
+    return _insert_or_update_row(
+        cursor, "scan_data", "data_id",
+        {
+            "scan_id": scan_id,
+            "data_type": "precursor",
+            "data_blob": _peaks_to_blob(
                 scans.get_precursor_peak_window(
                     scan_query, ms_data,
                 ),
             ),
-        ),
-    ).lastrowid
+        },
+        ["scan_id", "data_type"],
+    )
 
 
-def insert_quant_peaks(cursor, query, ms_two_data):
-    return cursor.execute(
-        """
-        INSERT INTO scan_data (data_blob)
-        VALUES (?)
-        """,
-        (
-            _peaks_to_blob(
+def insert_quant_peaks(cursor, query, ms_two_data, scan_id):
+    return _insert_or_update_row(
+        cursor, "scan_data", "data_id",
+        {
+            "scan_id": scan_id,
+            "data_type": "quant",
+            "data_blob": _peaks_to_blob(
                 scans.get_label_peak_window(query, ms_two_data),
             ),
-        ),
-    ).lastrowid
+        },
+        ["scan_id", "data_type"],
+    )
 
 
 def insert_scan_info(
     cursor, query, scan_query,
     quant_mz_id, file_id,
-    ms_two_data_id, precursor_data_id, quant_data_id
 ):
-    return cursor.execute(
-        """
-        INSERT INTO scan_info
-        (
-            scan_num,
-            charge,
-            collision_type,
-            precursor_mz,
-            c13_num,
-            quant_mz_id,
-            file_id,
-            ms_two_data_id,
-            precursor_data_id,
-            quant_data_id
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            query.scan,
-            query.pep_exp_z,
-            scan_query.collision_type,
-            query.pep_exp_mz,
-            scan_query.c13_num,
-            quant_mz_id,
-            file_id,
-            ms_two_data_id,
-            precursor_data_id,
-            quant_data_id,
-        ),
-    ).lastrowid
+    return _insert_or_update_row(
+        cursor, "scan_info", "scan_id",
+        {
+            "scan_num": query.scan,
+            "charge": query.pep_exp_z,
+            "collision_type": scan_query.collision_type,
+            "precursor_mz": query.pep_exp_mz,
+            "c13_num": scan_query.c13_num,
+            "quant_mz_id": quant_mz_id,
+            "file_id": file_id,
+        },
+        ["scan_num", "file_id"],
+    )
+
+
+def insert_scan_ptms(cursor, query, scan_id, ptm_id):
+    return _insert_or_update_row(
+        cursor, "scan_ptms", "scan_ptm_id",
+        {
+            "scan_id": scan_id,
+            "ptm_id": ptm_id,
+            "mascot_score": query.pep_score,
+        },
+        ["scan_id", "ptm_id"],
+    )
 
 
 def _get_mods_description(pep_seq, mod_state):
@@ -370,9 +372,11 @@ def _pep_mod_name(pep_seq, mods):
 
 def _pep_mod_full_name(pep_seq, mods):
     return "-".join(
-        letter.lower() + "({})".format(",".join(mods))
-        if mods else
-        letter.upper()
+        letter + (
+            " ({})".format(",".join(mods))
+            if mods else
+            ""
+        )
         for letter, mods in zip(
             ["N-term"] + list(pep_seq) + ["C-term"],
             mods,
@@ -396,6 +400,7 @@ def insert_ptm(cursor, query, seq, mod_state_id):
             "name": _pep_mod_name(query.pep_seq, mods),
             "full_name": _pep_mod_full_name(query.pep_seq, mods),
         },
+        ["mod_state_id", "full_name"],
     )
 
 

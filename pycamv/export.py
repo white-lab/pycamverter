@@ -6,6 +6,7 @@ format).
 from __future__ import absolute_import, division
 
 from collections import OrderedDict, defaultdict
+import errno
 import gzip
 import logging
 import simplejson as json
@@ -529,24 +530,31 @@ def export_to_camv(
     return data
 
 
-def export_to_sql(out_path, peak_hits, scan_mapping, ms_data, ms_two_data):
-    assert os.path.splitext(out_path)[1] in [".db", ".sql"]
+def export_to_sql(
+    out_path, peak_hits, scan_mapping, ms_data, ms_two_data,
+    overwrite=True,
+):
+    assert os.path.splitext(out_path)[1] in sql.DB_EXTS
 
-    if os.path.exists(out_path):
-        os.remove(out_path)
+    if overwrite:
+        try:
+            os.remove(out_path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise e
 
     db = sqlite3.connect(out_path)
     cursor = db.cursor()
 
     cursor.executescript(sql.CAMV_SCHEMA)
 
-    for (query, seq), peaks in peak_hits.items():
+    for (query, seq), peaks in peak_hits:
         scan_query = scan_mapping[query]
 
         # Peptide sequence / modification data
-        protein_id = sql.insert_protein(cursor, query)
+        protein_ids = sql.insert_protein(cursor, query)
         peptide_id = sql.insert_peptide(cursor, query)
-        sql.insert_pep_prot(cursor, peptide_id, protein_id)
+        sql.insert_pep_prot(cursor, peptide_id, protein_ids)
         mod_state_id = sql.insert_mod_state(cursor, query, peptide_id)
         ptm_id = sql.insert_ptm(cursor, query, seq, mod_state_id)
         sql.insert_fragments(cursor, peaks, ptm_id)
@@ -554,22 +562,25 @@ def export_to_sql(out_path, peak_hits, scan_mapping, ms_data, ms_two_data):
         # Scan data
         quant_mz_id = sql.insert_quant_mz(cursor, query)
         file_id = sql.insert_file(cursor, query)
-        ms_two_data_id = sql.insert_peaks(cursor, peaks)
-        precursor_data_id = sql.insert_precursor_peaks(
-            cursor, scan_query, ms_data,
-        )
-        quant_data_id = sql.insert_quant_peaks(
-            cursor, query, ms_two_data,
-        )
-
         scan_id = sql.insert_scan_info(
             cursor, query, scan_query,
             quant_mz_id,
             file_id,
-            ms_two_data_id,
-            precursor_data_id,
-            quant_data_id,
         )
 
-    db.commit()
+        sql.insert_peaks(
+            cursor, peaks, scan_id,
+        )
+        sql.insert_precursor_peaks(
+            cursor, scan_query, ms_data, scan_id,
+        )
+        sql.insert_quant_peaks(
+            cursor, query, ms_two_data, scan_id,
+        )
+
+        # PTM - Scan Mapping
+        sql.insert_scan_ptms(cursor, query, scan_id, ptm_id)
+
+        db.commit()
+
     db.close()
