@@ -40,34 +40,6 @@ usage: PyCAMVerter [-h] [-v] [-q] [-V] [--show_gui]
 Aww yeah, mass specs!
 
 positional arguments:
-  files
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -v, --verbose         Increase verbosity of output.
-  -q, --quiet           Decrease verbosity of output.
-  -V, --version         show program's version number and exit
-  --show_gui            Show GUI for converting files.
-  --raw_paths RAW_PATHS [RAW_PATHS ...]
-                        Raw data file(s) containing mass spec data.
-  --search_path SEARCH_PATH
-                        MASCOT or ProteomeDiscoverer search files.
-  --scans_path SCANS_PATH
-                        .xlsx or .csv file listing scans to select for
-                        validation.
-  --scans [SCANS [SCANS ...]]
-                        Individual scans to select for validation.
-  --out_path OUT_PATH   Output path for CAMV export.
-PS C:\Users\Nader\Dropbox (MIT)\GitHub\pycamverter> python -m pycamv -h
-usage: PyCAMVerter [-h] [-v] [-q] [-V] [--show_gui]
-                   [--raw_paths RAW_PATHS [RAW_PATHS ...]]
-                   [--search_path SEARCH_PATH] [--scans_path SCANS_PATH]
-                   [--scans [SCANS [SCANS ...]]] [--out_path OUT_PATH]
-                   [files [files ...]]
-
-Aww yeah, mass specs!
-
-positional arguments:
   files                 Raw, search, or scan list files, determined by file
                         extension.
 
