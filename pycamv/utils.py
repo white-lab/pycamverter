@@ -9,24 +9,25 @@ import math
 
 from . import regexes
 
+
 def nCr(n, r):
     f = math.factorial
     return f(n) / f(r) / f(n - r)
 
 
 class LenGen(object):
-    def __init__(self, gen, length):
+    def __init__(self, gen, len):
         self.gen = gen
-        self.length = length
+        self.len = len
 
     def __call__(self):
-        return itertools.islice(self.gen(), self.length)
+        return itertools.islice(self.gen(), self.len)
 
     def __iter__(self):
         return self.gen
 
     def __len__(self):
-        return self.length
+        return self.len
 
 
 class DefaultOrderedDict(OrderedDict):
