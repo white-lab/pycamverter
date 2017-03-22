@@ -9,71 +9,13 @@ from collections import OrderedDict, defaultdict
 import gzip
 import logging
 import simplejson as json
+import os
+import sqlite3
 
-from . import ms_labels, regexes, scans, version
+from . import ms_labels, regexes, scans, sql, utils, version
 from .utils import StrToBin
 
 LOGGER = logging.getLogger("pycamv.export")
-
-SUPERSCRIPT_UNICODE_START = ord(u"\u2070")
-SUBSCRIPT_UNICODE_START = ord(u'\u2080')
-SCRIPT_MAPPING = {
-    str(i): i
-    for i in range(10)
-}
-SCRIPT_MAPPING["+"] = 10
-SCRIPT_MAPPING["-"] = 11
-SCRIPT_MAPPING["("] = 12
-SCRIPT_MAPPING[")"] = 13
-
-try:
-    unichr
-except NameError:
-    unichr = chr
-
-
-def _rewrite_ion_name(name):
-    m = regexes.RE_B_Y_IONS.match(name)
-
-    if m:
-        name = "".join(m.group(1, 2))
-
-    ret = ""
-    sup, sub = False, False
-    paren = 0
-
-    for char in name:
-        if char in "^_{}":
-            if char == "^":
-                sup, sub = True, False
-            elif char == "_":
-                sup, sub = False, True
-            elif char == "}":
-                sup, sub = False, False
-                paren -= 1
-            elif char == "{":
-                paren += 1
-            continue
-
-        if sup:
-            if char == "1":
-                ret += u"\u00B9"
-            elif char == "2":
-                ret += u"\u00B2"
-            elif char == "3":
-                ret += u"\u00B3"
-            else:
-                ret += unichr(SUPERSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
-        elif sub:
-            ret += unichr(SUBSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
-        else:
-            ret += char
-
-        if sup or sub:
-            if not paren:
-                sup, sub = False, False
-
-    return ret
 
 
 def _peaks_to_dict(peaks):
@@ -327,7 +269,7 @@ def export_to_camv(
                             ],
                         ),
                         ("mz", mz),
-                        ("name", _rewrite_ion_name(name)),
+                        ("name", utils.rewrite_ion_name(name)),
                         ("ionType", ion_type),
                         ("ionPosition", ion_pos),
                     ])
@@ -585,3 +527,49 @@ def export_to_camv(
             )
 
     return data
+
+
+def export_to_sql(out_path, peak_hits, scan_mapping, ms_data, ms_two_data):
+    assert os.path.splitext(out_path)[1] in [".db", ".sql"]
+
+    if os.path.exists(out_path):
+        os.remove(out_path)
+
+    db = sqlite3.connect(out_path)
+    cursor = db.cursor()
+
+    cursor.executescript(sql.CAMV_SCHEMA)
+
+    for (query, seq), peaks in peak_hits.items():
+        scan_query = scan_mapping[query]
+
+        # Peptide sequence / modification data
+        protein_id = sql.insert_protein(cursor, query)
+        peptide_id = sql.insert_peptide(cursor, query)
+        sql.insert_pep_prot(cursor, peptide_id, protein_id)
+        mod_state_id = sql.insert_mod_state(cursor, query, peptide_id)
+        ptm_id = sql.insert_ptm(cursor, query, seq, mod_state_id)
+        sql.insert_fragments(cursor, peaks, ptm_id)
+
+        # Scan data
+        quant_mz_id = sql.insert_quant_mz(cursor, query)
+        file_id = sql.insert_file(cursor, query)
+        ms_two_data_id = sql.insert_peaks(cursor, peaks)
+        precursor_data_id = sql.insert_precursor_peaks(
+            cursor, scan_query, ms_data,
+        )
+        quant_data_id = sql.insert_quant_peaks(
+            cursor, query, ms_two_data,
+        )
+
+        scan_id = sql.insert_scan_info(
+            cursor, query, scan_query,
+            quant_mz_id,
+            file_id,
+            ms_two_data_id,
+            precursor_data_id,
+            quant_data_id,
+        )
+
+    db.commit()
+    db.close()

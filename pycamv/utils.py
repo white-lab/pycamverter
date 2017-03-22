@@ -7,6 +7,7 @@ from collections import OrderedDict, Callable
 import itertools
 import math
 
+from . import regexes
 
 def nCr(n, r):
     f = math.factorial
@@ -91,3 +92,64 @@ class StrToBin(object):
 
     def write(self, data):
         self.f.write(data.encode(self.encoding))
+
+
+SUPERSCRIPT_UNICODE_START = ord(u"\u2070")
+SUBSCRIPT_UNICODE_START = ord(u'\u2080')
+SCRIPT_MAPPING = {
+    str(i): i
+    for i in range(10)
+}
+SCRIPT_MAPPING["+"] = 10
+SCRIPT_MAPPING["-"] = 11
+SCRIPT_MAPPING["("] = 12
+SCRIPT_MAPPING[")"] = 13
+
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+
+def rewrite_ion_name(name):
+    m = regexes.RE_B_Y_IONS.match(name)
+
+    if m:
+        name = "".join(m.group(1, 2))
+
+    ret = ""
+    sup, sub = False, False
+    paren = 0
+
+    for char in name:
+        if char in "^_{}":
+            if char == "^":
+                sup, sub = True, False
+            elif char == "_":
+                sup, sub = False, True
+            elif char == "}":
+                sup, sub = False, False
+                paren -= 1
+            elif char == "{":
+                paren += 1
+            continue
+
+        if sup:
+            if char == "1":
+                ret += u"\u00B9"
+            elif char == "2":
+                ret += u"\u00B2"
+            elif char == "3":
+                ret += u"\u00B3"
+            else:
+                ret += unichr(SUPERSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
+        elif sub:
+            ret += unichr(SUBSCRIPT_UNICODE_START + SCRIPT_MAPPING[char])
+        else:
+            ret += char
+
+        if sup or sub:
+            if not paren:
+                sup, sub = False, False
+
+    return ret
