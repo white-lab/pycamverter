@@ -538,7 +538,7 @@ def export_to_camv(
 
 def export_to_sql(
     out_path, peak_hits, scan_mapping,
-    overwrite=True,
+    overwrite=True, total_num_seq=None
 ):
     assert os.path.splitext(out_path)[1] in sql.DB_EXTS
 
@@ -559,12 +559,13 @@ def export_to_sql(
 
     # frag_map = defaultdict(list)
 
-    for index, ((query, seq), (peaks, precursor_win, label_win)) in enumerate(
+    for index, (query, seq, peaks, precursor_win, label_win) in enumerate(
         peak_hits,
     ):
         LOGGER.debug(
-            "Exporting: {} - {} - {}".format(
+            "Exporting: {}{} - {} - {}".format(
                 index,
+                " / {}".format(total_num_seq) if total_num_seq else "",
                 query.scan,
                 _pep_mod_name(
                     _extract_pep_seq(seq),

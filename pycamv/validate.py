@@ -55,7 +55,7 @@ def _map_seq(kv):
 
 
 def _map_frag_compare(kv):
-    pep_query, scan_query, sequence, scan = kv
+    pep_query, scan_query, sequence, ms_two_scan, ms_scan = kv
 
     frag_ions = fragments.fragment_ions(
         sequence, pep_query.pep_exp_z,
@@ -65,13 +65,17 @@ def _map_frag_compare(kv):
     LOGGER.debug("{} - {} ions".format(pep_query.pep_seq, len(frag_ions)))
 
     peaks = compare.compare_spectra(
-        scan, frag_ions,
+        ms_two_scan, frag_ions,
         tol=compare.COLLISION_TOLS[scan_query.collision_type],
     )
 
-    del scan
+    precursor_win = scans.get_precursor_peak_window(
+        scan_query, ms_scan
+    )
 
-    return (pep_query, tuple(sequence)), peaks
+    label_win = scans.get_label_peak_window(pep_query, ms_two_scan)
+
+    return (pep_query, tuple(sequence), peaks, precursor_win, label_win)
 
 
 def validate_spectra(
@@ -145,7 +149,9 @@ def validate_spectra(
     LOGGER.info(
         "Generating all possible sequence-modification combinations."
     )
-    pool = multiprocessing.Pool(processes=cpu_count)
+    pool = multiprocessing.Pool(
+        processes=cpu_count,
+    )
     sequence_mapping = dict(
         pool.imap_unordered(_map_seq, pep_queries)
     )
@@ -175,33 +181,36 @@ def validate_spectra(
     )
 
     LOGGER.info(
-        "Comparing predicted to actual peaks for {} spectra.".format(
+        (
+            "Comparing predicted to actual peaks for {} spectra "
+            " ({} pep-scan combinations)."
+        ).format(
             len(scan_mapping),
+            total_num_seq,
         )
     )
 
-    peak_hits = dict(
-        pool.imap_unordered(
-            _map_frag_compare,
-            LenGen(
+    peak_hits = pool.imap_unordered(
+        func=_map_frag_compare,
+        iterable=LenGen(
+            gen=(
                 (
-                    (
-                        pep_query,
-                        scan_mapping[pep_query],
-                        sequence,
-                        ms_two_data[pep_query.basename][pep_query.scan]
-                        .deRef(),
-                    )
-                    for pep_query, sequences in sequence_mapping.items()
-                    for sequence in sequences
-                ),
-                total_num_seq,
+                    pep_query,
+                    scan_mapping[pep_query],
+                    sequence,
+                    ms_two_data[pep_query.basename][pep_query.scan]
+                    .deRef(),
+                    ms_data[scan_mapping[pep_query].basename]
+                    [scan_mapping[pep_query].precursor_scan]
+                    .deRef(),
+                )
+                for pep_query, sequences in sequence_mapping.items()
+                for sequence in sequences
             ),
-            cpu_count * 4,
-        )
+            len=total_num_seq,
+        ),
     )
-
-    del pool
+    pool.close()
 
     # XXX: Determine SILAC precursor masses?
 
@@ -210,13 +219,19 @@ def validate_spectra(
     # Check each assignment to each scan
 
     # Output data
-    export.export_to_camv(
-        out_path,
+    export.export_to_sql(
+        os.path.splitext(out_path)[0] + ".db",
         peak_hits, scan_mapping,
-        ms_data, ms_two_data,
+        total_num_seq=total_num_seq,
+    )
+    LOGGER.info(
+        "Exported {} total peptide-scan combinations"
+        .format(total_num_seq)
     )
 
     LOGGER.info("Removing directory of temporary files.")
+
+    del pool
 
     for raw in ms_data.values():
         raw.info['fileObject'].close()
