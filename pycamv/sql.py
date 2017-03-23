@@ -66,9 +66,12 @@ CREATE TABLE ptms
 CREATE TABLE fragments
 (
     fragment_id             integer primary key autoincrement not null,
+    peak_id                 integer not null,
     ptm_id                  integer not null,
     name                    text not null,
+    display_name            text not null,
     mz                      real not null,
+    best                    integer,
     ion_type                text,
     ion_pos                 integer,
     FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
@@ -422,10 +425,13 @@ def insert_fragments(cursor, peaks, ptm_id):
     gen = (
         (
             ptm_id,
+            peak_index,
+            name,
             utils.rewrite_ion_name(name),
             mz,
+            name == peak_hit.name,
         ) + _ion_type_pos(name)
-        for peak_hit in peaks
+        for peak_index, peak_hit in enumerate(peaks)
         if peak_hit.match_list
         for name, (mz, _) in peak_hit.match_list.items()
     )
@@ -436,11 +442,14 @@ def insert_fragments(cursor, peaks, ptm_id):
             INSERT OR IGNORE INTO fragments
             (
                 ptm_id,
+                peak_id,
                 name,
+                display_name,
                 mz,
+                best,
                 ion_type,
                 ion_pos
-            ) VALUES (?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             tup,
         )
