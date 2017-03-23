@@ -19,6 +19,11 @@ from .utils import StrToBin
 
 LOGGER = logging.getLogger("pycamv.export")
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
 
 def _peaks_to_dict(peaks):
     return [
@@ -540,8 +545,8 @@ def export_to_sql(
     if overwrite:
         try:
             os.remove(out_path)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
+        except FileNotFoundError as e:
+            if getattr(e, "errno", errno.EEXIST) != errno.EEXIST:
                 raise e
 
     db = sqlite3.connect(out_path, isolation_level="EXCLUSIVE")
