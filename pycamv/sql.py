@@ -63,21 +63,6 @@ CREATE TABLE ptms
     UNIQUE(mod_state_id, full_name)
 );
 
-CREATE TABLE fragments
-(
-    fragment_id             integer primary key autoincrement not null,
-    peak_id                 integer not null,
-    ptm_id                  integer not null,
-    name                    text not null,
-    display_name            text not null,
-    mz                      real not null,
-    best                    integer,
-    ion_type                text,
-    ion_pos                 integer,
-    FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
-    -- UNIQUE(ptm_id, name)
-);
-
 -- Raw files sourced for each scan
 CREATE TABLE files
 (
@@ -93,7 +78,7 @@ CREATE TABLE scan_data
     scan_id                 integer,
     data_type               text,
     data_blob               blob,
-    FOREIGN KEY(scan_id) REFERENCES scan_info(scan_id),
+    FOREIGN KEY(scan_id) REFERENCES scans(scan_id),
     UNIQUE(scan_id, data_type)
 );
 
@@ -116,7 +101,7 @@ CREATE TABLE quant_mz_peaks
     UNIQUE(quant_mz_id, mz, peak_name)
 );
 
-CREATE TABLE scan_info
+CREATE TABLE scans
 (
     scan_id                 integer primary key autoincrement not null,
     scan_num                integer not null,
@@ -138,8 +123,23 @@ CREATE TABLE scan_ptms
     ptm_id                  integer not null,
     choice                  text,
     mascot_score            real,
-    FOREIGN KEY(scan_id) REFERENCES scan_info(scan_id)
+    FOREIGN KEY(scan_id) REFERENCES scans(scan_id)
     FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
+);
+
+CREATE TABLE fragments
+(
+    fragment_id             integer primary key autoincrement not null,
+    peak_id                 integer not null,
+    scan_ptm_id             integer not null,
+    name                    text not null,
+    display_name            text not null,
+    mz                      real not null,
+    best                    integer,
+    ion_type                text,
+    ion_pos                 integer,
+    FOREIGN KEY(scan_ptm_id) REFERENCES scan_ptms(scan_ptm_id)
+    -- UNIQUE(ptm_id, name)
 );
 """
 
@@ -318,12 +318,12 @@ def insert_quant_peaks(cursor, query, label_win, scan_id):
     )
 
 
-def insert_scan_info(
+def insert_scans(
     cursor, query, scan_query,
     quant_mz_id, file_id,
 ):
     return _insert_or_update_row(
-        cursor, "scan_info", "scan_id",
+        cursor, "scans", "scan_id",
         {
             "scan_num": query.scan,
             "charge": query.pep_exp_z,
@@ -421,10 +421,10 @@ def _ion_type_pos(name):
     return ion_type, ion_pos
 
 
-def insert_fragments(cursor, peaks, ptm_id):
+def insert_fragments(cursor, peaks, scan_ptm_id):
     gen = (
         (
-            ptm_id,
+            scan_ptm_id,
             peak_index,
             name,
             utils.rewrite_ion_name(name),
@@ -441,7 +441,7 @@ def insert_fragments(cursor, peaks, ptm_id):
             """
             INSERT OR IGNORE INTO fragments
             (
-                ptm_id,
+                scan_ptm_id,
                 peak_id,
                 name,
                 display_name,

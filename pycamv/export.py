@@ -9,7 +9,7 @@ from collections import OrderedDict, defaultdict
 import errno
 import gzip
 import logging
-import simplejson as json
+# import simplejson as json
 import os
 import sqlite3
 from time import time
@@ -582,12 +582,11 @@ def export_to_sql(
         sql.insert_pep_prot(cursor, peptide_id, protein_ids)
         mod_state_id = sql.insert_mod_state(cursor, query, peptide_id)
         ptm_id = sql.insert_ptm(cursor, query, seq, mod_state_id)
-        sql.insert_fragments(cursor, peaks, ptm_id)
 
         # Scan data
         quant_mz_id = sql.insert_quant_mz(cursor, query)
         file_id = sql.insert_file(cursor, query)
-        scan_id = sql.insert_scan_info(
+        scan_id = sql.insert_scans(
             cursor, query, scan_query,
             quant_mz_id,
             file_id,
@@ -604,7 +603,8 @@ def export_to_sql(
         )
 
         # PTM - Scan Mapping
-        sql.insert_scan_ptms(cursor, query, scan_id, ptm_id)
+        scan_ptm_id = sql.insert_scan_ptms(cursor, query, scan_id, ptm_id)
+        sql.insert_fragments(cursor, peaks, scan_ptm_id)
 
         # cursor.execute("COMMIT TRANSACTION")
         db.commit()
