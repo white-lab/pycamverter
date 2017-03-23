@@ -1,12 +1,19 @@
 
+import logging
 import sqlite3
 
-from . import ms_labels, regexes, scans, utils
+from . import ms_labels, regexes, utils
+
+
+LOGGER = logging.getLogger("pycamv.sql")
 
 DB_EXTS = [".db", ".sql"]
 
 CAMV_SCHEMA = """
 PRAGMA foreign_keys = ON;
+PRAGMA journal_mode = OFF;
+PRAGMA synchronous = OFF;
+PRAGMA temp_store = MEMORY;
 
 -- Individual protein names (i.e. Src)
 CREATE TABLE proteins
@@ -58,13 +65,14 @@ CREATE TABLE ptms
 
 CREATE TABLE fragments
 (
+    fragment_id             integer primary key autoincrement not null,
     ptm_id                  integer not null,
     name                    text not null,
     mz                      real not null,
     ion_type                text,
     ion_pos                 integer,
     FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
-    UNIQUE(ptm_id, name)
+    -- UNIQUE(ptm_id, name)
 );
 
 -- Raw files sourced for each scan
@@ -97,6 +105,7 @@ CREATE TABLE quant_mz
 -- Individual peak / mz names used for quantitation
 CREATE TABLE quant_mz_peaks
 (
+    quant_mz_peak_id        integer primary key autoincrement not null,
     quant_mz_id             integer not null,
     mz                      real not null,
     peak_name               text not null,
@@ -282,31 +291,25 @@ def insert_peaks(cursor, peaks, scan_id):
     )
 
 
-def insert_precursor_peaks(cursor, scan_query, ms_data, scan_id):
+def insert_precursor_peaks(cursor, scan_query, precursor_win, scan_id):
     return _insert_or_update_row(
         cursor, "scan_data", "data_id",
         {
             "scan_id": scan_id,
             "data_type": "precursor",
-            "data_blob": _peaks_to_blob(
-                scans.get_precursor_peak_window(
-                    scan_query, ms_data,
-                ),
-            ),
+            "data_blob": _peaks_to_blob(precursor_win),
         },
         ["scan_id", "data_type"],
     )
 
 
-def insert_quant_peaks(cursor, query, ms_two_data, scan_id):
+def insert_quant_peaks(cursor, query, label_win, scan_id):
     return _insert_or_update_row(
         cursor, "scan_data", "data_id",
         {
             "scan_id": scan_id,
             "data_type": "quant",
-            "data_blob": _peaks_to_blob(
-                scans.get_label_peak_window(query, ms_two_data),
-            ),
+            "data_blob": _peaks_to_blob(label_win),
         },
         ["scan_id", "data_type"],
     )
@@ -404,39 +407,41 @@ def insert_ptm(cursor, query, seq, mod_state_id):
     )
 
 
+def _ion_type_pos(name):
+    name_match = regexes.RE_BY_ION_POS.match(name)
+    if name_match:
+        ion_pos = int(name_match.group(2))
+        ion_type = "b" if name_match.group(1) in "abc" else "y"
+    else:
+        ion_type, ion_pos = None, None
+
+    return ion_type, ion_pos
+
+
 def insert_fragments(cursor, peaks, ptm_id):
-    inserts = []
-    for peak_hit in peaks:
-        if not peak_hit.match_list:
-            continue
-
-        for name, (mz, _) in peak_hit.match_list.items():
-            name_match = regexes.RE_BY_ION_POS.match(name)
-            if name_match:
-                ion_pos = int(name_match.group(2))
-                ion_type = "b" if name_match.group(1) in "abc" else "y"
-            else:
-                ion_type, ion_pos = None, None
-
-            inserts.append((
-                ptm_id,
-                utils.rewrite_ion_name(name),
-                mz,
-                ion_type,
-                ion_pos,
-            ))
-
-    cursor.executemany(
-        """
-        INSERT OR IGNORE INTO fragments
+    gen = (
         (
             ptm_id,
-            name,
+            utils.rewrite_ion_name(name),
             mz,
-            ion_type,
-            ion_pos
-        )
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        inserts,
+        ) + _ion_type_pos(name)
+        for peak_hit in peaks
+        if peak_hit.match_list
+        for name, (mz, _) in peak_hit.match_list.items()
     )
+    cursor.execute("BEGIN")
+    for tup in gen:
+        cursor.execute(
+            """
+            INSERT OR IGNORE INTO fragments
+            (
+                ptm_id,
+                name,
+                mz,
+                ion_type,
+                ion_pos
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            tup,
+        )
+    cursor.connection.commit()

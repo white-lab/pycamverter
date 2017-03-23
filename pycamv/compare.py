@@ -159,11 +159,4 @@ def compare_spectra(
             )
         )
 
-    # Free up memory so we don't keep duplicate info about a spectra's peaks
-    del spectra._peaks
-    del spectra._mz
-    del spectra._i
-    del spectra._centroidedPeaks
-    del spectra._reprofiledPeaks
-
     return out

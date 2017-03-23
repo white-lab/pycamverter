@@ -12,6 +12,7 @@ import logging
 import simplejson as json
 import os
 import sqlite3
+from time import time
 
 from . import ms_labels, regexes, scans, sql, utils, version
 from .utils import StrToBin
@@ -531,7 +532,7 @@ def export_to_camv(
 
 
 def export_to_sql(
-    out_path, peak_hits, scan_mapping, ms_data, ms_two_data,
+    out_path, peak_hits, scan_mapping,
     overwrite=True,
 ):
     assert os.path.splitext(out_path)[1] in sql.DB_EXTS
@@ -543,12 +544,30 @@ def export_to_sql(
             if e.errno != errno.EEXIST:
                 raise e
 
-    db = sqlite3.connect(out_path)
+    db = sqlite3.connect(out_path, isolation_level="EXCLUSIVE")
     cursor = db.cursor()
 
     cursor.executescript(sql.CAMV_SCHEMA)
+    db.commit()
 
-    for (query, seq), peaks in peak_hits:
+    total = time()
+
+    # frag_map = defaultdict(list)
+
+    for index, ((query, seq), (peaks, precursor_win, label_win)) in enumerate(
+        peak_hits,
+    ):
+        LOGGER.debug(
+            "Exporting: {} - {} - {}".format(
+                index,
+                query.scan,
+                _pep_mod_name(
+                    _extract_pep_seq(seq),
+                    _extract_mods(seq),
+                ),
+            )
+        )
+
         scan_query = scan_mapping[query]
 
         # Peptide sequence / modification data
@@ -572,15 +591,24 @@ def export_to_sql(
             cursor, peaks, scan_id,
         )
         sql.insert_precursor_peaks(
-            cursor, scan_query, ms_data, scan_id,
+            cursor, scan_query, precursor_win, scan_id,
         )
         sql.insert_quant_peaks(
-            cursor, query, ms_two_data, scan_id,
+            cursor, query, label_win, scan_id,
         )
 
         # PTM - Scan Mapping
         sql.insert_scan_ptms(cursor, query, scan_id, ptm_id)
 
+        # cursor.execute("COMMIT TRANSACTION")
         db.commit()
+        LOGGER.debug(
+            "done - avg: {:.3f} sec".format((time() - total) / (index + 1))
+        )
+
+    LOGGER.debug(
+        "total: {:.3f} min ({:.3f} sec / peptide)"
+        .format((time() - total) / 60, (time() - total) / (index + 1))
+    )
 
     db.close()
