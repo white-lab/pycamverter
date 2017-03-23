@@ -546,7 +546,7 @@ def export_to_sql(
         try:
             os.remove(out_path)
         except FileNotFoundError as e:
-            if getattr(e, "errno", errno.EEXIST) != errno.EEXIST:
+            if type(e) == IOError and e.errno != errno.EEXIST:
                 raise e
 
     db = sqlite3.connect(out_path, isolation_level="EXCLUSIVE")
