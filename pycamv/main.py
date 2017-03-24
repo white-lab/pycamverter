@@ -151,12 +151,11 @@ def main(args):
                 args.scans_path = scans[0]
 
         if (
-            args.search_path is None or
-            args.raw_paths is None
+            args.search_path is None
         ):
             parser.print_help()
             raise Exception(
-                "Missing either input search / raw paths"
+                "Missing search input path"
             )
 
         validate.validate_spectra(

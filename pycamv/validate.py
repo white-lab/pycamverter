@@ -80,7 +80,7 @@ def _map_frag_compare(kv):
 
 def validate_spectra(
     search_path,
-    raw_paths,
+    raw_paths=None,
     scans_path=None,
     scan_list=None,
     out_path=None,
@@ -105,6 +105,9 @@ def validate_spectra(
             cpu_count = 2
 
     LOGGER.debug("Validating data set with {} cpus".format(cpu_count))
+
+    if raw_paths is None:
+        raw_paths = []
 
     if scan_list is None:
         scan_list = []
@@ -139,7 +142,18 @@ def validate_spectra(
     base_raw_paths = [os.path.basename(path) for path in raw_paths]
 
     for base_raw in required_raws:
-        if base_raw not in base_raw_paths:
+        if base_raw in base_raw_paths:
+            continue
+
+        for base_dir in [
+            os.path.dirname(search_path),
+            os.path.join(os.path.dirname(search_path), "..", "MS RAW")
+        ]:
+            local_raw_path = os.path.join(base_dir, base_raw)
+            if os.path.exists(local_raw_path):
+                raw_paths.append(local_raw_path)
+                break
+        else:
             raise Exception(
                 "Unable to find {} in input RAW files: {}"
                 .format(base_raw, base_raw_paths)
