@@ -207,6 +207,10 @@ MODIFICATIONS = {
     ("K", "Lysine-13C615N2 (K-full)"): SILAC_LYSINE_13C615N2,
     ("R", "Arginine-13C6 (R-13C6)"): SILAC_ARGININE_13C6,
     ("R", "Arginine-13C615N2 (R-full)"): SILAC_ARGININE_13C615N4,
+
+    # Weird ProteomeDiscoverer Amino Acids
+    ("X", "MappingS"): SERINE,
+    ("X", "MappingN"): ASPARAGINE,
 }
 
 # Dictionary mapping amino acids and their modifications to weights
