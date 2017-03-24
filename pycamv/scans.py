@@ -250,6 +250,7 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
                 ms2_data[base_raw][pep_query.scan],
             )
             for pep_query in pep_queries
+            if pep_query.basename == base_raw
         ]
 
         # Collect MS^1 data

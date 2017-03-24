@@ -144,7 +144,16 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
             pep_fixed_mods.append(mod)
             continue
 
-        # print(pep_id, pep_seq, abbrev, pos)
+        # Weird ProteomeDiscoverer options, not sure what they do...
+        # But we'll treat them as Ser / Asn
+        LOGGER.warning(
+            "Encountered X: {} - {} - {} {} ({})".format(
+                pep_id, pep_seq, pos, letter, abbrev,
+            )
+        )
+
+        if letter == "X" and abbrev in ["MappingS", "MappingN"]:
+            continue
 
         raise Exception(
             "Unexpected modification: {} {}".format(letter, abbrev)
