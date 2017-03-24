@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.0 (2017-\*-\*)
+## 0.3.0 (2017-03-24)
 
 Features
 
@@ -11,6 +11,8 @@ Features
   - Limit generated sequences to 10 combinations per peptide to reduce pS/T
     file sizes.
   - Reduced memory usage by using python generators.
+  - Use SQLite to store exported data. +This change is not backwards compatible
+    with version of CAMV / pycamverter < 0.3.0+.
 
 Bugfixes
 
