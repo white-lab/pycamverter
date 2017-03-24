@@ -578,7 +578,8 @@ def export_to_sql(
 
         # Peptide sequence / modification data
         protein_ids = sql.insert_protein(cursor, query)
-        peptide_id = sql.insert_peptide(cursor, query)
+        protein_set_id = sql.insert_protein_set(cursor, query)
+        peptide_id = sql.insert_peptide(cursor, query, protein_set_id)
         sql.insert_pep_prot(cursor, peptide_id, protein_ids)
         mod_state_id = sql.insert_mod_state(cursor, query, peptide_id)
         ptm_id = sql.insert_ptm(cursor, query, seq, mod_state_id)

@@ -20,14 +20,26 @@ CREATE TABLE proteins
 (
     protein_id              integer primary key autoincrement not null,
     protein_name            text,
+    protein_accession       text,
     UNIQUE(protein_name)
+);
+
+-- Pre-processed set of protein names (i.e. Cdk1 / Cdk2 / Cdk3)
+CREATE TABLE protein_sets
+(
+    protein_set_id          integer primary key autoincrement not null,
+    protein_set_name        text,
+    protein_set_accession   text,
+    UNIQUE(protein_set_name)
 );
 
 -- Individual peptide sequences (i.e. IVLEYK)
 CREATE TABLE peptides
 (
     peptide_id              integer primary key autoincrement not null,
+    protein_set_id          integer not null,
     peptide_seq             text,
+    FOREIGN KEY(protein_set_id) REFERENCES protein_sets(protein_set_id)
     UNIQUE(peptide_seq)
 );
 
@@ -191,17 +203,36 @@ def insert_protein(cursor, query):
             cursor, "proteins", "protein_id",
             {
                 "protein_name": prot_desc,
+                "protein_accession": access,
             },
         )
-        for prot_desc in query.prot_descs
+        for prot_desc, access in zip(query.prot_descs, query.accessions)
     ]
 
 
-def insert_peptide(cursor, query):
+def insert_protein_set(cursor, query):
+    return _insert_or_update_row(
+        cursor, "protein_sets", "protein_set_id",
+        {
+            "protein_set_name": " / ".join(
+                i[0]
+                for i in sorted(
+                    zip(query.prot_descs, query.accessions)
+                )
+            ),
+            "protein_set_accession": " / ".join(
+                sorted(query.accessions)
+            ),
+        },
+    )
+
+
+def insert_peptide(cursor, query, prot_set_id):
     return _insert_or_update_row(
         cursor, "peptides", "peptide_id",
         {
             "peptide_seq": query.pep_seq,
+            "protein_set_id": prot_set_id,
         },
     )
 
