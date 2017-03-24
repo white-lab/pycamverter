@@ -106,6 +106,7 @@ CREATE TABLE scans
     scan_id                 integer primary key autoincrement not null,
     scan_num                integer not null,
     charge                  integer not null,
+    pep_exp_mz              integer not null,
     collision_type          text not null,
     precursor_mz            real not null,
     isolation_window_lower  real,
@@ -329,8 +330,9 @@ def insert_scans(
         {
             "scan_num": query.scan,
             "charge": query.pep_exp_z,
+            "pep_exp_mz": query.pep_exp_mz,
             "collision_type": scan_query.collision_type,
-            "precursor_mz": query.pep_exp_mz,
+            "precursor_mz": scan_query.isolation_mz,
             "isolation_window_lower": scan_query.window_offset[0],
             "isolation_window_upper": scan_query.window_offset[1],
             "c13_num": scan_query.c13_num,
