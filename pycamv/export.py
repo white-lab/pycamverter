@@ -44,7 +44,7 @@ def _pep_mod_name(pep_seq, mods):
 
 
 def export_to_sql(
-    out_path, peak_hits, scan_mapping,
+    out_path, queue, scan_mapping,
     overwrite=True, total_num_seq=None
 ):
     assert os.path.splitext(out_path)[1] in sql.DB_EXTS
@@ -65,10 +65,9 @@ def export_to_sql(
     total = time()
 
     # frag_map = defaultdict(list)
-
-    for index, (query, seq, peaks, precursor_win, label_win) in enumerate(
-        peak_hits,
-    ):
+    index = 0
+    while index < total_num_seq:
+        query, seq, peaks, precursor_win, label_win = queue.get()
         LOGGER.debug(
             "Exporting: {}{} - {} - {}".format(
                 index,
@@ -119,6 +118,8 @@ def export_to_sql(
         LOGGER.debug(
             "done - avg: {:.3f} sec".format((time() - total) / (index + 1))
         )
+
+        index += 1
 
     LOGGER.debug(
         "total: {:.3f} min ({:.3f} sec / peptide)"

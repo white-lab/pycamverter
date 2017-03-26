@@ -78,6 +78,41 @@ def _map_frag_compare(kv):
     return (pep_query, tuple(sequence), peaks, precursor_win, label_win)
 
 
+def fill_map_frag_compare(
+    sequence_mapping, scan_mapping,
+    ms_two_data, ms_data,
+    queue, cpu_count,
+):
+    pool = multiprocessing.Pool(
+        processes=cpu_count - 1,
+    )
+
+    total_num_seq = sum(len(i) for i in sequence_mapping.values())
+    peak_hits = pool.imap_unordered(
+        func=_map_frag_compare,
+        iterable=LenGen(
+            gen=(
+                (
+                    pep_query,
+                    scan_mapping[pep_query],
+                    sequence,
+                    ms_two_data[pep_query.basename][pep_query.scan]
+                    .deRef(),
+                    ms_data[scan_mapping[pep_query].basename]
+                    [scan_mapping[pep_query].precursor_scan]
+                    .deRef(),
+                )
+                for pep_query, sequences in sequence_mapping.items()
+                for sequence in sequences
+            ),
+            len=total_num_seq,
+        ),
+    )
+
+    for item in peak_hits:
+        queue.put(item)
+
+
 def validate_spectra(
     search_path,
     raw_paths=None,
@@ -169,6 +204,7 @@ def validate_spectra(
     sequence_mapping = dict(
         pool.imap_unordered(_map_seq, pep_queries)
     )
+    pool.close()
 
     total_num_seq = sum(len(i) for i in sequence_mapping.values())
 
@@ -204,27 +240,19 @@ def validate_spectra(
         )
     )
 
-    peak_hits = pool.imap_unordered(
-        func=_map_frag_compare,
-        iterable=LenGen(
-            gen=(
-                (
-                    pep_query,
-                    scan_mapping[pep_query],
-                    sequence,
-                    ms_two_data[pep_query.basename][pep_query.scan]
-                    .deRef(),
-                    ms_data[scan_mapping[pep_query].basename]
-                    [scan_mapping[pep_query].precursor_scan]
-                    .deRef(),
-                )
-                for pep_query, sequences in sequence_mapping.items()
-                for sequence in sequences
-            ),
-            len=total_num_seq,
+    queue = multiprocessing.Queue()
+    process = multiprocessing.Process(
+        target=fill_map_frag_compare,
+        args=(
+            sequence_mapping,
+            scan_mapping,
+            ms_two_data,
+            ms_data,
+            queue,
+            cpu_count,
         ),
     )
-    pool.close()
+    process.start()
 
     # XXX: Determine SILAC precursor masses?
 
@@ -235,9 +263,11 @@ def validate_spectra(
     # Output data
     export.export_to_sql(
         os.path.splitext(out_path)[0] + ".db",
-        peak_hits, scan_mapping,
+        queue, scan_mapping,
         total_num_seq=total_num_seq,
     )
+    process.join()
+    pool.close()
     LOGGER.info(
         "Exported {} total peptide-scan combinations"
         .format(total_num_seq)
