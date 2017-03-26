@@ -60,6 +60,7 @@ CREATE TABLE mod_states
     mod_state_id            integer primary key autoincrement not null,
     peptide_id              integer,
     mod_desc                text,
+    num_comb                integer,
     FOREIGN KEY(peptide_id) REFERENCES peptides(peptide_id),
     UNIQUE(peptide_id, mod_desc)
 );
@@ -402,6 +403,7 @@ def insert_mod_state(cursor, query, peptide_id):
                 query.pep_seq,
                 tuple(query.pep_var_mods)
             ),
+            "num_comb": query.num_comb,
         },
     )
 
@@ -488,22 +490,3 @@ def insert_fragments(cursor, peaks, scan_ptm_id):
         """,
         gen,
     )
-    # cursor.execute("BEGIN")
-    # for tup in gen:
-    #     cursor.execute(
-    #         """
-    #         INSERT OR IGNORE INTO fragments
-    #         (
-    #             scan_ptm_id,
-    #             peak_id,
-    #             name,
-    #             display_name,
-    #             mz,
-    #             best,
-    #             ion_type,
-    #             ion_pos
-    #         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    #         """,
-    #         tup,
-    #     )
-    # cursor.connection.commit()
