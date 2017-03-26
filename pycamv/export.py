@@ -60,6 +60,7 @@ def export_to_sql(
     cursor = db.cursor()
 
     cursor.executescript(sql.CAMV_SCHEMA)
+    sql.insert_camv_meta(cursor)
     db.commit()
 
     total = time()

@@ -2,7 +2,7 @@
 import logging
 import sqlite3
 
-from . import ms_labels, regexes, utils
+from . import ms_labels, regexes, utils, version
 
 
 LOGGER = logging.getLogger("pycamv.sql")
@@ -47,8 +47,8 @@ CREATE TABLE peptides
 CREATE TABLE protein_peptide
 (
     prot_pep_id             integer primary key autoincrement not null,
-    peptide_id              integer,
-    protein_id              integer,
+    peptide_id              integer not null,
+    protein_id              integer not null,
     FOREIGN KEY(peptide_id) REFERENCES peptides(peptide_id),
     FOREIGN KEY(protein_id) REFERENCES proteins(protein_id),
     UNIQUE(peptide_id, protein_id)
@@ -58,7 +58,7 @@ CREATE TABLE protein_peptide
 CREATE TABLE mod_states
 (
     mod_state_id            integer primary key autoincrement not null,
-    peptide_id              integer,
+    peptide_id              integer not null,
     mod_desc                text,
     num_comb                integer,
     FOREIGN KEY(peptide_id) REFERENCES peptides(peptide_id),
@@ -69,7 +69,7 @@ CREATE TABLE mod_states
 CREATE TABLE ptms
 (
     ptm_id                  integer primary key autoincrement not null,
-    mod_state_id            integer,
+    mod_state_id            integer not null,
     name                    text,
     full_name               text,
     FOREIGN KEY(mod_state_id) REFERENCES mod_states(mod_state_id),
@@ -88,12 +88,13 @@ CREATE TABLE files
 CREATE TABLE scan_data
 (
     data_id                 integer primary key autoincrement not null,
-    scan_id                 integer,
+    scan_id                 integer not null,
     data_type               text,
     data_blob               blob,
     FOREIGN KEY(scan_id) REFERENCES scans(scan_id),
     UNIQUE(scan_id, data_type)
 );
+CREATE INDEX scan_data_idx ON scan_data(scan_id, data_type);
 
 -- Set of peaks that are used for quantitation
 CREATE TABLE quant_mz
@@ -142,6 +143,7 @@ CREATE TABLE scan_ptms
     FOREIGN KEY(scan_id) REFERENCES scans(scan_id)
     FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
 );
+CREATE INDEX scan_ptms_idx ON scan_ptms(scan_id, ptm_id);
 
 CREATE TABLE fragments
 (
@@ -156,6 +158,14 @@ CREATE TABLE fragments
     ion_pos                 integer,
     FOREIGN KEY(scan_ptm_id) REFERENCES scan_ptms(scan_ptm_id)
     -- UNIQUE(ptm_id, name)
+);
+CREATE INDEX fragments_idx ON fragments(peak_id, scan_ptm_id);
+
+CREATE TABLE camv_meta
+(
+    key                     text not null,
+    val                     text,
+    UNIQUE(key)
 );
 """
 
@@ -489,4 +499,20 @@ def insert_fragments(cursor, peaks, scan_ptm_id):
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         gen,
+    )
+
+
+def insert_camv_meta(cursor):
+    cursor.executemany(
+        """
+        INSERT OR IGNORE INTO camv_meta
+        (
+            key,
+            val,
+        ) VALUES (?, ?)
+        """,
+        {
+            "pycamverterVersion": version.__version__,
+            "camvDataVersion": "1.0.0",
+        }.items(),
     )
