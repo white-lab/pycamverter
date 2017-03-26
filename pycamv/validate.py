@@ -55,7 +55,9 @@ def _map_seq(kv):
 
 
 def _map_frag_compare(kv):
-    pep_query, scan_query, sequence, ms_two_scan, ms_scan = kv
+    pep_query, scan_query, sequence, ms_two_data, ms_data = kv
+    ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
+    ms_scan = ms_data[scan_query.basename][scan_query.precursor_scan]
 
     frag_ions = fragments.fragment_ions(
         sequence, pep_query.pep_exp_z,
@@ -96,11 +98,8 @@ def fill_map_frag_compare(
                     pep_query,
                     scan_mapping[pep_query],
                     sequence,
-                    ms_two_data[pep_query.basename][pep_query.scan]
-                    .deRef(),
-                    ms_data[scan_mapping[pep_query].basename]
-                    [scan_mapping[pep_query].precursor_scan]
-                    .deRef(),
+                    ms_two_data,
+                    ms_data,
                 )
                 for pep_query, sequences in sequence_mapping.items()
                 for sequence in sequences
