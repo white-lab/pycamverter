@@ -472,22 +472,38 @@ def insert_fragments(cursor, peaks, scan_ptm_id):
         if peak_hit.match_list
         for name, (mz, _) in peak_hit.match_list.items()
     )
-    cursor.execute("BEGIN")
-    for tup in gen:
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO fragments
-            (
-                scan_ptm_id,
-                peak_id,
-                name,
-                display_name,
-                mz,
-                best,
-                ion_type,
-                ion_pos
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            tup,
-        )
-    cursor.connection.commit()
+    cursor.executemany(
+        """
+        INSERT OR IGNORE INTO fragments
+        (
+            scan_ptm_id,
+            peak_id,
+            name,
+            display_name,
+            mz,
+            best,
+            ion_type,
+            ion_pos
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        gen,
+    )
+    # cursor.execute("BEGIN")
+    # for tup in gen:
+    #     cursor.execute(
+    #         """
+    #         INSERT OR IGNORE INTO fragments
+    #         (
+    #             scan_ptm_id,
+    #             peak_id,
+    #             name,
+    #             display_name,
+    #             mz,
+    #             best,
+    #             ion_type,
+    #             ion_pos
+    #         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    #         """,
+    #         tup,
+    #     )
+    # cursor.connection.commit()
