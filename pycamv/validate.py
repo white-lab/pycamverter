@@ -281,7 +281,6 @@ def validate_spectra(
             queue, scan_mapping,
             total_num_seq=total_num_seq,
         )
-        process.close()
     except:
         process.terminate()
         raise
