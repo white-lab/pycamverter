@@ -8,6 +8,7 @@ from . import ms_labels, regexes, utils, version
 LOGGER = logging.getLogger("pycamv.sql")
 
 DB_EXTS = [".db", ".sql"]
+DATA_VERSION = "1.0.0"
 
 CAMV_SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -16,7 +17,7 @@ PRAGMA synchronous = OFF;
 PRAGMA temp_store = MEMORY;
 
 -- Individual protein names (i.e. Src)
-CREATE TABLE proteins
+CREATE TABLE IF NOT EXISTS proteins
 (
     protein_id              integer primary key autoincrement not null,
     protein_name            text,
@@ -25,7 +26,7 @@ CREATE TABLE proteins
 );
 
 -- Pre-processed set of protein names (i.e. Cdk1 / Cdk2 / Cdk3)
-CREATE TABLE protein_sets
+CREATE TABLE IF NOT EXISTS protein_sets
 (
     protein_set_id          integer primary key autoincrement not null,
     protein_set_name        text,
@@ -34,7 +35,7 @@ CREATE TABLE protein_sets
 );
 
 -- Individual peptide sequences (i.e. IVLEYK)
-CREATE TABLE peptides
+CREATE TABLE IF NOT EXISTS peptides
 (
     peptide_id              integer primary key autoincrement not null,
     protein_set_id          integer not null,
@@ -44,7 +45,7 @@ CREATE TABLE peptides
 );
 
 -- Mapping between proteins and peptides
-CREATE TABLE protein_peptide
+CREATE TABLE IF NOT EXISTS protein_peptide
 (
     prot_pep_id             integer primary key autoincrement not null,
     peptide_id              integer not null,
@@ -55,7 +56,7 @@ CREATE TABLE protein_peptide
 );
 
 -- Peptides with unmapped modifications (i.e. +1 pY)
-CREATE TABLE mod_states
+CREATE TABLE IF NOT EXISTS mod_states
 (
     mod_state_id            integer primary key autoincrement not null,
     peptide_id              integer not null,
@@ -66,7 +67,7 @@ CREATE TABLE mod_states
 );
 
 -- Peptides with modifications exactly positioned (i.e pY114)
-CREATE TABLE ptms
+CREATE TABLE IF NOT EXISTS ptms
 (
     ptm_id                  integer primary key autoincrement not null,
     mod_state_id            integer not null,
@@ -77,7 +78,7 @@ CREATE TABLE ptms
 );
 
 -- Raw files sourced for each scan
-CREATE TABLE files
+CREATE TABLE IF NOT EXISTS files
 (
     file_id                 integer primary key autoincrement not null,
     filename                text,
@@ -85,7 +86,7 @@ CREATE TABLE files
 );
 
 -- Blobs of scan data, for full ms2, quantification window, and precursor data
-CREATE TABLE scan_data
+CREATE TABLE IF NOT EXISTS scan_data
 (
     data_id                 integer primary key autoincrement not null,
     scan_id                 integer not null,
@@ -94,10 +95,9 @@ CREATE TABLE scan_data
     FOREIGN KEY(scan_id) REFERENCES scans(scan_id),
     UNIQUE(scan_id, data_type)
 );
-CREATE INDEX scan_data_idx ON scan_data(scan_id, data_type);
 
 -- Set of peaks that are used for quantitation
-CREATE TABLE quant_mz
+CREATE TABLE IF NOT EXISTS quant_mz
 (
     quant_mz_id             integer primary key autoincrement not null,
     label_name              text,
@@ -105,7 +105,7 @@ CREATE TABLE quant_mz
 );
 
 -- Individual peak / mz names used for quantitation
-CREATE TABLE quant_mz_peaks
+CREATE TABLE IF NOT EXISTS quant_mz_peaks
 (
     quant_mz_peak_id        integer primary key autoincrement not null,
     quant_mz_id             integer not null,
@@ -115,7 +115,7 @@ CREATE TABLE quant_mz_peaks
     UNIQUE(quant_mz_id, mz, peak_name)
 );
 
-CREATE TABLE scans
+CREATE TABLE IF NOT EXISTS scans
 (
     scan_id                 integer primary key autoincrement not null,
     scan_num                integer not null,
@@ -133,19 +133,19 @@ CREATE TABLE scans
     UNIQUE(scan_num, file_id)
 );
 
-CREATE TABLE scan_ptms
+CREATE TABLE IF NOT EXISTS scan_ptms
 (
     scan_ptm_id             integer primary key autoincrement not null,
     scan_id                 integer not null,
     ptm_id                  integer not null,
     choice                  text,
     mascot_score            real,
-    FOREIGN KEY(scan_id) REFERENCES scans(scan_id)
-    FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id)
+    FOREIGN KEY(scan_id) REFERENCES scans(scan_id),
+    FOREIGN KEY(ptm_id) REFERENCES ptms(ptm_id),
+    UNIQUE(scan_id, ptm_id)
 );
-CREATE INDEX scan_ptms_idx ON scan_ptms(scan_id, ptm_id);
 
-CREATE TABLE fragments
+CREATE TABLE IF NOT EXISTS fragments
 (
     fragment_id             integer primary key autoincrement not null,
     peak_id                 integer not null,
@@ -159,15 +159,50 @@ CREATE TABLE fragments
     FOREIGN KEY(scan_ptm_id) REFERENCES scan_ptms(scan_ptm_id)
     -- UNIQUE(ptm_id, name)
 );
-CREATE INDEX fragments_idx ON fragments(peak_id, scan_ptm_id);
+CREATE INDEX IF NOT EXISTS fragments_idx ON fragments(peak_id, scan_ptm_id);
 
-CREATE TABLE camv_meta
+CREATE TABLE IF NOT EXISTS camv_meta
 (
     key                     text not null,
     val                     text,
     UNIQUE(key)
 );
 """
+
+
+def create_tables(cursor):
+    cursor.executescript(CAMV_SCHEMA)
+    insert_camv_meta(cursor)
+    cursor.connection.commit()
+
+
+def run_migrations(cursor):
+    rows = cursor.execute(
+        """
+        SELECT camv_meta.key, camv_meta.val
+        FROM camv_meta
+        WHERE camv_meta.key IN (?)
+        """,
+        [
+            "camvDataVersion",
+        ],
+    )
+
+    for row in rows:
+        print(row)
+        if row.key == "camvDataVersion":
+            camv_data_version = row.val
+        else:
+            raise Exception(
+                "Unexpected key in camv_meta: {} - {}".format(row.key, row.val)
+            )
+
+    if camv_data_version != DATA_VERSION:
+        raise NotImplementedError(
+            "Unable to migrate CAMV data from {} to {}".format(
+                camv_data_version, DATA_VERSION,
+            )
+        )
 
 
 def _insert_or_update_row(cursor, table, id, data, unique_on=None):
@@ -508,11 +543,11 @@ def insert_camv_meta(cursor):
         INSERT OR IGNORE INTO camv_meta
         (
             key,
-            val,
+            val
         ) VALUES (?, ?)
         """,
         {
             "pycamverterVersion": version.__version__,
-            "camvDataVersion": "1.0.0",
+            "camvDataVersion": DATA_VERSION,
         }.items(),
     )

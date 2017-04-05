@@ -59,9 +59,8 @@ def export_to_sql(
     db = sqlite3.connect(out_path, isolation_level="EXCLUSIVE")
     cursor = db.cursor()
 
-    cursor.executescript(sql.CAMV_SCHEMA)
-    sql.insert_camv_meta(cursor)
-    db.commit()
+    sql.create_tables(cursor)
+    sql.run_migrations(cursor)
 
     total = time()
 
