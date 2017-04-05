@@ -212,7 +212,10 @@ def run_migrations(cursor):
         )
 
 
-def _insert_or_update_row(cursor, table, id, data, unique_on=None):
+def _insert_or_update_row(
+    cursor, table, id, data,
+    unique_on=None, update=False,
+):
     if unique_on is None:
         unique_on = list(data.keys())
 
@@ -246,6 +249,20 @@ def _insert_or_update_row(cursor, table, id, data, unique_on=None):
             list(data.values()),
         )
         row_id = cursor.lastrowid
+    elif update:
+        keys = [i for i in data.keys() if i not in unique_on]
+        cursor.execute(
+            """
+            UPDATE {}
+            SET {}
+            WHERE {}
+            """.format(
+                table,
+                ", ".join("{}=?".format(i) for i in keys),
+                " and ".join("{}=?".format(i) for i in unique_on),
+            ),
+            [data[i] for i in keys] + [data[i] for i in unique_on],
+        )
 
     return row_id
 
@@ -377,7 +394,7 @@ def insert_peaks(cursor, peaks, scan_id):
             "data_type": "ms2",
             "data_blob": _peaks_to_blob(peaks),
         },
-        ["scan_id", "data_type"],
+        unique_on=["scan_id", "data_type"],
     )
 
 
@@ -389,7 +406,7 @@ def insert_precursor_peaks(cursor, scan_query, precursor_win, scan_id):
             "data_type": "precursor",
             "data_blob": _peaks_to_blob(precursor_win),
         },
-        ["scan_id", "data_type"],
+        unique_on=["scan_id", "data_type"],
     )
 
 
@@ -401,7 +418,7 @@ def insert_quant_peaks(cursor, query, label_win, scan_id):
             "data_type": "quant",
             "data_blob": _peaks_to_blob(label_win),
         },
-        ["scan_id", "data_type"],
+        unique_on=["scan_id", "data_type"],
     )
 
 
@@ -427,7 +444,8 @@ def insert_scans(
                 not reprocessed and query.num_comb > gen_sequences.MAX_NUM_COMB
             ),
         },
-        ["scan_num", "file_id"],
+        unique_on=["scan_num", "file_id"],
+        update=reprocessed,
     )
 
 
@@ -439,7 +457,7 @@ def insert_scan_ptms(cursor, query, scan_id, ptm_id):
             "ptm_id": ptm_id,
             "mascot_score": query.pep_score,
         },
-        ["scan_id", "ptm_id"],
+        unique_on=["scan_id", "ptm_id"],
     )
 
 
@@ -501,7 +519,7 @@ def insert_ptm(cursor, query, seq, mod_state_id):
             "name": _pep_mod_name(query.pep_seq, mods),
             "full_name": _pep_mod_full_name(query.pep_seq, mods),
         },
-        ["mod_state_id", "full_name"],
+        unique_on=["mod_state_id", "full_name"],
     )
 
 
