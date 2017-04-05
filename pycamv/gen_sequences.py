@@ -8,6 +8,9 @@ from __future__ import absolute_import, division
 import itertools
 
 
+MAX_NUM_COMB = 10
+
+
 def gen_possible_seq(pep_seq, var_mods):
     """
     Generates sequences

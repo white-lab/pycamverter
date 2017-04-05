@@ -2,7 +2,7 @@
 import logging
 import sqlite3
 
-from . import ms_labels, regexes, utils, version
+from . import gen_sequences, ms_labels, regexes, utils, version
 
 
 LOGGER = logging.getLogger("pycamv.sql")
@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS scans
     quant_mz_id             integer,
     c13_num                 integer,
     file_id                 integer,
+    truncated               integer,
     FOREIGN KEY(quant_mz_id) REFERENCES quant_mz(quant_mz_id),
     FOREIGN KEY(file_id) REFERENCES files(file_id),
     UNIQUE(scan_num, file_id)
@@ -421,6 +422,7 @@ def insert_scans(
             "c13_num": scan_query.c13_num,
             "quant_mz_id": quant_mz_id,
             "file_id": file_id,
+            "truncated": query.num_comb > gen_sequences.MAX_NUM_COMB,
         },
         ["scan_num", "file_id"],
     )

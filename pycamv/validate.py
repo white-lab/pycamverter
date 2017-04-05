@@ -44,7 +44,7 @@ def _map_seq(kv):
         tuple(
             seq
             for index, seq in zip(
-                range(10),
+                range(gen_sequences.MAX_NUM_COMB),
                 gen_sequences.gen_possible_seq(
                     pep_query.pep_seq,
                     pep_query.pep_mods,
