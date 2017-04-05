@@ -44,7 +44,7 @@ def _pep_mod_name(pep_seq, mods):
 
 
 def export_to_sql(
-    out_path, queue, scan_mapping,
+    out_path, queue, scan_mapping, search_path, raw_paths,
     reprocess=False, total_num_seq=None
 ):
     assert os.path.splitext(out_path)[1] in sql.DB_EXTS
@@ -61,6 +61,8 @@ def export_to_sql(
 
     sql.create_tables(cursor)
     sql.run_migrations(cursor)
+
+    sql.insert_path_data(cursor, search_path, raw_paths)
 
     total = time()
 

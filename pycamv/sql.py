@@ -562,3 +562,19 @@ def insert_camv_meta(cursor):
             "camvDataVersion": DATA_VERSION,
         }.items(),
     )
+
+
+def insert_path_data(cursor, search_path, raw_paths):
+    cursor.executemany(
+        """
+        INSERT OR IGNORE INTO camv_meta
+        (
+            key,
+            val
+        ) VALUES (?, ?)
+        """,
+        {
+            "search_path": search_path,
+            "raw_paths": ";".join(raw_paths),
+        }.items(),
+    )
