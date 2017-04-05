@@ -8,6 +8,7 @@ Currently limited to importing and outputing scan lists.
 from __future__ import absolute_import, division
 
 from collections import OrderedDict
+from functools import partial
 import logging
 import multiprocessing
 import os
@@ -37,21 +38,30 @@ def _remap_pst(pep_mods):
     ]
 
 
-def _map_seq(kv):
+def _map_seq(kv, limit_comb=False):
     pep_query = kv
-    return (
-        pep_query,
-        tuple(
-            seq
-            for index, seq in zip(
-                range(gen_sequences.MAX_NUM_COMB),
-                gen_sequences.gen_possible_seq(
-                    pep_query.pep_seq,
-                    pep_query.pep_mods,
+
+    gen = gen_sequences.gen_possible_seq(
+        pep_query.pep_seq,
+        pep_query.pep_mods,
+    )
+
+    if limit_comb:
+        return (
+            pep_query,
+            tuple(
+                seq
+                for index, seq in zip(
+                    range(gen_sequences.MAX_NUM_COMB),
+                    gen,
                 )
             )
-        ),
-    )
+        )
+    else:
+        return (
+            pep_query,
+            tuple(gen),
+        )
 
 
 def _map_frag_compare(kv):
@@ -128,6 +138,7 @@ def validate_spectra(
     scan_list=None,
     out_path=None,
     cpu_count=None,
+    reprocess=False,
 ):
     """
     Generate CAMV web page for validating spectra.
@@ -140,6 +151,7 @@ def validate_spectra(
     scan_list : list of int, optional
     out_path : str, optional
     cpu_count : int, optional
+    reprocess : bool, optional
     """
     if cpu_count is None:
         try:
@@ -211,7 +223,10 @@ def validate_spectra(
     )
     try:
         sequence_mapping = dict(
-            pool.imap_unordered(_map_seq, pep_queries)
+            pool.imap_unordered(
+                partial(_map_seq, limit_comb=not reprocess),
+                pep_queries,
+            )
         )
         pool.close()
     except:
@@ -280,6 +295,7 @@ def validate_spectra(
             os.path.splitext(out_path)[0] + ".db",
             queue, scan_mapping,
             total_num_seq=total_num_seq,
+            reprocess=reprocess,
         )
     except:
         process.terminate()

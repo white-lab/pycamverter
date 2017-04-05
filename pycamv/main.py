@@ -53,6 +53,11 @@ def _parse_args(args):
         help="Show GUI for converting files.",
     )
     parser.add_argument(
+        "--reprocess",
+        action="store_true",
+        help="Reprocess a set of scans, without limiting ptm combinations.",
+    )
+    parser.add_argument(
         "--raw_paths",
         nargs="+",
         help="Raw data file(s) containing mass spec data.",
@@ -164,6 +169,7 @@ def main(args):
             scans_path=args.scans_path,
             scan_list=args.scans,
             out_path=args.out_path,
+            reprocess=args.reprocess,
         )
 
 

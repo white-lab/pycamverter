@@ -408,6 +408,7 @@ def insert_quant_peaks(cursor, query, label_win, scan_id):
 def insert_scans(
     cursor, query, scan_query,
     quant_mz_id, file_id,
+    reprocessed=False,
 ):
     return _insert_or_update_row(
         cursor, "scans", "scan_id",
@@ -422,7 +423,9 @@ def insert_scans(
             "c13_num": scan_query.c13_num,
             "quant_mz_id": quant_mz_id,
             "file_id": file_id,
-            "truncated": query.num_comb > gen_sequences.MAX_NUM_COMB,
+            "truncated": (
+                not reprocessed and query.num_comb > gen_sequences.MAX_NUM_COMB
+            ),
         },
         ["scan_num", "file_id"],
     )

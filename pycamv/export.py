@@ -45,11 +45,11 @@ def _pep_mod_name(pep_seq, mods):
 
 def export_to_sql(
     out_path, queue, scan_mapping,
-    overwrite=True, total_num_seq=None
+    reprocess=False, total_num_seq=None
 ):
     assert os.path.splitext(out_path)[1] in sql.DB_EXTS
 
-    if overwrite:
+    if not reprocess:
         try:
             os.remove(out_path)
         except FileNotFoundError as e:
@@ -97,6 +97,7 @@ def export_to_sql(
             cursor, query, scan_query,
             quant_mz_id,
             file_id,
+            reprocessed=reprocess,
         )
 
         sql.insert_peaks(
