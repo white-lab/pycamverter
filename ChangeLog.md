@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.3.1 (2017-04-05)
+
+Features
+
+  - Added functionality to reprocess individual scans without PTM combination
+    limits.
+
+Bugfixes
+
+  - Fixed main process hanging when a subprocess encountered an error.
+
 ## 0.3.0 (2017-03-24)
 
 Features
