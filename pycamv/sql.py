@@ -188,14 +188,20 @@ def run_migrations(cursor):
         ],
     )
 
-    for row in rows:
-        print(row)
-        if row.key == "camvDataVersion":
-            camv_data_version = row.val
+    camv_data_version = None
+
+    for key, val in rows:
+        if key == "camvDataVersion":
+            camv_data_version = val
         else:
             raise Exception(
-                "Unexpected key in camv_meta: {} - {}".format(row.key, row.val)
+                "Unexpected key in camv_meta: {} - {}".format(key, val)
             )
+
+    if camv_data_version is None:
+        raise Exception(
+            "Unable to determine CAMV data version of existing database",
+        )
 
     if camv_data_version != DATA_VERSION:
         raise NotImplementedError(
