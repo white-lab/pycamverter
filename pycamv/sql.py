@@ -449,13 +449,14 @@ def insert_scans(
     )
 
 
-def insert_scan_ptms(cursor, query, scan_id, ptm_id):
+def insert_scan_ptms(cursor, query, scan_id, ptm_id, choice=None):
     return _insert_or_update_row(
         cursor, "scan_ptms", "scan_ptm_id",
         {
             "scan_id": scan_id,
             "ptm_id": ptm_id,
             "mascot_score": query.pep_score,
+            "choice": choice,
         },
         unique_on=["scan_id", "ptm_id"],
     )

@@ -58,6 +58,12 @@ def _parse_args(args):
         help="Reprocess a set of scans, without limiting ptm combinations.",
     )
     parser.add_argument(
+        "--no-auto-maybe",
+        action="store_false",
+        dest="auto_maybe",
+        help="Auto-assign all peptides with best MASCOT rank as 'maybe'",
+    )
+    parser.add_argument(
         "--raw_paths",
         nargs="+",
         help="Raw data file(s) containing mass spec data.",
@@ -170,6 +176,7 @@ def main(args):
             scan_list=args.scans,
             out_path=args.out_path,
             reprocess=args.reprocess,
+            auto_maybe=args.auto_maybe,
         )
 
 

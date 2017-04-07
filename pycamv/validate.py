@@ -139,6 +139,7 @@ def validate_spectra(
     out_path=None,
     cpu_count=None,
     reprocess=False,
+    auto_maybe=False,
 ):
     """
     Generate CAMV web page for validating spectra.
@@ -152,6 +153,7 @@ def validate_spectra(
     out_path : str, optional
     cpu_count : int, optional
     reprocess : bool, optional
+    auto_maybe : bool, optional
     """
     if cpu_count is None:
         try:
@@ -305,6 +307,7 @@ def validate_spectra(
             search_path, raw_paths,
             total_num_seq=total_num_seq,
             reprocess=reprocess,
+            auto_maybe=auto_maybe,
         )
     except:
         process.terminate()

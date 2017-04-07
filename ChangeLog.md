@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.3.2 (2017-04-06)
+
+Features
+
+  - Added auto-maybe for peptides with best ranking by MASCOT.
+
 ## 0.3.1 (2017-04-05)
 
 Features

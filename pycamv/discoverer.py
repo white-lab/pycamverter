@@ -4,7 +4,7 @@ Provides functionality for interacting with ProteomeDiscoverer data.
 
 from __future__ import absolute_import, division
 
-from collections import Counter
+from collections import Counter, defaultdict
 import logging
 import os
 import sqlite3
@@ -112,12 +112,15 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
     aa_mods = conn.cursor().execute(
         """
         SELECT
+        Peptides.SearchEngineRank,
         AminoAcidModifications.ModificationName,
         PeptidesAminoAcidModifications.Position
         FROM
+        Peptides JOIN
         PeptidesAminoAcidModifications JOIN
         AminoAcidModifications
         WHERE
+        Peptides.PeptideID=:pepID AND
         PeptidesAminoAcidModifications.PeptideID=:pepID AND
         PeptidesAminoAcidModifications.AminoAcidModificationID=
         AminoAcidModifications.AminoAcidModificationID
@@ -129,9 +132,12 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
 
     pep_var_mods = []
     pep_fixed_mods = []
+    rank_pos = defaultdict(set)
 
-    for abbrev, pos in aa_mods:
+    for rank, abbrev, pos in aa_mods:
         letter = pep_seq[pos]
+        rank_pos[rank].add((pos, abbrev))
+
         mod = _find_mod(abbrev, letter, var_mods)
 
         if mod:
@@ -198,9 +204,7 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
     pep_var_mods = _count_mods(pep_var_mods)
     pep_fixed_mods = _count_mods(pep_fixed_mods)
 
-    # print(pep_var_mods)
-
-    return pep_var_mods, pep_fixed_mods
+    return pep_var_mods, pep_fixed_mods, rank_pos
 
 
 def _get_prot_info(conn, peptide_id):
@@ -315,7 +319,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
         scan, exp_mz, exp_z, filename,
     ) in query:
         # print(pep_id, full_prot_desc, pep_seq, scan, exp_mz, exp_z, filename)
-        pep_var_mods, pep_fixed_mods = _get_pep_mods(
+        pep_var_mods, pep_fixed_mods, rank_pos = _get_pep_mods(
             conn, pep_id, pep_seq, var_mods, fixed_mods,
         )
 
@@ -334,6 +338,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
                 pep_var_mods,
                 pep_fixed_mods,
                 scan,
+                rank_pos=rank_pos,
             )
         )
 

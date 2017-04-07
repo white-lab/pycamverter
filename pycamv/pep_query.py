@@ -23,6 +23,7 @@ class PeptideQuery:
     pep_fixed_mods : list of tuple of (int, str, tuple of str)
     scan : int
     num_comb : int
+    rank_pos : set of tuple of int, str or None
     """
     def __init__(
         self, accessions, prot_descs, query, filename,
@@ -30,6 +31,7 @@ class PeptideQuery:
         pep_exp_mz, pep_exp_z,
         pep_seq,
         pep_var_mods, pep_fixed_mods, scan,
+        rank_pos=None,
     ):
         assert _check_mods(pep_var_mods)
         assert _check_mods(pep_fixed_mods)
@@ -45,6 +47,7 @@ class PeptideQuery:
         self.pep_fixed_mods = pep_fixed_mods
         self.scan = scan
         self.num_comb = self._calc_num_comb()
+        self.rank_pos = rank_pos
 
     def _unique_tuple(self):
         return (
