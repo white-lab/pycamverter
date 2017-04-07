@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS fragments
     ion_type                text,
     ion_pos                 integer,
     FOREIGN KEY(scan_ptm_id) REFERENCES scan_ptms(scan_ptm_id)
-    -- UNIQUE(ptm_id, name)
+    UNIQUE(peak_id, scan_ptm_id, name)
 );
 CREATE INDEX IF NOT EXISTS fragments_idx ON fragments(peak_id, scan_ptm_id);
 
