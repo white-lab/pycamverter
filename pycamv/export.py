@@ -115,10 +115,13 @@ def export_to_sql(
         choice = None
 
         if auto_maybe:
-            if query.rank_pos.get(1, None) == set(
-                (pos, mod)
-                for pos, (_, mods) in enumerate(seq[1:-1])
-                for mod in mods
+            if (
+                query.rank_pos is not None and
+                query.rank_pos.get(1, None) == set(
+                    (pos, mod)
+                    for pos, (_, mods) in enumerate(seq[1:-1])
+                    for mod in mods
+                )
             ):
                 choice = "maybe"
 
