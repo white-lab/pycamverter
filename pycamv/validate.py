@@ -216,14 +216,6 @@ def validate_spectra(
                 .format(base_raw, base_raw_paths)
             )
 
-    for path in raw_paths:
-        if ";" in path:
-            raise Exception(
-                "Semicolon character not allowed in raw path: {}".format(
-                    path,
-                )
-            )
-
     # Generate sequences
     LOGGER.info(
         "Generating all possible sequence-modification combinations."

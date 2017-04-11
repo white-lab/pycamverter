@@ -160,13 +160,14 @@ CREATE TABLE IF NOT EXISTS fragments
     FOREIGN KEY(scan_ptm_id) REFERENCES scan_ptms(scan_ptm_id)
     UNIQUE(peak_id, scan_ptm_id, name)
 );
+CREATE INDEX IF NOT EXISTS fragments_idx ON fragments(scan_ptm_id);
 CREATE INDEX IF NOT EXISTS fragments_idx ON fragments(peak_id, scan_ptm_id);
 
 CREATE TABLE IF NOT EXISTS camv_meta
 (
     key                     text not null,
     val                     text,
-    UNIQUE(key)
+    UNIQUE(key, val)
 );
 """
 
@@ -592,8 +593,10 @@ def insert_path_data(cursor, search_path, raw_paths):
             val
         ) VALUES (?, ?)
         """,
-        {
-            "search_path": search_path,
-            "raw_paths": ";".join(raw_paths),
-        }.items(),
+        [
+            ("search_path", search_path),
+        ] + [
+            ("raw_path", raw_path)
+            for raw_path in raw_paths
+        ],
     )
