@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.3.3 (2017-04-11)
+
+Features
+
+  - Improved performance of scan lookups with SQL indices.
+
+Bugfixes
+
+  - Fixed crash on MASCOT xml search data.
+
 ## 0.3.2 (2017-04-06)
 
 Features
