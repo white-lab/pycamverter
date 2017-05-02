@@ -31,10 +31,12 @@ After a few minutes of processing, you should see the output .camv.gz file in th
 For a full list of arguments, run PyCAMVerter.exe from the command line:
 
 ```
-usage: PyCAMVerter [-h] [-v] [-q] [-V] [--show_gui]
-                   [--raw_paths RAW_PATHS [RAW_PATHS ...]]
+usage: PyCAMVerter [-h] [-v] [-q] [-V] [--show_gui] [--reprocess]
+                   [--no-auto-maybe] [--raw_paths RAW_PATHS [RAW_PATHS ...]]
                    [--search_path SEARCH_PATH] [--scans_path SCANS_PATH]
-                   [--scans [SCANS [SCANS ...]]] [--out_path OUT_PATH]
+                   [--scans [SCANS [SCANS ...]]]
+                   [--mat-sessions MAT_SESSIONS [MAT_SESSIONS ...]]
+                   [--out_path OUT_PATH]
                    [files [files ...]]
 
 Aww yeah, mass specs!
@@ -49,6 +51,10 @@ optional arguments:
   -q, --quiet           Decrease verbosity of output.
   -V, --version         show program's version number and exit
   --show_gui            Show GUI for converting files.
+  --reprocess           Reprocess a set of scans, without limiting ptm
+                        combinations.
+  --no-auto-maybe       Don't auto-assign all peptides with best MASCOT rank
+                        as 'maybe'
   --raw_paths RAW_PATHS [RAW_PATHS ...]
                         Raw data file(s) containing mass spec data.
   --search_path SEARCH_PATH
@@ -58,5 +64,7 @@ optional arguments:
                         validation.
   --scans [SCANS [SCANS ...]]
                         Individual scans to select for validation.
+  --mat-sessions MAT_SESSIONS [MAT_SESSIONS ...]
+                        Path to CAMV-Matlab session files.
   --out_path OUT_PATH   Output path for CAMV export.
 ```

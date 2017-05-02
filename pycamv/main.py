@@ -61,7 +61,7 @@ def _parse_args(args):
         "--no-auto-maybe",
         action="store_false",
         dest="auto_maybe",
-        help="Auto-assign all peptides with best MASCOT rank as 'maybe'",
+        help="Don't auto-assign all peptides with best MASCOT rank as 'maybe'",
     )
     parser.add_argument(
         "--raw_paths",
