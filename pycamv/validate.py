@@ -16,7 +16,8 @@ import tempfile
 import shutil
 
 from . import (
-    camv_mat, compare, export, fragments, gen_sequences, scans, search,
+    camv_mat, compare, export, fragments, gen_sequences, ms_labels, scans,
+    search,
 )
 from .scan_list import load_scan_list
 from .utils import LenGen
@@ -68,7 +69,9 @@ def _map_seq(kv, limit_comb=False):
 
 def _to_str(seq):
     return "".join(
-        letter.lower() if mods else letter.upper()
+        letter.lower()
+        if [i for i in mods if i not in ms_labels.LABEL_NAMES]
+        else letter.upper()
         for letter, mods in seq[1:-1]
     )
 
