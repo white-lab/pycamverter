@@ -20,7 +20,6 @@ def load_mat_validation(mat_paths):
                 if choice == 0:
                     continue
 
-                print(scan_num, seq, MAT_CHOICES.get(choice, choice))
                 validation_data[scan_num, seq] = MAT_CHOICES[choice]
 
     return validation_data

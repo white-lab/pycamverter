@@ -9,7 +9,19 @@ python:
 - 'pypy'
 # - 'pypy3'
 
+before_install:
+- if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+  -O miniconda.sh ; else wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
+  -O miniconda.sh ; fi
+- bash miniconda.sh -b -p /home/travis/mc
+- export PATH=/home/travis/mc/bin:$PATH
+- export CONDA_PACKAGES="scipy"
+
 install:
+- conda config --set always_yes yes --set changeps1 no
+- conda update conda
+- conda create -n env python=$TRAVIS_PYTHON_VERSION $CONDA_PACKAGES
+- source activate env
 - pip install -r requirements.txt
 - pip install coveralls
 - echo $PATH
