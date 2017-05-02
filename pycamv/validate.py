@@ -15,7 +15,9 @@ import os
 import tempfile
 import shutil
 
-from . import compare, export, fragments, gen_sequences, scans, search
+from . import (
+    camv_mat, compare, export, fragments, gen_sequences, scans, search,
+)
 from .scan_list import load_scan_list
 from .utils import LenGen
 
@@ -64,8 +66,20 @@ def _map_seq(kv, limit_comb=False):
         )
 
 
+def _to_str(seq):
+    return "".join(
+        letter.lower() if mods else letter.upper()
+        for letter, mods in seq[1:-1]
+    )
+
+
 def _map_frag_compare(kv):
-    pep_query, scan_query, sequence, ms_two_data, ms_data = kv
+    (
+        pep_query, scan_query, sequence,
+        ms_two_data, ms_data,
+        validation_data, auto_maybe,
+    ) = kv
+
     ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
     ms_scan = ms_data[scan_query.basename][scan_query.precursor_scan]
 
@@ -87,13 +101,30 @@ def _map_frag_compare(kv):
 
     label_win = scans.get_label_peak_window(pep_query, ms_two_scan)
 
-    return (pep_query, tuple(sequence), peaks, precursor_win, label_win)
+    choice = validation_data.get((pep_query.scan, _to_str(sequence)), None)
+
+    if not choice and auto_maybe:
+        if (
+            pep_query.rank_pos is not None and
+            pep_query.rank_pos.get(1, None) == set(
+                (pos, mod)
+                for pos, (_, mods) in enumerate(sequence[1:-1])
+                for mod in mods
+            )
+        ):
+            choice = "maybe"
+
+    return (
+        pep_query, tuple(sequence), choice,
+        peaks, precursor_win, label_win,
+    )
 
 
 def fill_map_frag_compare(
     sequence_mapping, scan_mapping,
     ms_two_data, ms_data,
     queue, cpu_count,
+    validation_data, auto_maybe,
 ):
     pool = multiprocessing.Pool(
         processes=cpu_count - 1,
@@ -112,6 +143,8 @@ def fill_map_frag_compare(
                         sequence,
                         ms_two_data,
                         ms_data,
+                        validation_data,
+                        auto_maybe,
                     )
                     for pep_query, sequences in sequence_mapping.items()
                     for sequence in sequences
@@ -136,6 +169,7 @@ def validate_spectra(
     raw_paths=None,
     scans_path=None,
     scan_list=None,
+    mat_sessions=None,
     out_path=None,
     cpu_count=None,
     reprocess=False,
@@ -150,6 +184,7 @@ def validate_spectra(
     raw_paths : list of str
     scans_path : str, optional
     scan_list : list of int, optional
+    mat_sessions : list of str, optional
     out_path : str, optional
     cpu_count : int, optional
     reprocess : bool, optional
@@ -261,6 +296,17 @@ def validate_spectra(
         for pep_query, scan_query in zip(pep_queries, scan_queries)
     )
 
+    # Import validation data from CAMV-Matlab
+    validation_data = {}
+
+    if mat_sessions:
+        LOGGER.info("Loading validation data from {}".format(mat_sessions))
+        validation_data = camv_mat.load_mat_validation(mat_sessions)
+        LOGGER.debug(
+            "Loaded {} sequence validations from MATLAB sessions"
+            .format(len(validation_data))
+        )
+
     LOGGER.info(
         (
             "Comparing predicted to actual peaks for {} spectra "
@@ -281,6 +327,8 @@ def validate_spectra(
             ms_data,
             queue,
             cpu_count,
+            validation_data,
+            auto_maybe,
         ),
     )
     process.start()
@@ -299,7 +347,6 @@ def validate_spectra(
             search_path, raw_paths,
             total_num_seq=total_num_seq,
             reprocess=reprocess,
-            auto_maybe=auto_maybe,
         )
     except:
         process.terminate()

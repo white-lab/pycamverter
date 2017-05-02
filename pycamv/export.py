@@ -45,7 +45,7 @@ def _pep_mod_name(pep_seq, mods):
 
 def export_to_sql(
     out_path, queue, scan_mapping, search_path, raw_paths,
-    reprocess=False, total_num_seq=None, auto_maybe=False,
+    reprocess=False, total_num_seq=None,
 ):
     assert os.path.splitext(out_path)[1] in sql.DB_EXTS
 
@@ -69,7 +69,8 @@ def export_to_sql(
     # frag_map = defaultdict(list)
     index = 0
     while index < total_num_seq:
-        query, seq, peaks, precursor_win, label_win = queue.get()
+        query, seq, choice, peaks, precursor_win, label_win = queue.get()
+
         LOGGER.debug(
             "Exporting: {}{} - {} - {}".format(
                 index,
@@ -111,19 +112,6 @@ def export_to_sql(
         sql.insert_quant_peaks(
             cursor, query, label_win, scan_id,
         )
-
-        choice = None
-
-        if auto_maybe:
-            if (
-                query.rank_pos is not None and
-                query.rank_pos.get(1, None) == set(
-                    (pos, mod)
-                    for pos, (_, mods) in enumerate(seq[1:-1])
-                    for mod in mods
-                )
-            ):
-                choice = "maybe"
 
         # PTM - Scan Mapping
         scan_ptm_id = sql.insert_scan_ptms(

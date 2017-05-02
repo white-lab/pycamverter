@@ -82,6 +82,11 @@ def _parse_args(args):
         help="Individual scans to select for validation.",
     )
     parser.add_argument(
+        "--mat-sessions",
+        nargs="+",
+        help="Path to CAMV-Matlab session files.",
+    )
+    parser.add_argument(
         "--out_path",
         help="Output path for CAMV export.",
     )
@@ -174,6 +179,7 @@ def main(args):
             raw_paths=args.raw_paths,
             scans_path=args.scans_path,
             scan_list=args.scans,
+            mat_sessions=args.mat_sessions,
             out_path=args.out_path,
             reprocess=args.reprocess,
             auto_maybe=args.auto_maybe,
