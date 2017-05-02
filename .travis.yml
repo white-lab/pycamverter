@@ -6,7 +6,7 @@ python:
 - '3.4'
 - '3.5'
 - '3.6'
-- 'pypy'
+# - 'pypy'
 # - 'pypy3'
 
 before_install:
@@ -14,7 +14,6 @@ before_install:
   -O miniconda.sh ; else wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
   -O miniconda.sh ; fi
 - bash miniconda.sh -b -p /home/travis/mc
-- if [ ${TRAVIS_PYTHON_VERSION:0:4} == "pypy" ]; then wget https://raw.githubusercontent.com/rvianello/conda-pypy/master/condarc -O /home/travis/.condarc ; fi
 - export PATH=/home/travis/mc/bin:$PATH
 - export CONDA_PACKAGES="scipy"
 
