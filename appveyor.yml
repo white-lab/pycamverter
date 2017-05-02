@@ -21,6 +21,7 @@ install:
     - "activate test"
     - "python --version"
     - "pip install -r requirements.txt"
+    # PyInstaller-3.3.dev0+g964547cd
     - "pip install git+git://github.com/pyinstaller/pyinstaller.git@develop"
 
 build_script:
