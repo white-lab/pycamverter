@@ -13,6 +13,9 @@ def load_mat_validation(mat_paths):
         for scan in mat_data['data'][0]:
             scan_num = scan['scan_number'][0][0][0][0]
 
+            if 'fragments' not in scan.dtype.names:
+                continue
+
             for ptm_combo in scan['fragments'][0][0][0]:
                 seq = ptm_combo['seq'][0][0][0]
                 choice = ptm_combo['status'][0][0][0][0]
