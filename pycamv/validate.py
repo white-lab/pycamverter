@@ -354,18 +354,18 @@ def validate_spectra(
     finally:
         process.join()
 
+        LOGGER.info("Removing directory of temporary files.")
+
+        for raw in ms_data.values():
+            raw.info['fileObject'].close()
+            raw.seeker.close()
+        for raw in ms_two_data.values():
+            raw.info['fileObject'].close()
+            raw.seeker.close()
+
+        shutil.rmtree(out_dir)
+
     LOGGER.info(
         "Exported {} total peptide-scan combinations"
         .format(total_num_seq)
     )
-
-    LOGGER.info("Removing directory of temporary files.")
-
-    for raw in ms_data.values():
-        raw.info['fileObject'].close()
-        raw.seeker.close()
-    for raw in ms_two_data.values():
-        raw.info['fileObject'].close()
-        raw.seeker.close()
-
-    shutil.rmtree(out_dir)
