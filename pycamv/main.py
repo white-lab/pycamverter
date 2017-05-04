@@ -6,7 +6,7 @@ import multiprocessing
 import os
 import sys
 
-from pycamv import validate, gui, scan_list, search, __version__
+from pycamv import validate, scan_list, search, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
@@ -48,11 +48,6 @@ def _parse_args(args):
         version="%(prog)s {}".format(__version__),
     )
     parser.add_argument(
-        "--show_gui",
-        action="store_true",
-        help="Show GUI for converting files.",
-    )
-    parser.add_argument(
         "--reprocess",
         action="store_true",
         help="Reprocess a set of scans, without limiting ptm combinations.",
@@ -64,16 +59,16 @@ def _parse_args(args):
         help="Don't auto-assign all peptides with best MASCOT rank as 'maybe'",
     )
     parser.add_argument(
-        "--raw_paths",
+        "--raw-paths",
         nargs="+",
         help="Raw data file(s) containing mass spec data.",
     )
     parser.add_argument(
-        "--search_path",
+        "--search-path",
         help="MASCOT or ProteomeDiscoverer search files."
     )
     parser.add_argument(
-        "--scans_path",
+        "--scans-path",
         help=".xlsx or .csv file listing scans to select for validation.",
     )
     parser.add_argument(
@@ -87,7 +82,7 @@ def _parse_args(args):
         help="Path to CAMV-Matlab session files.",
     )
     parser.add_argument(
-        "--out_path",
+        "--out-path",
         help="Output path for CAMV export.",
     )
     parser.add_argument(
@@ -133,57 +128,54 @@ def main(args):
     LOGGER.debug(sys.argv)
     LOGGER.debug(args)
 
-    if args.show_gui:
-        gui.run_gui(args)
-    else:
-        if args.search_path is None:
-            searches = [
-                i for i in args.files
-                if os.path.splitext(i.lower())[1] in SEARCH_EXTS
-            ]
+    if args.search_path is None:
+        searches = [
+            i for i in args.files
+            if os.path.splitext(i.lower())[1] in SEARCH_EXTS
+        ]
 
-            if len(searches) == 1:
-                args.search_path = searches[0]
+        if len(searches) == 1:
+            args.search_path = searches[0]
 
-        if args.raw_paths is None:
-            raws = [
-                i for i in args.files
-                if os.path.splitext(i.lower())[1] in RAW_EXTS
-            ]
+    if args.raw_paths is None:
+        raws = [
+            i for i in args.files
+            if os.path.splitext(i.lower())[1] in RAW_EXTS
+        ]
 
-            if len(raws) > 0:
-                if args.raw_paths:
-                    args.raw_paths += raws
-                else:
-                    args.raw_paths = raws
+        if len(raws) > 0:
+            if args.raw_paths:
+                args.raw_paths += raws
+            else:
+                args.raw_paths = raws
 
-        if args.scans_path is None:
-            scans = [
-                i for i in args.files
-                if os.path.splitext(i.lower())[1] in SCANS_EXTS
-            ]
+    if args.scans_path is None:
+        scans = [
+            i for i in args.files
+            if os.path.splitext(i.lower())[1] in SCANS_EXTS
+        ]
 
-            if len(scans) == 1:
-                args.scans_path = scans[0]
+        if len(scans) == 1:
+            args.scans_path = scans[0]
 
-        if (
-            args.search_path is None
-        ):
-            parser.print_help()
-            raise Exception(
-                "Missing search input path"
-            )
-
-        validate.validate_spectra(
-            search_path=args.search_path,
-            raw_paths=args.raw_paths,
-            scans_path=args.scans_path,
-            scan_list=args.scans,
-            mat_sessions=args.mat_sessions,
-            out_path=args.out_path,
-            reprocess=args.reprocess,
-            auto_maybe=args.auto_maybe,
+    if (
+        args.search_path is None
+    ):
+        parser.print_help()
+        raise Exception(
+            "Missing search input path"
         )
+
+    validate.validate_spectra(
+        search_path=args.search_path,
+        raw_paths=args.raw_paths,
+        scans_path=args.scans_path,
+        scan_list=args.scans,
+        mat_sessions=args.mat_sessions,
+        out_path=args.out_path,
+        reprocess=args.reprocess,
+        auto_maybe=args.auto_maybe,
+    )
 
 
 if __name__ == "__main__":
