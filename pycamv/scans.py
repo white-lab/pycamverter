@@ -143,8 +143,12 @@ def get_precursor_peak_window(
     assert scan is not None or ms_data is not None
 
     window = (
-        scan_query.isolation_mz - window_size,
-        scan_query.isolation_mz + window_size,
+        scan_query.isolation_mz -
+        (scan_query.window_offset[0] if scan_query.window_offset else 0) -
+        window_size,
+        scan_query.isolation_mz +
+        (scan_query.window_offset[1] if scan_query.window_offset else 0) +
+        window_size,
     )
 
     if scan is None:
