@@ -115,15 +115,14 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
         Peptides.SearchEngineRank,
         AminoAcidModifications.ModificationName,
         PeptidesAminoAcidModifications.Position
-        FROM
-        Peptides JOIN
-        PeptidesAminoAcidModifications JOIN
-        AminoAcidModifications
+        FROM Peptides
+        JOIN PeptidesAminoAcidModifications
+        JOIN AminoAcidModifications
+        ON PeptidesAminoAcidModifications.AminoAcidModificationID=
+        AminoAcidModifications.AminoAcidModificationID
         WHERE
         Peptides.PeptideID=:pepID AND
-        PeptidesAminoAcidModifications.PeptideID=:pepID AND
-        PeptidesAminoAcidModifications.AminoAcidModificationID=
-        AminoAcidModifications.AminoAcidModificationID
+        PeptidesAminoAcidModifications.PeptideID=:pepID
         """,
         {
             "pepID": pep_id,
@@ -170,13 +169,12 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
         SELECT
         AminoAcidModifications.ModificationName,
         AminoAcidModifications.PositionType
-        FROM
-        PeptidesTerminalModifications JOIN
-        AminoAcidModifications
-        WHERE
-        PeptidesTerminalModifications.PeptideID=:pepID AND
-        PeptidesTerminalModifications.TerminalModificationID=
+        FROM PeptidesTerminalModifications
+        JOIN AminoAcidModifications
+        ON PeptidesTerminalModifications.TerminalModificationID=
         AminoAcidModifications.AminoAcidModificationID
+        WHERE
+        PeptidesTerminalModifications.PeptideID=:pepID
         """,
         {
             "pepID": pep_id,
@@ -212,12 +210,11 @@ def _get_prot_info(conn, peptide_id):
         """
         SELECT
         ProteinAnnotations.Description
-        FROM
-        PeptidesProteins JOIN
-        ProteinAnnotations
+        FROM PeptidesProteins
+        JOIN ProteinAnnotations
+        ON ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID
         WHERE
-        PeptidesProteins.PeptideID=:pepID AND
-        ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID
+        PeptidesProteins.PeptideID=:pepID
         """,
         {
             "pepID": peptide_id,
@@ -285,23 +282,23 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
             SpectrumHeaders.FirstScan,
             Masspeaks.Mass,
             Masspeaks.Charge,
+            SpectrumHeaders.Charge,
             FileInfos.FileName
-            FROM
-            Peptides JOIN
-            PeptideScores JOIN
-            PeptidesProteins JOIN
-            ProteinAnnotations JOIN
-            SpectrumHeaders JOIN
-            FileInfos JOIN
-            Masspeaks
+            FROM Peptides
+            JOIN PeptideScores
+            ON PeptideScores.PeptideID=Peptides.PeptideID
+            JOIN PeptidesProteins
+            ON PeptidesProteins.PeptideID=Peptides.PeptideID
+            JOIN ProteinAnnotations
+            ON ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID
+            JOIN SpectrumHeaders
+            ON SpectrumHeaders.SpectrumID=Peptides.SpectrumID
+            JOIN FileInfos
+            ON FileInfos.FileID=MassPeaks.FileID
+            JOIN Masspeaks
+            ON Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID
             WHERE
-            Peptides.SearchEngineRank=1 AND
-            PeptideScores.PeptideID=Peptides.PeptideID AND
-            PeptidesProteins.PeptideID=Peptides.PeptideID AND
-            ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID AND
-            SpectrumHeaders.SpectrumID=Peptides.SpectrumID AND
-            Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID AND
-            FileInfos.FileID=MassPeaks.FileID
+            Peptides.SearchEngineRank=1
             """
         )
     except sqlite3.OperationalError:
@@ -313,32 +310,37 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
             PeptideScores.ScoreValue,
             SpectrumHeaders.FirstScan,
             Masspeaks.Mass,
+            Masspeaks.Charge,
             SpectrumHeaders.Charge,
             WorkflowInputFiles.FileName
-            FROM
-            Peptides JOIN
-            PeptideScores JOIN
-            PeptidesProteins JOIN
-            ProteinAnnotations JOIN
-            SpectrumHeaders JOIN
-            WorkflowInputFiles JOIN
-            Masspeaks
+            FROM Peptides
+            JOIN PeptideScores
+            ON PeptideScores.PeptideID=Peptides.PeptideID
+            JOIN PeptidesProteins
+            ON PeptidesProteins.PeptideID=Peptides.PeptideID
+            JOIN ProteinAnnotations
+            ON ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID
+            JOIN SpectrumHeaders
+            ON SpectrumHeaders.SpectrumID=Peptides.SpectrumID
+            JOIN WorkflowInputFiles
+            ON WorkflowInputFiles.FileID=MassPeaks.FileID
+            JOIN Masspeaks
+            ON Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID
             WHERE
-            Peptides.SearchEngineRank=1 AND
-            PeptideScores.PeptideID=Peptides.PeptideID AND
-            PeptidesProteins.PeptideID=Peptides.PeptideID AND
-            ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID AND
-            SpectrumHeaders.SpectrumID=Peptides.SpectrumID AND
-            Masspeaks.MassPeakID=SpectrumHeaders.MassPeakID AND
-            WorkflowInputFiles.FileID=MassPeaks.FileID
+            Peptides.SearchEngineRank=1
             """
         )
 
     for (
         pep_id, pep_seq, pep_score,
-        scan, exp_mz, exp_z, filename,
+        scan, exp_mz, mass_z, exp_z, filename,
     ) in query:
         # print(pep_id, full_prot_desc, pep_seq, scan, exp_mz, exp_z, filename)
+        if exp_z < 1:
+            LOGGER.warning(
+                "Charge: {}, {} for {} (Scan {})".format(exp_z, mass_z, pep_seq, scan)
+            )
+
         pep_var_mods, pep_fixed_mods, rank_pos = _get_pep_mods(
             conn, pep_id, pep_seq, var_mods, fixed_mods,
         )
