@@ -313,7 +313,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
             PeptideScores.ScoreValue,
             SpectrumHeaders.FirstScan,
             Masspeaks.Mass,
-            Masspeaks.Charge,
+            SpectrumHeaders.Charge,
             WorkflowInputFiles.FileName
             FROM
             Peptides JOIN
