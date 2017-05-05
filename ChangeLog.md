@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.5.0 (2017-05-04)
+
+Bug fixes
+
+  - Allow for alternative scans for quant scan
+
 ## 0.4.0 (2017-05-02)
 
 Features
@@ -12,7 +18,7 @@ Features
 
   - Improved performance of scan lookups with SQL indices.
 
-Bugfixes
+Bug fixes
 
   - Fixed crash on MASCOT xml search data.
 
@@ -29,7 +35,7 @@ Features
   - Added functionality to reprocess individual scans without PTM combination
     limits.
 
-Bugfixes
+Bug fixes
 
   - Fixed main process hanging when a subprocess encountered an error.
 
@@ -47,7 +53,7 @@ Features
   - Use SQLite to store exported data. +This change is not backwards compatible
     with version of CAMV / pycamverter < 0.3.0+.
 
-Bugfixes
+Bug fixes
 
   - Cleanup temp data files after runs.
   - Fixed py2.7 errors.
@@ -60,7 +66,7 @@ Features
   - Started annotating export files with generator's pycamverter version.
   - Support csv scan lists.
 
-Bugfixes
+Bug fixes
 
   - Fixed issue with peptideData being blank when ambiguous peptides were
     present.
