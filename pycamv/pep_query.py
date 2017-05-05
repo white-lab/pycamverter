@@ -22,6 +22,7 @@ class PeptideQuery:
     pep_var_mods : list of tuple of (int, str, tuple of str)
     pep_fixed_mods : list of tuple of (int, str, tuple of str)
     scan : int
+    quant_scan : int or None
     num_comb : int
     rank_pos : set of tuple of int, str or None
     """
@@ -32,6 +33,7 @@ class PeptideQuery:
         pep_seq,
         pep_var_mods, pep_fixed_mods, scan,
         rank_pos=None,
+        quant_scan=None,
     ):
         assert _check_mods(pep_var_mods)
         assert _check_mods(pep_fixed_mods)
@@ -46,6 +48,7 @@ class PeptideQuery:
         self.pep_var_mods = pep_var_mods
         self.pep_fixed_mods = pep_fixed_mods
         self.scan = scan
+        self.quant_scan = quant_scan
         self.num_comb = self._calc_num_comb()
         self.rank_pos = rank_pos
 

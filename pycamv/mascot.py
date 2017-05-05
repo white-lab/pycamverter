@@ -157,6 +157,8 @@ def _parse_mascot_2_4_1(root):
                     pep_var_mods,
                     pep_fixed_mods,
                     scan,
+                    # XXX: actual quant scan may be in there?
+                    quant_scan=scan,
                 )
             )
             index += 1

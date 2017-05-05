@@ -242,6 +242,26 @@ def _get_prot_info(conn, peptide_id):
     return accessions, descriptions
 
 
+def get_quant_scan(conn, scan):
+    query = conn.cursor().execute(
+        """
+        SELECT
+        quant_scans.FirstScan
+        FROM ReporterIonQuanResultsSearchSpectra mapping
+        JOIN SpectrumHeaders quant_scans
+        ON mapping.SpectrumID=quant_scans.SpectrumID
+        JOIN SpectrumHeaders search_scans
+        ON search_scans.SpectrumID=mapping.SearchSpectrumID
+        WHERE search_scans.FirstScan=:scanId
+        """,
+        {
+            "scanId": scan,
+        }
+    )
+    for quant_scan, in query:
+        return quant_scan
+
+
 def _get_peptide_queries(conn, fixed_mods, var_mods):
     out = []
     # index = 0
@@ -323,6 +343,8 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
             conn, pep_id, pep_seq, var_mods, fixed_mods,
         )
 
+        quant_scan = get_quant_scan(conn, scan)
+
         accessions, descriptions = _get_prot_info(conn, pep_id)
 
         out.append(
@@ -339,6 +361,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
                 pep_fixed_mods,
                 scan,
                 rank_pos=rank_pos,
+                quant_scan=quant_scan,
             )
         )
 

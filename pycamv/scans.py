@@ -175,7 +175,8 @@ def get_label_peak_window(
     -------
     list of list of tuple of (float, float)
     """
-    assert scan is not None or ms_data is not None
+    if scan is None and ms_data is None:
+        return []
 
     label_mods = pep_query.get_label_mods
 
@@ -189,7 +190,7 @@ def get_label_peak_window(
     )
 
     if scan is None:
-        scan = ms_data[pep_query.basename][pep_query.scan]
+        scan = ms_data[pep_query.basename][pep_query.quant_scan]
 
     return [
         (mz, i)
@@ -227,9 +228,11 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
 
         ms2_scan_filter = sorted(
             set(
-                pep_query.scan
+                scan
                 for pep_query in pep_queries
                 if pep_query.basename == os.path.basename(raw_path)
+                for scan in (pep_query.scan, pep_query.quant_scan)
+                if scan
             ),
         )
 

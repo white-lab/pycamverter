@@ -84,6 +84,15 @@ def _map_frag_compare(kv):
     ) = kv
 
     ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
+
+    if pep_query.quant_scan is not None:
+        if pep_query.scan != pep_query.quant_scan:
+            quant_scan = ms_two_data[pep_query.basename][pep_query.quant_scan]
+        else:
+            quant_scan = ms_two_scan
+    else:
+        quant_scan = None
+
     ms_scan = ms_data[scan_query.basename][scan_query.precursor_scan]
 
     frag_ions = fragments.fragment_ions(
@@ -102,7 +111,8 @@ def _map_frag_compare(kv):
         scan_query, ms_scan
     )
 
-    label_win = scans.get_label_peak_window(pep_query, ms_two_scan)
+    # XXX: Unlabeled runs?
+    label_win = scans.get_label_peak_window(pep_query, quant_scan)
 
     choice = validation_data.get((pep_query.scan, _to_str(sequence)), None)
 
