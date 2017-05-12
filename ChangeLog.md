@@ -1,5 +1,18 @@
 # Change Log
 
+## 0.6.0 (2017-05-12)
+
+Features
+
+  - Added the ability to limit CPU processes via command line arguments.
+
+Bug fixes
+
+  - Allow for mapping of "X" in a peptide sequence to any amino acid
+    (not just S/N).
+  - Fixed bug in determining precursor peptide charge in rare cases.
+  - Fixed crash when multiple proteins exist with the same description.
+
 ## 0.5.0 (2017-05-04)
 
 Bug fixes
