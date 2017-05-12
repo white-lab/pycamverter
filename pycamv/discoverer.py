@@ -10,7 +10,7 @@ import os
 import sqlite3
 import xml.etree.ElementTree as ET
 
-from . import regexes, pep_query
+from . import masses, regexes, pep_query
 
 
 LOGGER = logging.getLogger("pycamv.discoverer")
@@ -157,7 +157,7 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
             )
         )
 
-        if letter == "X" and abbrev in ["MappingS", "MappingN"]:
+        if letter == "X" and (letter, abbrev) in masses.MODIFICATIONS:
             continue
 
         raise Exception(
@@ -335,10 +335,10 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
         pep_id, pep_seq, pep_score,
         scan, exp_mz, mass_z, exp_z, filename,
     ) in query:
-        # print(pep_id, full_prot_desc, pep_seq, scan, exp_mz, exp_z, filename)
         if exp_z < 1:
             LOGGER.warning(
-                "Charge: {}, {} for {} (Scan {})".format(exp_z, mass_z, pep_seq, scan)
+                "Charge: {}, {} for {} (Scan {})"
+                .format(exp_z, mass_z, pep_seq, scan)
             )
 
         pep_var_mods, pep_fixed_mods, rank_pos = _get_pep_mods(

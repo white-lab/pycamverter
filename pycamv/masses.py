@@ -207,11 +207,18 @@ MODIFICATIONS = {
     ("K", "Lysine-13C615N2 (K-full)"): SILAC_LYSINE_13C615N2,
     ("R", "Arginine-13C6 (R-13C6)"): SILAC_ARGININE_13C6,
     ("R", "Arginine-13C615N2 (R-full)"): SILAC_ARGININE_13C615N4,
-
-    # Weird ProteomeDiscoverer Amino Acids
-    ("X", "MappingS"): SERINE,
-    ("X", "MappingN"): ASPARAGINE,
 }
+
+# Weird ProteomeDiscoverer Amino Acids
+# Uniprot will annotate as X when amino acid is unknown
+# and it seems PD tries to annotate them (based on the spectra?)
+MODIFICATIONS.update(
+    {
+        ("X", "Mapping{}".format(aa)): AMINO_ACIDS[aa]
+        for aa in AMINO_ACIDS
+        if len(aa) == 1 and aa != "X"
+    }
+)
 
 # Dictionary mapping amino acids and their modifications to weights
 MASSES = {
