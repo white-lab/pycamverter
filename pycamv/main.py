@@ -48,6 +48,10 @@ def _parse_args(args):
         version="%(prog)s {}".format(__version__),
     )
     parser.add_argument(
+        "--cpus",
+        help="Limit the number of concurrent processes."
+    )
+    parser.add_argument(
         "--reprocess",
         action="store_true",
         help="Reprocess a set of scans, without limiting ptm combinations.",
@@ -175,6 +179,7 @@ def main(args):
         out_path=args.out_path,
         reprocess=args.reprocess,
         auto_maybe=args.auto_maybe,
+        cpu_count=args.cpus,
     )
 
 

@@ -31,8 +31,8 @@ After a few minutes of processing, you should see the output .camv.gz file in th
 For a full list of arguments, run PyCAMVerter.exe from the command line:
 
 ```
-usage: PyCAMVerter [-h] [-v] [-q] [-V] [--reprocess] [--no-auto-maybe]
-                   [--raw-paths RAW_PATHS [RAW_PATHS ...]]
+usage: PyCAMVerter [-h] [-v] [-q] [-V] [--cpus CPUS] [--reprocess]
+                   [--no-auto-maybe] [--raw-paths RAW_PATHS [RAW_PATHS ...]]
                    [--search-path SEARCH_PATH] [--scans-path SCANS_PATH]
                    [--scans [SCANS [SCANS ...]]]
                    [--mat-sessions MAT_SESSIONS [MAT_SESSIONS ...]]
@@ -50,6 +50,7 @@ optional arguments:
   -v, --verbose         Increase verbosity of output.
   -q, --quiet           Decrease verbosity of output.
   -V, --version         show program's version number and exit
+  --cpus CPUS           Limit the number of concurrent processes.
   --reprocess           Reprocess a set of scans, without limiting ptm
                         combinations.
   --no-auto-maybe       Don't auto-assign all peptides with best MASCOT rank
