@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS proteins
     protein_id              integer primary key autoincrement not null,
     protein_name            text,
     protein_accession       text,
-    UNIQUE(protein_name)
+    UNIQUE(protein_accession)
 );
 
 -- Pre-processed set of protein names (i.e. Cdk1 / Cdk2 / Cdk3)
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS protein_sets
     protein_set_id          integer primary key autoincrement not null,
     protein_set_name        text,
     protein_set_accession   text,
-    UNIQUE(protein_set_name)
+    UNIQUE(protein_set_accession)
 );
 
 -- Individual peptide sequences (i.e. IVLEYK)
