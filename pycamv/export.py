@@ -86,15 +86,19 @@ def export_to_sql(
 
         scan_query = scan_mapping[query]
 
-        # Peptide sequence / modification data
+        # Protein
         protein_ids = sql.insert_protein(cursor, query)
         protein_set_id = sql.insert_protein_set(cursor, query)
+
+        # Peptide
         peptide_id = sql.insert_peptide(cursor, query, protein_set_id)
         sql.insert_pep_prot(cursor, peptide_id, protein_ids)
+
+        # Modification data
         mod_state_id = sql.insert_mod_state(cursor, query, peptide_id)
         ptm_id = sql.insert_ptm(cursor, query, seq, mod_state_id)
 
-        # Scan data
+        # Scan header data
         quant_mz_id = sql.insert_quant_mz(cursor, query)
         file_id = sql.insert_file(cursor, query)
         scan_id = sql.insert_scans(
@@ -104,6 +108,7 @@ def export_to_sql(
             reprocessed=reprocess,
         )
 
+        # Scan peak data
         sql.insert_peaks(
             cursor, peaks, scan_id,
         )
@@ -121,7 +126,6 @@ def export_to_sql(
         )
         sql.insert_fragments(cursor, peaks, scan_ptm_id)
 
-        # cursor.execute("COMMIT TRANSACTION")
         db.commit()
         LOGGER.debug(
             "done - avg: {:.3f} sec".format((time() - total) / (index + 1))
