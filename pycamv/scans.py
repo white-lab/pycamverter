@@ -227,7 +227,7 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
     ms2_data = {}
     scan_queries = []
 
-    for raw_path in raw_paths:
+    for index, raw_path in enumerate(raw_paths):
         base_raw = os.path.basename(raw_path)
 
         ms2_scan_filter = sorted(
@@ -243,7 +243,10 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
         if not ms2_scan_filter:
             continue
 
-        LOGGER.info("Converting MS^2 data for {}".format(raw_path))
+        LOGGER.info(
+            "Converting MS^2 data for {} ({} / {})"
+            .format(raw_path, index * 2 + 1, len(raw_paths) * 2)
+        )
 
         ms2_data[base_raw] = proteowizard.raw_to_mzml(
             raw_path, os.path.join(out_dir, "ms2"),
@@ -261,7 +264,10 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
         ]
 
         # Collect MS^1 data
-        LOGGER.info("Converting MS^1 data for {}".format(raw_path))
+        LOGGER.info(
+            "Converting MS^1 data for {} ({} / {})"
+            .format(raw_path, index * 2 + 2, len(raw_paths) * 2)
+        )
 
         ms_scan_filter = sorted(
             set(

@@ -49,6 +49,7 @@ def _parse_args(args):
     )
     parser.add_argument(
         "--cpus",
+        type=int,
         help="Limit the number of concurrent processes."
     )
     parser.add_argument(
