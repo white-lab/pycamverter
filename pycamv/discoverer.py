@@ -273,6 +273,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
     ]
 
     try:
+        # ProteomeDiscoverer == 1.4
         query = conn.cursor().execute(
             """
             SELECT
@@ -302,6 +303,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
             """
         )
     except sqlite3.OperationalError:
+        # ProteomeDiscoverer == 2.1
         query = conn.cursor().execute(
             """
             SELECT
