@@ -76,61 +76,75 @@ def _to_str(seq):
     )
 
 
+def _close_scans(ms_datas, out_dir=None):
+    LOGGER.info("Removing directory of temporary files.")
+
+    for ms_data in ms_datas:
+        for raw in ms_data.values():
+            raw.info['fileObject'].close()
+            raw.seeker.close()
+
+    if out_dir:
+        shutil.rmtree(out_dir)
+
+
 def _map_frag_compare(kv):
-    (
-        pep_query, scan_query, sequence,
-        ms_two_data, ms_data,
-        validation_data, auto_maybe,
-    ) = kv
+    try:
+        (
+            pep_query, scan_query, sequence,
+            ms_two_data, ms_data,
+            validation_data, auto_maybe,
+        ) = kv
 
-    ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
+        ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
 
-    if pep_query.quant_scan is not None:
-        if pep_query.scan != pep_query.quant_scan:
-            quant_scan = ms_two_data[pep_query.basename][pep_query.quant_scan]
-        else:
-            quant_scan = ms_two_scan
-    else:
-        quant_scan = None
+        quant_scan = (
+            ms_two_data[pep_query.basename][pep_query.quant_scan]
+            if pep_query.scan != pep_query.quant_scan else
+            ms_two_scan
+        ) if pep_query.quant_scan is not None else None
 
-    ms_scan = ms_data[scan_query.basename][scan_query.precursor_scan]
+        ms_scan = ms_data[scan_query.basename][scan_query.precursor_scan]
 
-    frag_ions = fragments.fragment_ions(
-        sequence, pep_query.pep_exp_z,
-        c13_num=scan_query.c13_num,
-    )
+        frag_ions = fragments.fragment_ions(
+            sequence, pep_query.pep_exp_z,
+            c13_num=scan_query.c13_num,
+        )
 
-    LOGGER.debug("{} - {} ions".format(pep_query.pep_seq, len(frag_ions)))
+        LOGGER.debug("{} - {} ions".format(pep_query.pep_seq, len(frag_ions)))
 
-    peaks = compare.compare_spectra(
-        ms_two_scan, frag_ions,
-        tol=compare.COLLISION_TOLS[scan_query.collision_type],
-    )
+        peaks = compare.compare_spectra(
+            ms_two_scan, frag_ions,
+            tol=compare.COLLISION_TOLS[scan_query.collision_type],
+        )
 
-    precursor_win = scans.get_precursor_peak_window(
-        scan_query, ms_scan
-    )
+        precursor_win = scans.get_precursor_peak_window(
+            scan_query, ms_scan
+        )
 
-    # XXX: Unlabeled runs?
-    label_win = scans.get_label_peak_window(pep_query, quant_scan)
+        # XXX: Unlabeled runs?
+        label_win = scans.get_label_peak_window(pep_query, quant_scan)
 
-    choice = validation_data.get((pep_query.scan, _to_str(sequence)), None)
+        choice = validation_data.get((pep_query.scan, _to_str(sequence)), None)
 
-    if not choice and auto_maybe:
-        if (
-            pep_query.rank_pos is not None and
-            pep_query.rank_pos.get(1, None) == set(
-                (pos, mod)
-                for pos, (_, mods) in enumerate(sequence[1:-1])
-                for mod in mods
-            )
-        ):
-            choice = "maybe"
+        if not choice and auto_maybe:
+            if (
+                pep_query.rank_pos is not None and
+                pep_query.rank_pos.get(1, None) == set(
+                    (pos, mod)
+                    for pos, (_, mods) in enumerate(sequence[1:-1])
+                    for mod in mods
+                )
+            ):
+                choice = "maybe"
 
-    return (
-        pep_query, tuple(sequence), choice,
-        peaks, precursor_win, label_win,
-    )
+        return (
+            pep_query, tuple(sequence), choice,
+            peaks, precursor_win, label_win,
+        )
+    except:
+        _close_scans([ms_data, ms_two_data])
+        raise
 
 
 def fill_map_frag_compare(
@@ -175,6 +189,7 @@ def fill_map_frag_compare(
         raise
     finally:
         pool.join()
+        _close_scans([ms_data, ms_two_data])
 
 
 def validate_spectra(
@@ -294,6 +309,20 @@ def validate_spectra(
         )
     )
 
+    # Import validation data from CAMV-Matlab
+    validation_data = {}
+
+    if mat_sessions:
+        LOGGER.info("Loading validation data from {}".format(mat_sessions))
+
+        validation_data = camv_mat.load_mat_validation(mat_sessions)
+
+        LOGGER.debug(
+            "Loaded {} sequence validations from MATLAB sessions"
+            .format(len(validation_data))
+        )
+
+    # Import raw scan data
     out_dir = tempfile.mkdtemp()
 
     LOGGER.info("Getting scan data.")
@@ -302,58 +331,48 @@ def validate_spectra(
         raw_paths, pep_queries, out_dir,
     )
 
-    LOGGER.info("Found data for {} scans".format(len(scan_queries)))
-
-    scan_mapping = OrderedDict(
-        (pep_query, scan_query)
-        for pep_query, scan_query in zip(pep_queries, scan_queries)
-    )
-
-    # Import validation data from CAMV-Matlab
-    validation_data = {}
-
-    if mat_sessions:
-        LOGGER.info("Loading validation data from {}".format(mat_sessions))
-        validation_data = camv_mat.load_mat_validation(mat_sessions)
-        LOGGER.debug(
-            "Loaded {} sequence validations from MATLAB sessions"
-            .format(len(validation_data))
-        )
-
-    LOGGER.info(
-        (
-            "Comparing predicted to actual peaks for {} spectra "
-            " ({} pep-scan combinations)."
-        ).format(
-            len(scan_mapping),
-            total_num_seq,
-        )
-    )
-
-    queue = multiprocessing.Queue()
-    process = multiprocessing.Process(
-        target=fill_map_frag_compare,
-        args=(
-            sequence_mapping,
-            scan_mapping,
-            ms_two_data,
-            ms_data,
-            queue,
-            cpu_count,
-            validation_data,
-            auto_maybe,
-        ),
-    )
-    process.start()
-
-    # XXX: Determine SILAC precursor masses?
-
-    # XXX: Remove precursor contaminated scans from validation list?
-
-    # Check each assignment to each scan
-
-    # Output data
     try:
+        LOGGER.info("Found data for {} scans".format(len(scan_queries)))
+
+        scan_mapping = OrderedDict(
+            (pep_query, scan_query)
+            for pep_query, scan_query in zip(pep_queries, scan_queries)
+        )
+
+        # Generate fragments and assign peaks to fragments
+        LOGGER.info(
+            (
+                "Comparing predicted to actual peaks for {} spectra "
+                " ({} pep-scan combinations)."
+            ).format(
+                len(scan_mapping),
+                total_num_seq,
+            )
+        )
+
+        queue = multiprocessing.Queue()
+        process = multiprocessing.Process(
+            target=fill_map_frag_compare,
+            args=(
+                sequence_mapping,
+                scan_mapping,
+                ms_two_data,
+                ms_data,
+                queue,
+                cpu_count,
+                validation_data,
+                auto_maybe,
+            ),
+        )
+        process.start()
+
+        # XXX: Determine SILAC precursor masses?
+
+        # XXX: Remove precursor contaminated scans from validation list?
+
+        # Check each assignment to each scan
+
+        # Output data
         export.export_to_sql(
             os.path.splitext(out_path)[0] + ".db",
             queue, scan_mapping,
@@ -366,17 +385,7 @@ def validate_spectra(
         raise
     finally:
         process.join()
-
-        LOGGER.info("Removing directory of temporary files.")
-
-        for raw in ms_data.values():
-            raw.info['fileObject'].close()
-            raw.seeker.close()
-        for raw in ms_two_data.values():
-            raw.info['fileObject'].close()
-            raw.seeker.close()
-
-        shutil.rmtree(out_dir)
+        _close_scans([ms_data, ms_two_data], out_dir=out_dir)
 
     LOGGER.info(
         "Exported {} total peptide-scan combinations"
