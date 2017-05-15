@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.6.1 (2017-05-15)
+
+Bug fixes
+
+  - Fixed some cases where intermediate processing files were not deleted when
+    a processing run was interrupted or errored.
+  - Fixed several type errors.
+
 ## 0.6.0 (2017-05-12)
 
 Features
