@@ -14,7 +14,7 @@ class MSLabelsTest(TestCase):
             self.assertLess(ms_labels.LABEL_MZ_WINDOW[key][0], min(val))
 
             # Skip greater check for TMT10plex
-            if key in ["TMT10plex"]:
+            if key in ["TMT10plex", "TMT11plex"]:
                 continue
 
             self.assertGreater(ms_labels.LABEL_MZ_WINDOW[key][1], max(val))

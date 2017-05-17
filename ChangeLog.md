@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.7.0 (2017-05-17)
+
+Features
+
+  - Added support for TMT11plex
+
 ## 0.6.1 (2017-05-15)
 
 Bug fixes

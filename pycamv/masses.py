@@ -88,6 +88,7 @@ ITRAQ_4_PLEX = exact_mass({"C": [4, 3], "N": [1, 1], "O": [1], "H": [12]})
 ITRAQ_8_PLEX = exact_mass({"C": [7, 7], "N": [3, 1], "O": [3], "H": [24]})
 TMT_6_PLEX = exact_mass({"C": [8, 4], "N": [1, 1], "O": [2], "H": [20]})
 TMT_10_PLEX = TMT_6_PLEX
+TMT_11_PLEX = TMT_10_PLEX
 
 LYSINE_HYDROGEN = exact_mass({"H": [1]})
 
@@ -197,10 +198,12 @@ MODIFICATIONS = {
     ("N-term", "iTRAQ8plex"): ITRAQ_8_PLEX - N_TERM,
     ("N-term", "TMT6plex"): TMT_6_PLEX - N_TERM,
     ("N-term", "TMT10plex"): TMT_10_PLEX - N_TERM,
+    ("N-term", "TMT11plex"): TMT_11_PLEX - N_TERM,
     ("K", "iTRAQ4plex"): ITRAQ_4_PLEX,
     ("K", "iTRAQ8plex"): ITRAQ_8_PLEX,
     ("K", "TMT6plex"): TMT_6_PLEX,
     ("K", "TMT10plex"): TMT_10_PLEX,
+    ("K", "TMT11plex"): TMT_11_PLEX,
 
     # SILAC
     ("K", "Lysine-13C6 (K-13C6)"): SILAC_LYSINE_13C6,
