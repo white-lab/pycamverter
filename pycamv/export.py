@@ -72,9 +72,8 @@ def export_to_sql(
         query, seq, choice, peaks, precursor_win, label_win = queue.get()
 
         LOGGER.debug(
-            "Exporting: {}{} - {} - {}{}".format(
-                index,
-                " / {}".format(total_num_seq) if total_num_seq else "",
+            "Exporting: {} - {} - {}{}".format(
+                "({} / {})".format(index, total_num_seq) if total_num_seq else index,
                 query.scan,
                 _pep_mod_name(
                     _extract_pep_seq(seq),
