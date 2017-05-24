@@ -426,7 +426,7 @@ def insert_quant_peaks(cursor, query, label_win, scan_id):
 def insert_scans(
     cursor, query, scan_query,
     quant_mz_id, file_id,
-    reprocessed=False,
+    reprocessed=False, c13_num=None,
 ):
     return _insert_or_update_row(
         cursor, "scans", "scan_id",
@@ -438,7 +438,7 @@ def insert_scans(
             "precursor_mz": scan_query.isolation_mz,
             "isolation_window_lower": scan_query.window_offset[0],
             "isolation_window_upper": scan_query.window_offset[1],
-            "c13_num": scan_query.c13_num,
+            "c13_num": c13_num or scan_query.c13_num,
             "quant_mz_id": quant_mz_id,
             "file_id": file_id,
             "truncated": (
