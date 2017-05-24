@@ -67,13 +67,15 @@ def export_to_sql(
     total = time()
 
     # frag_map = defaultdict(list)
-    index = 0
-    while index < total_num_seq:
-        query, seq, choice, peaks, precursor_win, label_win = queue.get()
+    index = 1
+    while index <= total_num_seq:
+        pep_query, seq, choice, peaks, precursor_win, label_win = queue.get()
+
+        scan_query = scan_mapping[pep_query]
 
         LOGGER.debug(
             "Exporting: {} - {}{} {}".format(
-                query.scan,
+                pep_query.scan,
                 _pep_mod_name(
                     _extract_pep_seq(seq),
                     _extract_mods(seq),
@@ -85,25 +87,23 @@ def export_to_sql(
             )
         )
 
-        scan_query = scan_mapping[query]
-
         # Protein
-        protein_ids = sql.insert_protein(cursor, query)
-        protein_set_id = sql.insert_protein_set(cursor, query)
+        protein_ids = sql.insert_protein(cursor, pep_query)
+        protein_set_id = sql.insert_protein_set(cursor, pep_query)
 
         # Peptide
-        peptide_id = sql.insert_peptide(cursor, query, protein_set_id)
+        peptide_id = sql.insert_peptide(cursor, pep_query, protein_set_id)
         sql.insert_pep_prot(cursor, peptide_id, protein_ids)
 
         # Modification data
-        mod_state_id = sql.insert_mod_state(cursor, query, peptide_id)
-        ptm_id = sql.insert_ptm(cursor, query, seq, mod_state_id)
+        mod_state_id = sql.insert_mod_state(cursor, pep_query, peptide_id)
+        ptm_id = sql.insert_ptm(cursor, pep_query, seq, mod_state_id)
 
         # Scan header data
-        quant_mz_id = sql.insert_quant_mz(cursor, query)
-        file_id = sql.insert_file(cursor, query)
+        quant_mz_id = sql.insert_quant_mz(cursor, pep_query)
+        file_id = sql.insert_file(cursor, pep_query)
         scan_id = sql.insert_scans(
-            cursor, query, scan_query,
+            cursor, pep_query, scan_query,
             quant_mz_id,
             file_id,
             reprocessed=reprocess,
@@ -117,12 +117,12 @@ def export_to_sql(
             cursor, scan_query, precursor_win, scan_id,
         )
         sql.insert_quant_peaks(
-            cursor, query, label_win, scan_id,
+            cursor, pep_query, label_win, scan_id,
         )
 
         # PTM - Scan Mapping
         scan_ptm_id = sql.insert_scan_ptms(
-            cursor, query, scan_id, ptm_id,
+            cursor, pep_query, scan_id, ptm_id,
             choice=choice,
         )
         sql.insert_fragments(cursor, peaks, scan_ptm_id)
