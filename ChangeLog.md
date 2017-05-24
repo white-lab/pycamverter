@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.8.0 (2017-05-24)
+
+Features
+
+  - Determine C13 fragments based on the number of C13 peaks seen within the
+    isolation window.
+
 ## 0.7.0 (2017-05-17)
 
 Features
