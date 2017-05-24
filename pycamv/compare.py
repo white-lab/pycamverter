@@ -6,6 +6,7 @@ fragments.
 from __future__ import absolute_import, division
 
 
+MS_TOL = 10
 CID_TOL = 1000
 HCD_TOL = 10
 
