@@ -88,6 +88,27 @@ def _close_scans(ms_datas, out_dir=None):
         shutil.rmtree(out_dir)
 
 
+def _get_window_coverage(pep_query, scan_query, precursor_win):
+    return (
+        max([
+            c13
+            for c13 in range(
+                1, 1 + round(scan_query.window_offset[1] * pep_query.pep_exp_z)
+            )
+            if min([
+                1e6 * abs(
+                    scan_query.isolation_mz +
+                    fragments.DELTA_C13 * c13 / pep_query.pep_exp_z -
+                    mz
+                ) / mz
+                for mz, _ in precursor_win
+            ]) < compare.MS_TOL
+        ] + [0])
+        if scan_query.window_offset
+        else 0
+    )
+
+
 def _map_frag_compare(kv):
     try:
         (
@@ -96,33 +117,39 @@ def _map_frag_compare(kv):
             validation_data, auto_maybe,
         ) = kv
 
-        ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
-
-        quant_scan = (
-            ms_two_data[pep_query.basename][pep_query.quant_scan]
-            if pep_query.scan != pep_query.quant_scan else
-            ms_two_scan
-        ) if pep_query.quant_scan is not None else None
-
         ms_scan = ms_data[scan_query.basename][scan_query.precursor_scan]
+        assert ms_scan["id"] == scan_query.precursor_scan
+
+        precursor_win = scans.get_precursor_peak_window(
+            scan_query, ms_scan
+        )
+
+        # Get the max C13 peak found within the isolation window
+        window_coverage = _get_window_coverage(
+            pep_query, scan_query, precursor_win,
+        )
 
         frag_ions = fragments.fragment_ions(
             sequence, pep_query.pep_exp_z,
-            c13_num=scan_query.c13_num,
+            c13_num=scan_query.c13_num + window_coverage,
         )
 
-        LOGGER.debug("{} - {} ions".format(pep_query.pep_seq, len(frag_ions)))
+        # Compare MS^2 data with predicted fragment ions
+        ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
+        assert ms_two_scan["id"] == scan_query.scan
 
         peaks = compare.compare_spectra(
             ms_two_scan, frag_ions,
             tol=compare.COLLISION_TOLS[scan_query.collision_type],
         )
 
-        precursor_win = scans.get_precursor_peak_window(
-            scan_query, ms_scan
-        )
-
         # XXX: Unlabeled runs?
+        quant_scan = (
+            ms_two_data[pep_query.basename][pep_query.quant_scan]
+            if pep_query.scan != pep_query.quant_scan else
+            ms_two_scan
+        ) if pep_query.quant_scan is not None else None
+
         label_win = scans.get_label_peak_window(pep_query, quant_scan)
 
         choice = validation_data.get((pep_query.scan, _to_str(sequence)), None)
