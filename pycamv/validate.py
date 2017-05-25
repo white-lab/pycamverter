@@ -102,7 +102,7 @@ def _get_window_coverage(pep_query, scan_query, precursor_win):
                     mz
                 ) / mz
                 for mz, _ in precursor_win
-            ]) < compare.MS_TOL
+            ] + [compare.MS_TOL]) < compare.MS_TOL
         ] + [0])
         if scan_query.window_offset
         else 0

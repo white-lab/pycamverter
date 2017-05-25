@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.8.1 (2017-05-25)
+
+Bug fixes
+
+  - Fixed crash when no peaks are detected in the precursor window.
+
 ## 0.8.0 (2017-05-24)
 
 Features
