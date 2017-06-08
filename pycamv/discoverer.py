@@ -133,7 +133,10 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
     pep_fixed_mods = []
     rank_pos = defaultdict(set)
 
-    for rank, abbrev, pos in aa_mods:
+    for rank, abbrev, pos in sorted(
+        aa_mods,
+        key=lambda x: 0 if x[1].startswith("Mapping") else 1,
+    ):
         letter = pep_seq[pos]
         rank_pos[rank].add((pos, abbrev))
 
@@ -149,15 +152,14 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
             pep_fixed_mods.append(mod)
             continue
 
-        # Weird ProteomeDiscoverer options, not sure what they do...
-        # But we'll treat them as Ser / Asn
-        LOGGER.warning(
-            "Encountered X: {} - {} - {} {} ({})".format(
-                pep_id, pep_seq, pos, letter, abbrev,
-            )
-        )
-
-        if letter == "X" and (letter, abbrev) in masses.MODIFICATIONS:
+        # Weird ProteomeDiscoverer setting for proteins with unknown amino
+        # acids. We can remap them to their correct amino acid:
+        if (
+            letter == "X" and
+            (letter, abbrev) in masses.MODIFICATIONS and
+            abbrev.startswith("Mapping")
+        ):
+            pep_seq = pep_seq[:pos] + abbrev[-1] + pep_seq[pos + 1:]
             continue
 
         raise Exception(
@@ -202,7 +204,7 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods):
     pep_var_mods = _count_mods(pep_var_mods)
     pep_fixed_mods = _count_mods(pep_fixed_mods)
 
-    return pep_var_mods, pep_fixed_mods, rank_pos
+    return pep_seq, pep_var_mods, pep_fixed_mods, rank_pos
 
 
 def _get_prot_info(conn, peptide_id):
@@ -343,7 +345,7 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
                 .format(exp_z, mass_z, pep_seq, scan)
             )
 
-        pep_var_mods, pep_fixed_mods, rank_pos = _get_pep_mods(
+        pep_seq, pep_var_mods, pep_fixed_mods, rank_pos = _get_pep_mods(
             conn, pep_id, pep_seq, var_mods, fixed_mods,
         )
 

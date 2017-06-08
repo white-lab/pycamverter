@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.8.2 (2017-06-08)
+
+Bug fixes
+
+  - Fixed crash when X amino acids included modifications other than "Mapping*".
+
 ## 0.8.1 (2017-05-25)
 
 Bug fixes
