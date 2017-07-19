@@ -321,6 +321,7 @@ def validate_spectra(
     # Get scan data from RAW file
     required_raws = set(query.basename for query in pep_queries)
     base_raw_paths = [os.path.basename(path) for path in raw_paths]
+    missing = []
 
     for base_raw in required_raws:
         if base_raw in base_raw_paths:
@@ -335,10 +336,13 @@ def validate_spectra(
                 raw_paths.append(local_raw_path)
                 break
         else:
-            raise Exception(
-                "Unable to find {} in input RAW files: {}"
-                .format(base_raw, base_raw_paths)
-            )
+            missing.append(base_raw)
+
+    if missing:
+        raise Exception(
+            "Unable to find {} in input RAW files: {}"
+            .format(missing, base_raw_paths)
+        )
 
     # Generate sequences
     LOGGER.info(
