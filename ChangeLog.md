@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.8.3 (2017-07-19)
+
+Features
+
+  - Use low priority threads during processing to avoid impacting other tasks.
+
 ## 0.8.2 (2017-06-08)
 
 Bug fixes
