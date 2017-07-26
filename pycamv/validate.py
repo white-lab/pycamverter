@@ -122,7 +122,17 @@ def _map_frag_compare(kv):
         ) = kv
 
         ms_scan = ms_data[scan_query.basename][scan_query.precursor_scan]
-        assert ms_scan["id"] == scan_query.precursor_scan
+
+        if ms_scan["id"] != scan_query.precursor_scan:
+            LOGGER.warning(
+                "{} #{}: Precursor scan id different from expected: {} != {}"
+                .format(
+                    pep_query.query,
+                    pep_query.scan,
+                    ms_scan["id"],
+                    scan_query.precursor_scan,
+                )
+            )
 
         precursor_win = scans.get_precursor_peak_window(
             scan_query, ms_scan
@@ -140,7 +150,17 @@ def _map_frag_compare(kv):
 
         # Compare MS^2 data with predicted fragment ions
         ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
-        assert ms_two_scan["id"] == scan_query.scan
+
+        if ms_two_scan["id"] != scan_query.scan:
+            LOGGER.warning(
+                "{} #{}: MS^2 scan id different from expected: {} != {}"
+                .format(
+                    pep_query.query,
+                    pep_query.scan,
+                    ms_two_scan["id"],
+                    scan_query.scan,
+                )
+            )
 
         peaks = compare.compare_spectra(
             ms_two_scan, frag_ions,
