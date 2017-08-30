@@ -307,7 +307,7 @@ def _parent_ions(
     c13_num=0,
     any_losses=None, aa_losses=None, mod_losses=None,
 ):
-    parent_mass = sum(frag_masses) + masses.PROTON + DELTA_C13 * c13_num
+    parent_mass = sum(frag_masses) + masses.PROTON
 
     for loss_name, loss_mass in _generate_losses(
         pep_seq=pep_seq,

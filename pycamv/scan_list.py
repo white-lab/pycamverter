@@ -33,6 +33,10 @@ BACKENDS = {
 def load_scan_list(path):
     ext = os.path.splitext(path)[1]
     backend = BACKENDS.get(ext)
+
+    if backend is None:
+        raise Exception("Unable to open scan list: {}".format(path))
+
     LOGGER.debug("Using {} backend for {}".format(backend.__name__, ext))
 
     return backend(path)

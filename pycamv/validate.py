@@ -91,6 +91,12 @@ def _close_scans(ms_datas, out_dir=None):
 
 
 def _get_window_coverage(pep_query, scan_query, precursor_win):
+    precursor_win = [
+        mz
+        for mz, _ in precursor_win
+        if mz >= scan_query.isolation_mz - scan_query.window_offset[0] and
+        mz <= scan_query.isolation_mz + scan_query.window_offset[1]
+    ]
     return (
         max([
             c13
@@ -103,7 +109,7 @@ def _get_window_coverage(pep_query, scan_query, precursor_win):
                     fragments.DELTA_C13 * c13 / pep_query.pep_exp_z -
                     mz
                 ) / mz
-                for mz, _ in precursor_win
+                for mz in precursor_win
             ] + [compare.MS_TOL]) < compare.MS_TOL
         ] + [0])
         if scan_query.window_offset
@@ -272,6 +278,7 @@ def lowpriority():
         import os
 
         os.nice(1)
+
 
 def validate_spectra(
     search_path,

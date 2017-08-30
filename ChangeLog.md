@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.9.0 (2017-08-30)
+
+Bug fixes
+
+  - Fixed bug in calculating the mass of parent ion fragments with C13 additions.
+  - Only estimate max C13 number using ions within precursor isolation window.
+
 ## 0.8.3 (2017-07-19)
 
 Features
