@@ -545,12 +545,12 @@ def insert_fragments(cursor, peaks, scan_ptm_id):
             name,
             utils.rewrite_ion_name(name),
             mz,
-            intensity,
+            peak_hit.intensity,
             name == peak_hit.name,
         ) + _ion_type_pos(name)
         for peak_index, peak_hit in enumerate(peaks)
         if peak_hit.match_list
-        for name, (mz, intensity) in peak_hit.match_list.items()
+        for name, (mz, _) in peak_hit.match_list.items()
     )
     cursor.executemany(
         """
