@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS fragments
     name                    text not null,
     display_name            text not null,
     mz                      real not null,
+    intensity               real not null,
     best                    integer,
     ion_type                text,
     ion_pos                 integer,
@@ -544,11 +545,12 @@ def insert_fragments(cursor, peaks, scan_ptm_id):
             name,
             utils.rewrite_ion_name(name),
             mz,
+            intensity,
             name == peak_hit.name,
         ) + _ion_type_pos(name)
         for peak_index, peak_hit in enumerate(peaks)
         if peak_hit.match_list
-        for name, (mz, _) in peak_hit.match_list.items()
+        for name, (mz, intensity) in peak_hit.match_list.items()
     )
     cursor.executemany(
         """
@@ -559,10 +561,11 @@ def insert_fragments(cursor, peaks, scan_ptm_id):
             name,
             display_name,
             mz,
+            intensity,
             best,
             ion_type,
             ion_pos
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         gen,
     )

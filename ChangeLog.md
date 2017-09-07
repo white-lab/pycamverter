@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.10.0 (2017-09-07)
+
+Features
+
+  - Add fragment intensity info to database, allowing quick export of
+    quantitation data.
+
 ## 0.9.0 (2017-08-30)
 
 Bug fixes
