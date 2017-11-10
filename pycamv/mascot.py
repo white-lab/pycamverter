@@ -146,18 +146,17 @@ def _parse_mascot_2_4_1(root):
             scan_used[scan] = (index, rank)
             out.append(
                 pep_query.PeptideQuery(
-                    [accession],
-                    [prot_desc],
-                    query,
-                    filename,
-                    pep_score,
-                    exp_mz,
-                    exp_z,
-                    pep_seq,
-                    pep_var_mods,
-                    pep_fixed_mods,
-                    scan,
-                    # XXX: actual quant scan may be in there?
+                    accessions=[accession],
+                    prot_descs=[prot_desc],
+                    query=query,
+                    filename=filename,
+                    pep_score=pep_score,
+                    pep_exp_mz=exp_mz,
+                    pep_exp_z=exp_z,
+                    pep_seq=pep_seq,
+                    pep_var_mods=pep_var_mods,
+                    pep_fixed_mods=pep_fixed_mods,
+                    scan=scan,
                     quant_scan=scan,
                 )
             )

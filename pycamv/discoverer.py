@@ -211,10 +211,13 @@ def _get_prot_info(conn, peptide_id):
     proteins = conn.cursor().execute(
         """
         SELECT
-        ProteinAnnotations.Description
+        ProteinAnnotations.Description,
+        Proteins.Sequence
         FROM PeptidesProteins
         JOIN ProteinAnnotations
         ON ProteinAnnotations.ProteinID=PeptidesProteins.ProteinID
+        JOIN Proteins
+        ON Proteins.ProteinID=PeptidesProteins.ProteinID
         WHERE
         PeptidesProteins.PeptideID=:pepID
         """,
@@ -223,12 +226,18 @@ def _get_prot_info(conn, peptide_id):
         }
     )
 
-    accessions, descriptions = [], []
+    (
+        accessions,
+        descriptions,
+        uniprot_accessions,
+        full_seqs,
+    ) = [], [], [], []
 
-    for full_prot_desc, in proteins:
-        accession, prot_desc = regexes.RE_DISCOVERER_DESCRIPTION.match(
-            full_prot_desc,
-        ).group(1, 2)
+    for full_prot_desc, sequence in proteins:
+        uniprot_accession, accession, prot_desc = \
+            regexes.RE_DISCOVERER_DESCRIPTION.match(
+                full_prot_desc,
+            ).group(1, 2, 3)
 
         if not accession:
             raise Exception(
@@ -237,8 +246,15 @@ def _get_prot_info(conn, peptide_id):
 
         accessions.append(accession)
         descriptions.append(prot_desc)
+        uniprot_accessions.append(uniprot_accession)
+        full_seqs.append(sequence)
 
-    return accessions, descriptions
+    return (
+        accessions,
+        descriptions,
+        uniprot_accessions,
+        full_seqs,
+    )
 
 
 def get_quant_scan(conn, scan):
@@ -351,21 +367,28 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
 
         quant_scan = get_quant_scan(conn, scan)
 
-        accessions, descriptions = _get_prot_info(conn, pep_id)
+        (
+            accessions,
+            descriptions,
+            uniprot_accessions,
+            full_seqs,
+        ) = _get_prot_info(conn, pep_id)
 
         out.append(
             pep_query.PeptideQuery(
-                accessions,
-                descriptions,
-                pep_id,
-                filename,
-                pep_score,
-                exp_mz,
-                exp_z,
-                pep_seq,
-                pep_var_mods,
-                pep_fixed_mods,
-                scan,
+                accessions=accessions,
+                prot_descs=descriptions,
+                uniprot_accessions=uniprot_accessions,
+                full_seqs=full_seqs,
+                query=pep_id,
+                filename=filename,
+                pep_score=pep_score,
+                pep_exp_mz=exp_mz,
+                pep_exp_z=exp_z,
+                pep_seq=pep_seq,
+                pep_var_mods=pep_var_mods,
+                pep_fixed_mods=pep_fixed_mods,
+                scan=scan,
                 rank_pos=rank_pos,
                 quant_scan=quant_scan,
             )

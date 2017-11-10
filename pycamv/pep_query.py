@@ -3,7 +3,7 @@ from __future__ import absolute_import, division
 
 import os
 
-from .utils import nCr
+from .utils import nCr, fuzzy_find
 from . import ms_labels
 
 
@@ -13,6 +13,9 @@ class PeptideQuery:
     ----------
     accessions : list of str
     prot_descs : list of str
+    uniprot_accessions : list of str
+    full_seqs : list of str
+    pep_offsets : list of int
     query : int
     filename: str
     pep_score : float
@@ -27,18 +30,30 @@ class PeptideQuery:
     rank_pos : set of tuple of int, str or None
     """
     def __init__(
-        self, accessions, prot_descs, query, filename,
+        self,
+        query,
+        filename,
         pep_score,
         pep_exp_mz, pep_exp_z,
         pep_seq,
         pep_var_mods, pep_fixed_mods, scan,
         rank_pos=None,
         quant_scan=None,
+        accessions=None,
+        prot_descs=None,
+        uniprot_accessions=None,
+        full_seqs=None,
+        pep_offsets=None,
     ):
         assert _check_mods(pep_var_mods)
         assert _check_mods(pep_fixed_mods)
-        self.accessions = accessions
-        self.prot_descs = prot_descs
+
+        self.prot_descs = prot_descs or []
+        self.accessions = accessions or []
+        self.uniprot_accessions = uniprot_accessions or []
+        self.full_seqs = full_seqs or []
+        self.pep_offsets = pep_offsets or _get_offsets(pep_seq, full_seqs)
+
         self.query = query
         self.filename = filename
         self.pep_score = pep_score
@@ -116,3 +131,20 @@ def _check_mods(mods):
         all(isinstance(i, str) for i in letters)
         for count, abbrev, letters in mods
     )
+
+
+def _get_offsets(pep_seq, full_seqs):
+    def _get_rel_pos(seq):
+        if not seq:
+            return 0, False
+
+        pep_pos = seq.find(pep_seq)
+        exact = True
+
+        if pep_pos < 0:
+            pep_pos = fuzzy_find(pep_seq, seq)
+            exact = False
+
+        return pep_pos, exact
+
+    return [_get_rel_pos(i)[0] for i in full_seqs]

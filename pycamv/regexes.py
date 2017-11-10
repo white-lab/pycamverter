@@ -2,7 +2,7 @@
 import re
 
 RE_DISCOVERER_DESCRIPTION = re.compile(
-    r"^>sp\|[\dA-Za-z]+\|([\dA-Za-z_]+) (.+) OS=(.+)$"
+    r"^>sp\|([\dA-Za-z]+)\|([\dA-Za-z_]+) (.+) OS=(.+)$"
 )
 RE_MASCOT_DESCRIPTION = re.compile(
     r"^(.+) OS=(.+)$"
