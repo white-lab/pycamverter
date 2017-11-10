@@ -331,6 +331,8 @@ def insert_peptide(cursor, query, prot_set_id):
                 )
             ),
         },
+        unique_on=["peptide_seq", "protein_set_id"],
+        update=True,
     )
 
 
