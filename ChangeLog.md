@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.11.0 (2017-11-10)
+
+Features
+
+  - Add protein sequence, uniprot accessions, peptide offsets to output.
+
 ## 0.10.0 (2017-09-07)
 
 Features
