@@ -93,7 +93,11 @@ def export_to_sql(
 
         # Peptide
         peptide_id = sql.insert_peptide(cursor, pep_query, protein_set_id)
-        sql.insert_pep_prot(cursor, peptide_id, protein_ids)
+        sql.insert_pep_prot(
+            cursor,
+            peptide_id, protein_ids,
+            pep_query.pep_offsets,
+        )
 
         # Modification data
         mod_state_id = sql.insert_mod_state(cursor, pep_query, peptide_id)

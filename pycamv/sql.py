@@ -2,13 +2,13 @@
 import logging
 import sqlite3
 
-from . import gen_sequences, ms_labels, regexes, utils, version
+from . import gen_sequences, migrations, ms_labels, regexes, utils, version
 
 
 LOGGER = logging.getLogger("pycamv.sql")
 
 DB_EXTS = [".db", ".sql"]
-DATA_VERSION = "1.0.0"
+DATA_VERSION = "1.1.0"
 
 CAMV_SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS proteins
     protein_id              integer primary key autoincrement not null,
     protein_name            text,
     protein_accession       text,
+    protein_uniprot         text,
+    full_sequence           text,
     UNIQUE(protein_accession)
 );
 
@@ -31,6 +33,7 @@ CREATE TABLE IF NOT EXISTS protein_sets
     protein_set_id          integer primary key autoincrement not null,
     protein_set_name        text,
     protein_set_accession   text,
+    protein_set_uniprot     text,
     UNIQUE(protein_set_accession)
 );
 
@@ -39,6 +42,7 @@ CREATE TABLE IF NOT EXISTS peptides
 (
     peptide_id              integer primary key autoincrement not null,
     protein_set_id          integer not null,
+    protein_set_offsets     text,
     peptide_seq             text,
     FOREIGN KEY(protein_set_id) REFERENCES protein_sets(protein_set_id)
     UNIQUE(peptide_seq)
@@ -50,6 +54,7 @@ CREATE TABLE IF NOT EXISTS protein_peptide
     prot_pep_id             integer primary key autoincrement not null,
     peptide_id              integer not null,
     protein_id              integer not null,
+    peptide_offset          integer,
     FOREIGN KEY(peptide_id) REFERENCES peptides(peptide_id),
     FOREIGN KEY(protein_id) REFERENCES proteins(protein_id),
     UNIQUE(peptide_id, protein_id)
@@ -207,11 +212,7 @@ def run_migrations(cursor):
         )
 
     if camv_data_version != DATA_VERSION:
-        raise NotImplementedError(
-            "Unable to migrate CAMV data from {} to {}".format(
-                camv_data_version, DATA_VERSION,
-            )
-        )
+        migrations.run_migrations(camv_data_version, DATA_VERSION, cursor)
 
 
 def _insert_or_update_row(
@@ -276,9 +277,16 @@ def insert_protein(cursor, query):
             {
                 "protein_name": prot_desc,
                 "protein_accession": access,
+                "protein_uniprot": uniprot,
+                "full_sequence": seq,
             },
+            unique_on=["protein_accession"],
+            update=True,
         )
-        for prot_desc, access in zip(query.prot_descs, query.accessions)
+        for prot_desc, access, uniprot, seq in zip(
+            query.prot_descs, query.accessions,
+            query.uniprot_accessions, query.full_seqs,
+        )
     ]
 
 
@@ -289,13 +297,23 @@ def insert_protein_set(cursor, query):
             "protein_set_name": " / ".join(
                 i[0]
                 for i in sorted(
-                    zip(query.prot_descs, query.accessions)
+                    zip(query.prot_descs, query.accessions),
+                    key=lambda x: x[1]
                 )
             ),
             "protein_set_accession": " / ".join(
                 sorted(query.accessions)
             ),
+            "protein_set_uniprot": ";".join(
+                i[0]
+                for i in sorted(
+                    zip(query.uniprot_accessions, query.accessions),
+                    key=lambda x: x[1],
+                )
+            ),
         },
+        unique_on=["protein_set_accession"],
+        update=True,
     )
 
 
@@ -305,20 +323,33 @@ def insert_peptide(cursor, query, prot_set_id):
         {
             "peptide_seq": query.pep_seq,
             "protein_set_id": prot_set_id,
+            "protein_set_offsets": ";".join(
+                str(i[0])
+                for i in sorted(
+                    zip(query.pep_offsets, query.accessions),
+                    key=lambda x: x[1],
+                )
+            ),
         },
     )
 
 
-def insert_pep_prot(cursor, pep_id, prot_ids):
+def insert_pep_prot(cursor, pep_id, prot_ids, prot_offsets):
     return [
         _insert_or_update_row(
             cursor, "protein_peptide", "prot_pep_id",
             {
                 "peptide_id": pep_id,
                 "protein_id": prot_id,
+                "peptide_offset": offset,
             },
+            unique_on=[
+                "peptide_id",
+                "protein_id",
+            ],
+            update=True,
         )
-        for prot_id in prot_ids
+        for prot_id, offset in zip(prot_ids, prot_offsets)
     ]
 
 
@@ -478,10 +509,14 @@ def insert_mod_state(cursor, query, peptide_id):
             "peptide_id": peptide_id,
             "mod_desc": _get_mods_description(
                 query.pep_seq,
-                tuple(query.pep_var_mods)
+                tuple(query.pep_var_mods),
             ),
             "num_comb": query.num_comb,
         },
+        unique_on=[
+            "peptide_id",
+            "mod_desc",
+        ]
     )
 
 
@@ -574,16 +609,20 @@ def insert_fragments(cursor, peaks, scan_ptm_id):
 def insert_camv_meta(cursor):
     cursor.executemany(
         """
-        INSERT OR IGNORE INTO camv_meta
+        INSERT INTO camv_meta
         (
             key,
             val
-        ) VALUES (?, ?)
+        ) SELECT (?), (?)
+        WHERE NOT EXISTS (SELECT 1 FROM camv_meta WHERE key=(?))
         """,
-        {
-            "pycamverterVersion": version.__version__,
-            "camvDataVersion": DATA_VERSION,
-        }.items(),
+        [
+            (i[0], i[1], i[0])
+            for i in {
+                "pycamverterVersion": version.__version__,
+                "camvDataVersion": DATA_VERSION,
+            }.items()
+        ],
     )
 
 
