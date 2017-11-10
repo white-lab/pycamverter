@@ -4,6 +4,7 @@ from __future__ import absolute_import, division
 
 import copy
 from collections import OrderedDict, Callable
+import difflib
 import itertools
 import math
 
@@ -154,3 +155,23 @@ def rewrite_ion_name(name):
                 sup, sub = False, False
 
     return ret
+
+
+def fuzzy_find(needle, haystack):
+    """
+    Find the longest matching subsequence of needle within haystack.
+
+    Returns the corresponding index from the beginning of needle.
+
+    Parameters
+    ----------
+    needle : str
+    haystack : str
+
+    Returns
+    -------
+    int
+    """
+    s = difflib.SequenceMatcher(a=haystack, b=needle)
+    best = s.find_longest_match(0, len(haystack), 0, len(needle))
+    return best.a - len(needle) + best.size
