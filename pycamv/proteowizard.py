@@ -95,11 +95,16 @@ def fetch_proteowizard(urls=None):
             responses.append(response)
             continue
 
-        out_path = os.path.join(
-            tmpdir,
-            cgi.parse_header(
+        try:
+            filename = cgi.parse_header(
                 response.headers["Content-Disposition"]
             )[-1]["filename"]
+        except KeyError:
+            filename = url.rsplit("/", 1)[1].rsplit("?")[0]
+
+        out_path = os.path.join(
+            tmpdir,
+            filename,
         )
 
         with open(out_path, mode="wb") as f:
