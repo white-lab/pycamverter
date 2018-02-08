@@ -4,6 +4,7 @@
 
 Bug fixes
 
+  - Fix crash on dynamic N/C-term modifications.
   - Fix crash on empty workflow elements.
 
 ## 0.11.0 (2017-11-10)
