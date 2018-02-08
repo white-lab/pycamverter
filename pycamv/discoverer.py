@@ -88,9 +88,11 @@ def _get_fixed_var_mods(conn):
 
     for name, val in query:
         if name.startswith("StaticMod_"):
-            fixed_mods.append(val)
+            if val.strip():
+                fixed_mods.append(val.strip())
         elif name.startswith("DynMod_"):
-            var_mods.append(val)
+            if val.strip():
+                var_mods.append(val.strip())
 
     return fixed_mods, var_mods
 
