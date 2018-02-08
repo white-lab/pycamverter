@@ -110,7 +110,10 @@ class PeptideQuery:
             if mod == "Phospho" and letters == ["S", "T"]:
                 letters = ["S", "T", "Y"]
 
-            potential_mod_sites = sum(self.pep_seq.count(i) for i in letters)
+            potential_mod_sites = sum(
+                (list(self.pep_seq) + ["N-term", "C-term"]).count(i)
+                for i in letters
+            )
 
             # Subtract sites that will be taken up by another modification
             # (i.e. Oxidation and Dioxidation of M)
