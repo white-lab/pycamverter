@@ -23,7 +23,7 @@ LOGGER = logging.getLogger("pycamv.proteowizard")
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 PROTEOWIZARD_DIR = os.path.join(THIS_DIR, "ProteoWizard")
 
-PROTEOWIZARD_VERSION = "3.0.10577"
+PROTEOWIZARD_VERSION = "3.0.11768"
 PROTEOWIZARD_PATH = os.path.join(
     PROTEOWIZARD_DIR,
     "ProteoWizard {}".format(PROTEOWIZARD_VERSION),
@@ -32,8 +32,8 @@ PROTEOWIZARD_PATH = os.path.join(
 PROTEOWIZARD_MSI_32_URLS = [
     (
         (
-            "https://www.dropbox.com/s/we46o1hvkzlpel7/"
-            "pwiz-setup-3.0.10577-x86.msi?dl=1"
+            "https://www.dropbox.com/s/1mix51j4jmukdxx/"
+            "pwiz-setup-3.0.11768-x86.msi?dl=1"
         ),
         "GET",
         None,
@@ -48,8 +48,8 @@ PROTEOWIZARD_MSI_32_URLS = [
 PROTEOWIZARD_MSI_64_URLS = [
     (
         (
-            "https://www.dropbox.com/s/9rawc44u84jr9ip/"
-            "pwiz-setup-3.0.10577-x86_64.msi?dl=1"
+            "https://www.dropbox.com/s/dkfyacf6ap0sjj5/"
+            "pwiz-setup-3.0.11768-x86_64.msi?dl=1"
         ),
         "GET",
         None,
