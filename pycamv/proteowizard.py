@@ -5,6 +5,7 @@ Provides functions for interacting with MS data through ProteoWizard.
 from __future__ import absolute_import, division
 
 import cgi
+import hashlib
 import logging
 import os
 import platform
@@ -29,40 +30,50 @@ PROTEOWIZARD_PATH = os.path.join(
     "ProteoWizard {}".format(PROTEOWIZARD_VERSION),
 )
 
-PROTEOWIZARD_MSI_32_URLS = [
-    (
-        (
-            "https://www.dropbox.com/s/1mix51j4jmukdxx/"
-            "pwiz-setup-3.0.11768-x86.msi?dl=1"
-        ),
-        "GET",
-        None,
+# URLs + MD5 Hash:
+# Windows Powershell: CertUtil -hashfile <filename> MD5
+# Linux Commandline: md5sum <filename>
+PROTEOWIZARD_MSI_URLS = {
+    "win32": (
+        [
+            (
+                (
+                    "https://www.dropbox.com/s/1mix51j4jmukdxx/"
+                    "pwiz-setup-3.0.11768-x86.msi?dl=1"
+                ),
+                "GET",
+                None,
+            ),
+            (
+                "http://data.mallicklab.com/download.php",
+                "POST",
+                {"downloadtype": "bt36i"},
+            ),
+        ],
+        "24b744dc7860d6447335d812eb32efe4",
     ),
-    (
-        "http://data.mallicklab.com/download.php",
-        "POST",
-        {"downloadtype": "bt36i"},
-    ),
-]
+    "win64": (
+        [
+            (
+                (
+                    "https://www.dropbox.com/s/dkfyacf6ap0sjj5/"
+                    "pwiz-setup-3.0.11768-x86_64.msi?dl=1"
+                ),
+                "GET",
+                None,
+            ),
+            (
+                "http://data.mallicklab.com/download.php",
+                "POST",
+                {"downloadtype": "bt83i"},
+            ),
+        ],
+        "16e0b611f32655a92400e233e3077290"
+    )
+}
 
-PROTEOWIZARD_MSI_64_URLS = [
-    (
-        (
-            "https://www.dropbox.com/s/dkfyacf6ap0sjj5/"
-            "pwiz-setup-3.0.11768-x86_64.msi?dl=1"
-        ),
-        "GET",
-        None,
-    ),
-    (
-        "http://data.mallicklab.com/download.php",
-        "POST",
-        {"downloadtype": "bt83i"},
-    ),
-]
 
-
-def fetch_proteowizard(urls=None):
+def fetch_proteowizard(urls=None, md5hash=None):
     LOGGER.debug("Proteowizard: {}".format(PROTEOWIZARD_PATH))
 
     if os.path.exists(PROTEOWIZARD_PATH):
@@ -74,10 +85,11 @@ def fetch_proteowizard(urls=None):
         raise Exception("Proteowizard install not supported on your platform")
 
     if urls is None:
-        if platform.architecture()[0] == "64bit":
-            urls = PROTEOWIZARD_MSI_64_URLS
-        else:
-            urls = PROTEOWIZARD_MSI_32_URLS
+        urls, md5hash = PROTEOWIZARD_MSI_URLS[
+            "win64"
+            if platform.architecture()[0] == "64bit" else
+            "win32"
+        ]
 
     tmpdir = tempfile.mkdtemp()
 
@@ -106,14 +118,22 @@ def fetch_proteowizard(urls=None):
             tmpdir,
             filename,
         )
+        hash_md5 = hashlib.md5()
 
         with open(out_path, mode="wb") as f:
             for block in response.iter_content(1024):
-                # print(block)
-                # return
+                hash_md5.update(block)
                 f.write(block)
 
-            break
+        if md5hash is not None and hash_md5.hexdigest() != md5hash:
+            LOGGER.warning(
+                "MD5 hash of {} does not match record: {} != {}"
+                .format(url, md5hash, hash_md5.hexdigest())
+            )
+            os.remove(out_path)
+            continue
+
+        break
     else:
         raise Exception("Unable to download file: {}".format(responses))
 
