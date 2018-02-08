@@ -60,9 +60,11 @@ def _get_fixed_var_mods_pd21(conn):
                 continue
 
             if param.get("Name", "").startswith("DynMod_"):
-                var_mods.append(param.text)
+                if param.text.strip():
+                    var_mods.append(param.text.strip())
             elif param.get("Name", "").startswith("StaticMod_"):
-                fixed_mods.append(param.text)
+                if param.text.strip():
+                    fixed_mods.append(param.text.strip())
 
     return fixed_mods, var_mods
 

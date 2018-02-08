@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.11.1 (2018-02-07)
+
+Bug fixes
+
+  - Fix crash on empty workflow elements.
+
 ## 0.11.0 (2017-11-10)
 
 Features
