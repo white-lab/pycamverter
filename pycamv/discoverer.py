@@ -431,7 +431,7 @@ def read_discoverer_msf(msf_path):
         out = _get_peptide_queries(conn, fixed_mods, var_mods)
 
     LOGGER.info(
-        "Loaded {} peptides in {:.d} hr:min:sec"
+        "Loaded {} peptides in {} hr:min:sec"
         .format(
             len(out),
             str(datetime.now() - start).split('.')[0],
