@@ -5,6 +5,7 @@ Provides functionality for interacting with ProteomeDiscoverer data.
 from __future__ import absolute_import, division
 
 from collections import Counter, defaultdict
+from datetime import datetime
 import logging
 import os
 import sqlite3
@@ -423,9 +424,18 @@ def read_discoverer_msf(msf_path):
             os.path.basename(msf_path),
         )
     )
+    start = datetime.now()
 
     with sqlite3.connect(msf_path) as conn:
         fixed_mods, var_mods = _get_fixed_var_mods(conn)
         out = _get_peptide_queries(conn, fixed_mods, var_mods)
+
+    LOGGER.info(
+        "Loaded {} peptides in {:.d} hr:min:sec"
+        .format(
+            len(out),
+            str(datetime.now() - start).split('.')[0],
+        )
+    )
 
     return fixed_mods, var_mods, out
