@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.11.2 (2018-04-04)
+
+Bug fixes
+
+  - Fixed win32api error in deployments.
+
 ## 0.11.1 (2018-02-07)
 
 Bug fixes
