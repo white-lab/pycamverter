@@ -1,10 +1,5 @@
 
 import os
-try: # for pip >= 10
-    from pip._internal.req import parse_requirements
-except ImportError: # for pip <= 9.0.3
-    from pip.req import parse_requirements
-from pip.download import PipSession
 from setuptools import setup, find_packages
 
 from pycamv import __version__
@@ -30,8 +25,11 @@ setup(
     license="BSD",
     packages=find_packages(exclude=["*.tests", "tests"]),
     install_requires=[
-        str(i.req)
-        for i in parse_requirements(REQUIREMENTS_PATH, session=PipSession())
+        "numpydoc>=0.7",
+        "openpyxl>=2.5.0",
+        "pymzML",
+        "requests>=2.18.4",
+        "scipy>=1.0.1",
     ],
     dependency_links=[
         "git+git://github.com/naderm/pymzML.git",
