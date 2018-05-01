@@ -9,12 +9,14 @@ from datetime import datetime
 import logging
 import os
 import sqlite3
+import re
 import xml.etree.ElementTree as ET
 
 from . import masses, regexes, pep_query
 
 
 LOGGER = logging.getLogger("pycamv.discoverer")
+RE_PSP = re.compile("(\w+)\((\d+)\): ([\d\.]+)")
 
 
 def _parse_letters(letters):
@@ -356,6 +358,10 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
             """
         )
 
+    psp_vals = _get_phosphors_psp_vals(conn.cursor())
+    changed_peptides = 0
+    ambiguous_peptides = 0
+
     for (
         pep_id, pep_seq, pep_score,
         scan, exp_mz, mass_z, exp_z, filename,
@@ -379,6 +385,19 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
             full_seqs,
         ) = _get_prot_info(conn, pep_id)
 
+        if pep_id in psp_vals:
+            rank_pos, reassigned, ambiguous = _reassign_rank(
+                pep_fixed_mods + pep_var_mods,
+                rank_pos,
+                psp_vals[pep_id],
+            )
+
+            if reassigned:
+                changed_peptides += 1
+
+            if ambiguous:
+                ambiguous_peptides += 1
+
         out.append(
             pep_query.PeptideQuery(
                 accessions=accessions,
@@ -401,7 +420,109 @@ def _get_peptide_queries(conn, fixed_mods, var_mods):
 
     out = sorted(out, key=lambda x: x.scan)
 
+    LOGGER.info(
+        "Reassigned {} top modification assignments using phosphoRS"
+        .format(changed_peptides)
+    )
+
     return out
+
+
+def _is_pmod(mod):
+    pos, mod_type = mod
+    return (
+        mod_type in ["Phospho"]
+    )
+
+
+def _sort_mods(mods):
+    return tuple(
+        sorted(
+            mods,
+            key=lambda x: (x[0], x[1]),
+        )
+    )
+
+
+def _reassign_rank(mods, rank_pos, psp_val):
+    reassigned = False
+    ambiguous = False
+
+    # phophoRS example format: "T(4): 99.6; S(6): 0.4; S(10): 0.0"
+    # Error messages include: "Too many isoforms"
+    psp_val = [
+        RE_PSP.match(i.strip())
+        for i in psp_val.split(";")
+    ]
+    psp_val = [
+        i.groups()
+        for i in psp_val
+        if i
+    ]
+    psp_val = [
+        (i[0], int(i[1]), float(i[2]))
+        for i in psp_val
+    ]
+
+    if 1 not in rank_pos:
+        return rank_pos, False, False
+
+    o_mods = [i for i in rank_pos[1] if not _is_pmod(i)]
+    p_mods = [i for i in rank_pos[1] if _is_pmod(i)]
+    psp_val_f = [i for i in psp_val if i[2] > 50]
+
+    if len(p_mods) != len(psp_val_f):
+        LOGGER.debug(
+            "Not enough info to assign phophosite: {}".format(psp_val)
+        )
+        ambiguous = True
+        rank_pos = None
+    elif set(i[0] + 1 for i in p_mods) != set(i[1] for i in psp_val_f):
+        p_mods = [
+            (i[1] - 1, "Phospho")
+            for i in psp_val_f
+        ]
+        reassigned = True
+
+        rank_pos = _sort_mods(o_mods + p_mods)
+
+    return rank_pos, reassigned, ambiguous
+
+
+def _get_phosphors_psp_vals(cursor):
+    fields = cursor.execute(
+        """
+        SELECT
+        CustomDataFields.FieldID,
+        CustomDataFields.DisplayName
+        FROM CustomDataFields
+        """,
+    )
+    field_ids = [
+        field_id
+        for field_id, name in fields
+        if name in ["phosphoRS Site Probabilities"]
+    ]
+
+    if not field_ids:
+        return {}
+
+    psp_vals = cursor.execute(
+        """
+        SELECT
+        CustomDataPeptides.PeptideID,
+        CustomDataPeptides.FieldValue
+        FROM CustomDataPeptides
+        WHERE CustomDataPeptides.FieldID IN ({})
+        """.format(
+            ", ".join("?" * len(field_ids))
+        ),
+        field_ids,
+    )
+    return {
+        pep_id: psp_val
+        for pep_id, psp_val in psp_vals
+    }
 
 
 def read_discoverer_msf(msf_path):
