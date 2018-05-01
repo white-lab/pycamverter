@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.12.0 (2018-04-30)
+
+Features
+
+  - Added support for phosphoRS phosphorylation assignments.
+
 ## 0.11.2 (2018-04-04)
 
 Bug fixes
