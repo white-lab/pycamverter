@@ -1,4 +1,4 @@
 --index-url https://pypi.python.org/simple/
 
--e git+git://github.com/naderm/pymzML.git#egg=master
+-e git+https://github.com/naderm/pymzML#egg=pymzml
 -e .

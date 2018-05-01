@@ -32,7 +32,7 @@ setup(
         "scipy>=1.0.1",
     ],
     dependency_links=[
-        "git+git://github.com/naderm/pymzML.git",
+        "git+https://github.com/naderm/pymzML#egg=pymzml",
     ],
     classifiers=[
         "License :: OSI Approved :: BSD License",
