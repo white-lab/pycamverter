@@ -43,7 +43,15 @@ def _parse_letters(letters):
 
 def _find_mod(abbrev, letter, pot_mods):
     for pot_mod in pot_mods:
-        if pot_mod[0] == abbrev and letter in pot_mod[1]:
+        if letter not in pot_mod[1]:
+            continue
+
+        if pot_mod[0] in ['TMT6plex', 'TMT10plex']:
+            mods = ['TMT6plex', 'TMT10plex']
+        else:
+            mods = [pot_mod[0]]
+
+        if abbrev in mods:
             return pot_mod
 
     return None
@@ -253,7 +261,7 @@ def _get_proteins(conn, peptide_id, pd_version):
         return conn.cursor().execute(
             """
             SELECT
-            TargetProteins.Description,
+            TargetProteins.FastaTitleLines,
             TargetProteins.Sequence
 
             FROM TargetProteinsTargetPsms
@@ -442,7 +450,13 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods, pd_version):
         aa_mods,
         key=lambda x: 0 if x[1].startswith("Mapping") else 1,
     ):
-        letter = pep_seq[pos]
+        letter = pep_seq[
+            pos - (
+                1
+                if pd_version[:2] in [(2, 2)] else
+                0
+            )
+        ]
         rank_pos[rank].add((pos, abbrev))
 
         mod = _find_mod(abbrev, letter, var_mods)
@@ -510,7 +524,7 @@ def _get_prot_info(conn, peptide_id, pd_version):
     for full_prot_desc, sequence in proteins:
         uniprot_accession, accession, prot_desc = \
             regexes.RE_DISCOVERER_DESCRIPTION.match(
-                full_prot_desc,
+                full_prot_desc.split('\n')[0],
             ).group(1, 2, 3)
 
         if not accession:
@@ -561,17 +575,22 @@ def _get_peptide_queries(conn, fixed_mods, var_mods, pd_version):
             )
 
         pep_seq, pep_var_mods, pep_fixed_mods, rank_pos = _get_pep_mods(
-            conn, pep_id, pep_seq, var_mods, fixed_mods,
+            conn,
+            pep_id,
+            pep_seq,
+            var_mods,
+            fixed_mods,
+            pd_version,
         )
 
-        quant_scan = _get_quant_scan(conn, scan)
+        quant_scan = _get_quant_scan(conn, scan, pd_version)
 
         (
             accessions,
             descriptions,
             uniprot_accessions,
             full_seqs,
-        ) = _get_prot_info(conn, pep_id)
+        ) = _get_prot_info(conn, pep_id, pd_version)
 
         if pep_id in psp_vals:
             rank_pos, reassigned, ambiguous = _reassign_rank(
@@ -729,7 +748,7 @@ def _get_pd_version(conn):
         WHERE Kind=='Result'
         """,
     )
-    return tuple([int(i) for i in query[0][0].split(',')])
+    return tuple([int(i) for i in next(query)[0].split('.')])
 
 
 def read_discoverer_msf(msf_path):
