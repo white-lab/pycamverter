@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pycamv import masses
+from pycamv.fragment import masses
 
 
 class MassesTest(TestCase):

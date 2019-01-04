@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pycamv import fragments
+from pycamv.fragment import fragments
 
 
 class FragmentIonsTest(TestCase):

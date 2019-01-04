@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pycamv import ms_labels
+from pycamv.fragment import ms_labels
 
 
 class MSLabelsTest(TestCase):

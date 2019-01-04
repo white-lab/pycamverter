@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pycamv import gen_sequences
+from pycamv.export import gen_sequences
 
 
 class GenSequencesTest(TestCase):
