@@ -2,7 +2,22 @@
 import os
 from setuptools import setup, find_packages
 
-from pycamv import __version__
+
+__dir__ = os.path.dirname(__file__)
+
+with open(
+    os.path.join(__dir__, "pycamv", "version.py")
+) as f:
+    __version__ = "0.0.0"
+
+    for line in f:
+        if "#" in line:
+            line = line[:line.index("#")]
+
+        if not line.startswith("version ="):
+            continue
+
+        __version__ = line.split("=")[1].strip().strip("\"")
 
 
 REQUIREMENTS_PATH = os.path.abspath(
