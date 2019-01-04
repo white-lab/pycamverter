@@ -1,7 +1,7 @@
 
 import logging
 
-from . import version
+from pycamv import version
 
 LOGGER = logging.getLogger("pycamv.migrations")
 

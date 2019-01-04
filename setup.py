@@ -27,12 +27,13 @@ setup(
     install_requires=[
         "numpydoc>=0.7",
         "openpyxl>=2.5.0",
-        "pymzML",
+        "pymzml==0.7.7",
         "requests>=2.18.4",
         "scipy>=1.0.1",
     ],
     dependency_links=[
-        "git+https://github.com/naderm/pymzML#egg=pymzml",
+        "git+https://github.com/naderm/pymzML.git"
+        "@master#egg=pymzml-0.7.7",
     ],
     classifiers=[
         "License :: OSI Approved :: BSD License",

@@ -19,7 +19,7 @@ To download a completely packaged Windows executable, visit our [releases page](
 To install the core pycamverter python library, run the following command:
 
 ```
-pip install pycamverter
+pip install --process-dependency-links pycamverter
 ```
 
 ## Usage

@@ -15,12 +15,13 @@ import os
 import tempfile
 import shutil
 
-from . import (
-    camv_mat, compare, export, fragments, gen_sequences, ms_labels, scans,
-    search,
-)
-from .scan_list import load_scan_list
-from .utils import LenGen
+from . import compare, fragments, gen_sequences, ms_labels
+from pycamv.search import search
+from pycamv.export import export
+from pycamv.matlab import camv_mat
+from pycamv.scan import scans
+from pycamv.scan import scan_list as sl
+from pycamv.utils import LenGen
 
 
 LOGGER = logging.getLogger("pycamv.validate")
@@ -321,7 +322,7 @@ def validate_spectra(
         scan_list = []
 
     if scans_path is not None:
-        scan_list += load_scan_list(scans_path)
+        scan_list += sl.load_scan_list(scans_path)
 
     if out_path is None:
         out_path = os.path.splitext(search_path)[0] + ".camv.gz"

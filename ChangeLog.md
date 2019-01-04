@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.0 (2019-01-03)
+
+Features
+
+  - Added support for ProteomeDiscoverer 2.2
+
 ## 0.12.0 (2018-04-30)
 
 Features

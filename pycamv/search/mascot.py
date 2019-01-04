@@ -7,7 +7,8 @@ from __future__ import absolute_import, division
 import logging
 import xml.etree.ElementTree as ET
 
-from . import pep_query, regexes
+from . import pep_query
+from pycamv import regexes
 
 
 MASCOT_NS = {

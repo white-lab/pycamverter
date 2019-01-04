@@ -3,8 +3,8 @@ from __future__ import absolute_import, division
 
 import os
 
-from .utils import nCr, fuzzy_find
-from . import ms_labels
+from pycamv.utils import nCr, fuzzy_find
+from pycamv.fragment import ms_labels
 
 
 class PeptideQuery:

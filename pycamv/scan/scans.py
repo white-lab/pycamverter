@@ -9,7 +9,8 @@ import os
 import tempfile
 import xml.etree.ElementTree as ET
 
-from . import ms_labels, proteowizard, regexes
+from pycamv.fragment import ms_labels
+from pycamv import proteowizard, regexes
 
 
 LOGGER = logging.getLogger("pycamv.scans")

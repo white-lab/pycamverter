@@ -2,8 +2,9 @@
 import logging
 import sqlite3
 
-from . import gen_sequences, migrations, ms_labels, regexes, utils, version
-
+from . import migrations
+from pycamv import regexes, utils, version
+from pycamv.fragment import gen_sequences, ms_labels
 
 LOGGER = logging.getLogger("pycamv.sql")
 

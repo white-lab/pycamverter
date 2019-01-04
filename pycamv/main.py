@@ -6,14 +6,14 @@ import multiprocessing
 import os
 import sys
 
-from pycamv import validate, scan_list, search, __version__
+from . import fragment, scan, search, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
 
 RAW_EXTS = [".raw", ".mgf", ".d", ".wiff"]
-SEARCH_EXTS = list(search.BACKENDS.keys())
-SCANS_EXTS = list(scan_list.BACKENDS.keys())
+SEARCH_EXTS = list(search.search.BACKENDS.keys())
+SCANS_EXTS = list(scan.scan_list.BACKENDS.keys())
 
 
 def _parse_args(args):
@@ -171,7 +171,7 @@ def main(args):
             "Missing search input path"
         )
 
-    validate.validate_spectra(
+    fragment.validate.validate_spectra(
         search_path=args.search_path,
         raw_paths=args.raw_paths,
         scans_path=args.scans_path,
