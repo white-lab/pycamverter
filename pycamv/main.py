@@ -6,7 +6,7 @@ import multiprocessing
 import os
 import sys
 
-from . import fragment, scan, search, __version__
+from pycamv import fragment, scan, search, __version__
 
 
 LOGGER = logging.getLogger("pycamv.main")
