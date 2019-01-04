@@ -450,13 +450,10 @@ def _get_pep_mods(conn, pep_id, pep_seq, var_mods, fixed_mods, pd_version):
         aa_mods,
         key=lambda x: 0 if x[1].startswith("Mapping") else 1,
     ):
-        letter = pep_seq[
-            pos - (
-                1
-                if pd_version[:2] in [(2, 2)] else
-                0
-            )
-        ]
+        if pd_version[:2] in [(2, 2)]:
+            pos -= 1
+
+        letter = pep_seq[pos]
         rank_pos[rank].add((pos, abbrev))
 
         mod = _find_mod(abbrev, letter, var_mods)
@@ -522,20 +519,19 @@ def _get_prot_info(conn, peptide_id, pd_version):
     ) = [], [], [], []
 
     for full_prot_desc, sequence in proteins:
-        uniprot_accession, accession, prot_desc = \
-            regexes.RE_DISCOVERER_DESCRIPTION.match(
-                full_prot_desc.split('\n')[0],
-            ).group(1, 2, 3)
+        for line in full_prot_desc.split('\n'):
+            uniprot_accession, accession, prot_desc = \
+                regexes.RE_DISCOVERER_DESCRIPTION.match(line).group(1, 2, 3)
 
-        if not accession:
-            raise Exception(
-                "Unable to find accession ID for {}".format(full_prot_desc)
-            )
+            if not accession:
+                raise Exception(
+                    "Unable to find accession ID for {}".format(full_prot_desc)
+                )
 
-        accessions.append(accession)
-        descriptions.append(prot_desc)
-        uniprot_accessions.append(uniprot_accession)
-        full_seqs.append(sequence)
+            accessions.append(accession)
+            descriptions.append(prot_desc)
+            uniprot_accessions.append(uniprot_accession)
+            full_seqs.append(sequence)
 
     return (
         accessions,
