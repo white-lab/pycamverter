@@ -6,7 +6,7 @@ class ImportTest(TestCase):
         from pycamv import (
             main, proteowizard, regexes, utils, version,
         )
-        from pycamv.matlab import camv_mat
+        from pycamv import camv_mat
         from pycamv.export import (
             export, migrations, sql,
         )
