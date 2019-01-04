@@ -6,7 +6,10 @@ MAT_CHOICES = {1: 'accept', 2: 'maybe', 3: 'reject'}
 def load_mat_validation(mat_paths):
     # scipy breaks Ctrl-C interrupts when scipy for some distributions,
     # only import as necessary
-    from scipy.io import loadmat
+    try:
+        from scipy.io import loadmat
+    except ImportError:
+        return {}
 
     validation_data = {}
 

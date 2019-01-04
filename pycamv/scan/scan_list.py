@@ -4,12 +4,12 @@ from __future__ import absolute_import, division
 import logging
 import os
 
-from openpyxl import load_workbook
-
 LOGGER = logging.getLogger("pycamv.scan_list")
 
 
 def load_scan_xlsx(path):
+    from openpyxl import load_workbook
+
     wb = load_workbook(path)
     ws = wb.active
     return [row[0].value for row in ws.iter_rows()]
