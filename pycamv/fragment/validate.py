@@ -18,7 +18,7 @@ import shutil
 from . import compare, fragments, gen_sequences, ms_labels
 from pycamv.search import search
 from pycamv.export import export
-from pycamv.matlab import camv_mat
+from pycamv import camv_mat
 from pycamv.scan import scans
 from pycamv.scan import scan_list as sl
 from pycamv.utils import LenGen
