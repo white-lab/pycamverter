@@ -123,7 +123,7 @@ def _get_fixed_var_mods(conn, pd_version):
         return fixed_mods, var_mods
     else:
         raise Exception(
-            "Unknown Proteome Discoverer Version: {}".format(pd_version)
+            "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
 
 
@@ -181,7 +181,7 @@ def _get_aa_mods(conn, pep_id, pd_version):
         )
     else:
         raise Exception(
-            "Unknown Proteome Discoverer Version: {}".format(pd_version)
+            "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
 
 
@@ -230,7 +230,7 @@ def _get_term_mods(conn, pep_id, pd_version):
         )
     else:
         raise Exception(
-            "Unknown Proteome Discoverer Version: {}".format(pd_version)
+            "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
 
 
@@ -279,7 +279,7 @@ def _get_proteins(conn, peptide_id, pd_version):
         )
     else:
         raise Exception(
-            "Unknown Proteome Discoverer Version: {}".format(pd_version)
+            "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
 
 
@@ -332,7 +332,7 @@ def _get_quant_scan(conn, scan, pd_version):
             return quant_scan
     else:
         raise Exception(
-            "Unknown Proteome Discoverer Version: {}".format(pd_version)
+            "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
 
 
@@ -435,7 +435,7 @@ def _get_pep_info(conn, pd_version):
         )
     else:
         raise Exception(
-            "Unknown Proteome Discoverer Version: {}".format(pd_version)
+            "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
 
 
@@ -731,7 +731,7 @@ def _get_phosphors_psp_vals(cursor, pd_version):
         return {}
     else:
         raise Exception(
-            "Unknown Proteome Discoverer Version: {}".format(pd_version)
+            "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
 
 

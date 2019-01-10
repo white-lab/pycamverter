@@ -125,14 +125,6 @@ def main(args):
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler('pycamv.log')
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-
-    LOGGER.debug(sys.argv)
-    LOGGER.debug(args)
-
     if args.search_path is None:
         searches = [
             i for i in args.files
@@ -141,6 +133,17 @@ def main(args):
 
         if len(searches) == 1:
             args.search_path = searches[0]
+
+    fh = logging.FileHandler(
+        os.path.join(os.path.dirname(args.search_path, 'pycamv.log'))
+    )
+
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    LOGGER.debug(sys.argv)
+    LOGGER.debug(args)
 
     if args.raw_paths is None:
         raws = [

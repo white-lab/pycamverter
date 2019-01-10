@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.2 (2019-01-10)
+
+Bug fixes
+
+  - Set pycamv.log path to same folder as .msf file.
+
 ## 0.13.1 (2019-01-04)
 
 Bug fixes
