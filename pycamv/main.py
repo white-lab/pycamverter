@@ -134,13 +134,16 @@ def main(args):
         if len(searches) == 1:
             args.search_path = searches[0]
 
-    fh = logging.FileHandler(
-        os.path.join(os.path.dirname(args.search_path), 'pycamv.log')
-    )
+    try:
+        fh = logging.FileHandler(
+            os.path.join(os.path.dirname(args.search_path), 'pycamv.log')
+        )
 
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+    except OSError:
+        pass
 
     LOGGER.debug(sys.argv)
     LOGGER.debug(args)
