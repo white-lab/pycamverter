@@ -14,7 +14,7 @@ with open(
         if "#" in line:
             line = line[:line.index("#")]
 
-        if not line.startswith("version ="):
+        if not line.startswith("__version__ ="):
             continue
 
         __version__ = line.split("=")[1].strip().strip("\"")
