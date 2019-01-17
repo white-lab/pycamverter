@@ -74,6 +74,16 @@ PROTEOWIZARD_MSI_URLS = {
 
 
 def fetch_proteowizard(urls=None, md5hash=None):
+    """
+    Download ProteoWizard to this module's directory.
+
+    Parameters
+    ----------
+    urls : list of str, optional
+        URL for ProteoWizard installer.
+    md5hash : list of str, optional
+        MD5 Hash for ProteoWizard installer.
+    """
     LOGGER.debug("Proteowizard: {}".format(PROTEOWIZARD_PATH))
 
     if os.path.exists(PROTEOWIZARD_PATH):

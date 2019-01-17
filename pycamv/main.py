@@ -99,6 +99,13 @@ def _parse_args(args):
 
 
 def main(args):
+    """
+    Run PyCAMVerter validation using command line arguments.
+
+    Parameters
+    ----------
+    args : list of str
+    """
     parser, args = _parse_args(args)
 
     verbosity = (args.verbose or 0) - (args.quiet or 0)

@@ -1,3 +1,7 @@
+"""
+Handle multiprocessing with PyInstaller.
+"""
+
 import os
 import sys
 
