@@ -693,7 +693,7 @@ def _reassign_rank(mods, rank_pos, psp_val):
 
 
 def _get_phosphors_psp_vals(cursor, pd_version):
-    if pd_version in [(1, 4), (2, 1)]:
+    if pd_version[:2] in [(1, 4), (2, 1)]:
         fields = cursor.execute(
             """
             SELECT
@@ -723,16 +723,28 @@ def _get_phosphors_psp_vals(cursor, pd_version):
             ),
             field_ids,
         )
-        return {
-            pep_id: psp_val
-            for pep_id, psp_val in psp_vals
-        }
     elif pd_version[:2] in [(2, 2)]:
-        return {}
+        try:
+            psp_vals = cursor.execute(
+                """
+                SELECT
+                TargetPsms.PeptideID,
+                TargetPsms.ptmRSPhosphoSiteProbabilities
+
+                FROM TargetPsms
+                """,
+            )
+        except sqlite3.OperationalError:
+            pass
     else:
         raise Exception(
             "Unsupported Proteome Discoverer Version: {}".format(pd_version)
         )
+
+    return {
+        pep_id: psp_val
+        for pep_id, psp_val in psp_vals
+    }
 
 
 def _get_pd_version(conn):
