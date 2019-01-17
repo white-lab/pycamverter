@@ -797,10 +797,11 @@ def read_discoverer_msf(msf_path):
         )
 
     LOGGER.info(
-        "Loaded {} peptides in {} hr:min:sec"
+        "Loaded {} peptides in {} hr:min:sec - PD Version {}"
         .format(
             len(out),
             str(datetime.now() - start).split('.')[0],
+            ".".join([str(i) for i in pd_version]),
         )
     )
 
