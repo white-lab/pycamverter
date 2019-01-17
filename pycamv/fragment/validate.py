@@ -355,11 +355,15 @@ def validate_spectra(
         if base_raw in base_raw_paths:
             continue
 
+        search_dir = os.path.dirname(search_path)
+
         for base_dir in [
-            os.path.dirname(search_path),
-            os.path.join(os.path.dirname(search_path), "..", "MS RAW")
+            search_dir,
+            os.path.join(search_dir, ".."),
+            os.path.join(search_dir, "..", "MS RAW"),
         ]:
             local_raw_path = os.path.join(base_dir, base_raw)
+
             if os.path.exists(local_raw_path):
                 raw_paths.append(local_raw_path)
                 break
