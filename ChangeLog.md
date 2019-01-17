@@ -1,10 +1,16 @@
 # Change Log
 
+## 0.13.5 (2019-01-17)
+
+Bug fixes
+
+  - Fixed phosphoRS PD2.2 bug.
+
 ## 0.13.4 (2019-01-17)
 
 Bug fixes
 
-  - Fixed phosphoRS for PD1.4, PD2.2.
+- Fixed phosphoRS for PD1.4, PD2.2.
 
 ## 0.13.3 (2019-01-17)
 

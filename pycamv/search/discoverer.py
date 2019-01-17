@@ -693,6 +693,8 @@ def _reassign_rank(mods, rank_pos, psp_val):
 
 
 def _get_phosphors_psp_vals(cursor, pd_version):
+    psp_vals = []
+
     if pd_version[:2] in [(1, 4), (2, 1)]:
         fields = cursor.execute(
             """
