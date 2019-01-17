@@ -135,7 +135,7 @@ def main(args):
             args.search_path = searches[0]
 
     fh = logging.FileHandler(
-        os.path.join(os.path.dirname(args.search_path, 'pycamv.log'))
+        os.path.join(os.path.dirname(args.search_path), 'pycamv.log')
     )
 
     fh.setLevel(logging.DEBUG)

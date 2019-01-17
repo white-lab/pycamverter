@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.3 (2019-01-17)
+
+Bug fixes
+
+  - Fixed os.path.dirname error on startup.
+
 ## 0.13.2 (2019-01-10)
 
 Bug fixes
