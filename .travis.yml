@@ -45,3 +45,4 @@ deploy:
     distributions: bdist_wheel
     python: '3.6' # Universal wheel, don't need to deploy with Py2.7
     repo: white-lab/pycamverter
+    skip_existing: true
