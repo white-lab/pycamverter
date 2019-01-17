@@ -14,27 +14,20 @@
 
 import sys
 import os
-from pip.req import parse_requirements
-from pip.download import PipSession
 # import shlex
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PROJ_REQUIREMENTS = [
-    str(i.name)
-    for i in parse_requirements(
-        os.path.join(THIS_DIR, "..", "requirements.txt"),
-        session=PipSession(),
-    )
+    "openpyxl",
+    "pymzml",
+    "requests",
+    "scipy",
 ]
 
 DOCS_REQUIREMENTS = [
-    str(i.name)
-    for i in parse_requirements(
-        os.path.join(THIS_DIR, "requirements.txt"),
-        session=PipSession(),
-    )
+    "numpydoc",
 ]
 
 sys.path.insert(0, os.path.join(THIS_DIR, '..'))
