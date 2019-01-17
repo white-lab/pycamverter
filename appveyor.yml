@@ -42,6 +42,7 @@ deploy:
       artifact: PyCAMVerter
       draft: false
       prerelease: false
+      force_update: true
       on:
         appveyor_repo_tag: true
       auth_token:
