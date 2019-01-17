@@ -1,7 +1,7 @@
-pycamv.fragments package
-========================
+pycamv.fragment package
+=======================
 
-.. automodule:: pycamv.fragments
+.. automodule:: pycamv.fragment
     :members:
     :undoc-members:
     :show-inheritance:
@@ -9,50 +9,50 @@ pycamv.fragments package
 Submodules
 ----------
 
-pycamv.fragments.compare module
--------------------------------
-
-.. automodule:: pycamv.fragments.compare
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycamv.fragments.fragments module
----------------------------------
-
-.. automodule:: pycamv.fragments.fragments
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycamv.fragments.gen_sequences module
--------------------------------------
-
-.. automodule:: pycamv.fragments.gen_sequences
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycamv.fragments.losses module
+pycamv.fragment.compare module
 ------------------------------
 
-.. automodule:: pycamv.fragments.losses
+.. automodule:: pycamv.fragment.compare
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycamv.fragments.ms_labels module
----------------------------------
-
-.. automodule:: pycamv.fragments.ms_labels
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycamv.fragments.validate module
+pycamv.fragment.fragments module
 --------------------------------
 
-.. automodule:: pycamv.fragments.validate
+.. automodule:: pycamv.fragment.fragments
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycamv.fragment.gen_sequences module
+------------------------------------
+
+.. automodule:: pycamv.fragment.gen_sequences
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycamv.fragment.losses module
+-----------------------------
+
+.. automodule:: pycamv.fragment.losses
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycamv.fragment.ms_labels module
+--------------------------------
+
+.. automodule:: pycamv.fragment.ms_labels
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycamv.fragment.validate module
+-------------------------------
+
+.. automodule:: pycamv.fragment.validate
     :members:
     :undoc-members:
     :show-inheritance:
