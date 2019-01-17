@@ -10,6 +10,17 @@ Module contents
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    pycamv.camv_mat
+    pycamv.export
+    pycamv.fragment
+    pycamv.scan
+    pycamv.search
+
 
 Submodules
 ----------
