@@ -7,18 +7,16 @@ from __future__ import absolute_import, division
 import logging
 import os
 
-from . import discoverer, mascot
-
+from . import discoverer
 
 LOGGER = logging.getLogger("pycamv.search")
 
 BACKENDS = {
-    ".xml": mascot.read_mascot_xml,
     ".msf": discoverer.read_discoverer_msf,
 }
 
 
-def read_search_file(path):
+def read_search_file(path, scan_list=None):
     """
     Parse a search input file.
 
@@ -41,4 +39,4 @@ def read_search_file(path):
 
     LOGGER.debug("Using {} backend for {}".format(backend.__name__, ext))
 
-    return backend(path)
+    return backend(path, scan_list=scan_list)
