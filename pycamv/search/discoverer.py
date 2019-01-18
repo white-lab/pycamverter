@@ -419,7 +419,7 @@ def _get_pep_info(conn, pd_version):
             TargetPsms.Sequence,
             TargetPsms.IonsScore,
             TargetPsms.FirstScan,
-            TargetPsms.Mass,
+            TargetPsms.MassOverCharge,
             TargetPsms.OriginalPrecursorCharge,
             TargetPsms.Charge,
             WorkflowInputFiles.FileName
@@ -541,10 +541,17 @@ def _get_prot_info(conn, peptide_id, pd_version):
     )
 
 
-def _get_peptide_queries(conn, fixed_mods, var_mods, pd_version):
+def _get_peptide_queries(
+    conn,
+    fixed_mods,
+    var_mods,
+    pd_version,
+    scan_list=None,
+):
     out = []
     # index = 0
     # scan_used = {}
+
     fixed_mods = [
         regexes.RE_DYN_MODS.match(i).group(3, 4)
         for i in fixed_mods
@@ -564,6 +571,9 @@ def _get_peptide_queries(conn, fixed_mods, var_mods, pd_version):
         pep_id, pep_seq, pep_score,
         scan, exp_mz, mass_z, exp_z, filename,
     ) in query:
+        if scan_list and scan not in scan_list:
+            continue
+
         if exp_z < 1:
             LOGGER.warning(
                 "Charge: {}, {} for {} (Scan {})"
@@ -761,7 +771,7 @@ def _get_pd_version(conn):
     return tuple([int(i) for i in next(query)[0].split('.')])
 
 
-def read_discoverer_msf(msf_path):
+def read_discoverer_msf(msf_path, scan_list=None):
     """
     Parse a ProteomeDiscoverer MSF file.
 
@@ -794,6 +804,7 @@ def read_discoverer_msf(msf_path):
             fixed_mods,
             var_mods,
             pd_version=pd_version,
+            scan_list=scan_list,
         )
 
     LOGGER.info(
