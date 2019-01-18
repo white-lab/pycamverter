@@ -17,14 +17,6 @@ pycamv.search.discoverer module
     :undoc-members:
     :show-inheritance:
 
-pycamv.search.mascot module
----------------------------
-
-.. automodule:: pycamv.search.mascot
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pycamv.search.pep_query module
 ------------------------------
 
