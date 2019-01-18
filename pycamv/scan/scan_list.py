@@ -12,16 +12,23 @@ def load_scan_xlsx(path):
 
     wb = load_workbook(path)
     ws = wb.active
-    return [row[0].value for row in ws.iter_rows()]
+    rows = [row[0].value for row in ws.iter_rows()]
+    rows = [i for i in rows if isinstance(i, int)]
+
+    return rows
 
 
 def load_scan_csv(path):
     with open(path) as f:
-        return [
-            int(i.strip())
+        rows = [
+            i.strip()
             for line in f
             for i in line.split(",")
         ]
+
+    rows = [int(i) for i in rows if i.isdigit()]
+
+    return rows
 
 
 BACKENDS = {
