@@ -103,13 +103,15 @@ def compare_spectra(
             frag_ions[last_frag_index:]
         ):
             # non-abs ppm should be monoisotopically increasing around mz
-            if 1e6 * abs(ion_mz - mz) / ion_mz < 1.5 * tol:
+            ppm = 1e6 * (ion_mz - mz) / ion_mz
+
+            if abs(ppm) < 1.5 * tol:
                 peak_candidates[ion_name] = ion_mz, abs(ion_mz - mz)
 
                 if not min_index_set:
                     last_frag_index = index
                     min_index_set = True
-            elif 1e6 * (ion_mz - mz) / ion_mz > 1.5 * tol:
+            elif ppm > 1.5 * tol:
                 break
 
         # peak_candidates = {
