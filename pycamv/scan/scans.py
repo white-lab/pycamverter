@@ -90,13 +90,16 @@ def _scanquery_from_spectrum(pep_query, spectrum):
         regexes.RE_PRECURSOR_SCAN.search(spectrum_ref).group(1)
     )
 
+    c13_num = _c13_num(pep_query, isolation_mz)
+    assert c13_num < 100
+
     return ScanQuery(
         scan,
         precursor_scan=precursor_scan,
         window_offset=window_offset,
         isolation_mz=isolation_mz,
         collision_type=collision_type,
-        c13_num=_c13_num(pep_query, isolation_mz),
+        c13_num=c13_num,
         basename=pep_query.basename,
     )
 
