@@ -18,5 +18,5 @@ class ImportTest(TestCase):
             scan_list, scans,
         )
         from pycamv.search import (
-            discoverer, mascot, pep_query, search,
+            discoverer, pep_query, search,
         )
