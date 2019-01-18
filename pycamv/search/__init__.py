@@ -1,1 +1,1 @@
-from . import discoverer, mascot, pep_query, search
+from . import discoverer, pep_query, search
