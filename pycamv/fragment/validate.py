@@ -151,7 +151,8 @@ def _map_frag_compare(kv):
         )
 
         frag_ions = fragments.fragment_ions(
-            sequence, pep_query.pep_exp_z,
+            sequence,
+            pep_query.pep_exp_z,
             c13_num=scan_query.c13_num + window_coverage,
         )
 
@@ -328,7 +329,10 @@ def validate_spectra(
         out_path = os.path.splitext(search_path)[0] + ".camv.gz"
 
     # Read peptide search file
-    fixed_mods, var_mods, pep_queries = search.read_search_file(search_path)
+    fixed_mods, var_mods, pep_queries = search.read_search_file(
+        search_path,
+        scan_list=scan_list,
+    )
 
     LOGGER.info("Found info for {} peptide queries".format(len(pep_queries)))
 
