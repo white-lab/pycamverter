@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.13.6 (2019-01-18)
+
+Bug fixes
+
+  - Fixed very slow scan processing on PD2.2 search files.
+
+
 ## 0.13.5 (2019-01-17)
 
 Bug fixes
