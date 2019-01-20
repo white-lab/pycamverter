@@ -10,8 +10,6 @@
 
 Utility for converting searched mass spec data into a format readable by [CAMV](https://github.com/white-lab/pycamverter/blob/master/README.md).
 
-![pycamverter demo](https://zippy.gfycat.com/CleverGrotesqueErmine.gif)
-
 ## Installation
 
 To download a completely packaged Windows executable, visit our [releases page](https://github.com/white-lab/pycamverter/releases)
