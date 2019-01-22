@@ -697,7 +697,7 @@ def _reassign_rank(mods, rank_pos, psp_val):
         ]
         reassigned = True
 
-        rank_pos = _sort_mods(o_mods + p_mods)
+        rank_pos[1] = _sort_mods(o_mods + p_mods)
 
     return rank_pos, reassigned, ambiguous
 

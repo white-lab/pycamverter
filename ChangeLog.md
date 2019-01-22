@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.7 (2019-01-22)
+
+Bug fixes
+
+  - Fixed bug in phosphoRS module.
+
 ## 0.13.6 (2019-01-18)
 
 Bug fixes
