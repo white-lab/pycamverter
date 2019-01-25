@@ -24,7 +24,7 @@ install:
     - "pip install pypiwin32>=223"
     # PyInstaller-3.3.dev0+g964547cd
     - "pip --version"
-    - "pip install -U \"pip<19.0\""
+    - "python -m pip install -U \"pip<19.0\""
     - "pip --version"
     - "pip install git+git://github.com/pyinstaller/pyinstaller.git@develop"
 
