@@ -23,6 +23,9 @@ install:
     - "pip install -r requirements.txt"
     - "pip install pypiwin32>=223"
     # PyInstaller-3.3.dev0+g964547cd
+    - "pip --version"
+    - "pip install -U pip<0.19"
+    - "pip --version"
     - "pip install git+git://github.com/pyinstaller/pyinstaller.git@develop"
 
 build_script:
