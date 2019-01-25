@@ -589,7 +589,10 @@ def _get_peptide_queries(
             pd_version,
         )
 
-        quant_scan = _get_quant_scan(conn, scan, pd_version)
+        try:
+            quant_scan = _get_quant_scan(conn, scan, pd_version)
+        except sqlite3.OperationalError:
+            quant_scan = None
 
         (
             accessions,

@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.8 (2019-01-25)
+
+Bug fixes
+
+  - Don't error on unlabeled runs.
+
 ## 0.13.7 (2019-01-22)
 
 Bug fixes
