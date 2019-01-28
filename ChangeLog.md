@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.14.0 (2019-01-28)
+
+Bug fixes
+
+  - Fixed calculating b ion mass for unlabeled peptides.
+
 ## 0.13.9 (2019-01-28)
 
 Bug fixes
