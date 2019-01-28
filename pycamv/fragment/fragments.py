@@ -82,7 +82,7 @@ def _internal_fragment_ions(
                 [("C=O", ())]
             )
 
-            mass = _sequence_mass(fragment)
+            mass = _sequence_mass(fragment) + masses.PROTON
             name = _sequence_name(fragment)
 
             # Also calculate any potential neutral losses from this fragment
@@ -383,8 +383,7 @@ def fragment_ions(
         parent_max_charge = charge
 
     if fragment_max_charge is None:
-        # TODO: This correct?
-        fragment_max_charge = parent_max_charge - 1
+        fragment_max_charge = parent_max_charge
 
     if any_losses is None:
         any_losses = PEPTIDE_LOSSES

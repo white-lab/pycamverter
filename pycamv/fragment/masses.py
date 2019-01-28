@@ -81,7 +81,7 @@ def exact_mass(atoms):
 PROTON = exact_mass({"H": [1]})
 
 C_TERM = exact_mass({"H": [1], "O": [1]})
-N_TERM = exact_mass({"H": [1]})
+N_TERM = 0
 
 # iTRAQ Masses not exact due to mass differences between isotopes
 ITRAQ_4_PLEX = exact_mass({"C": [4, 3], "N": [1, 1], "O": [1], "H": [12]})
@@ -194,11 +194,11 @@ MODIFICATIONS = {
     ("Y", "Phospho"): PHOSPHO_TYROSINE,
 
     # TMT / iTRAQ
-    ("N-term", "iTRAQ4plex"): ITRAQ_4_PLEX - N_TERM,
-    ("N-term", "iTRAQ8plex"): ITRAQ_8_PLEX - N_TERM,
-    ("N-term", "TMT6plex"): TMT_6_PLEX - N_TERM,
-    ("N-term", "TMT10plex"): TMT_10_PLEX - N_TERM,
-    ("N-term", "TMT11plex"): TMT_11_PLEX - N_TERM,
+    ("N-term", "iTRAQ4plex"): ITRAQ_4_PLEX,
+    ("N-term", "iTRAQ8plex"): ITRAQ_8_PLEX,
+    ("N-term", "TMT6plex"): TMT_6_PLEX,
+    ("N-term", "TMT10plex"): TMT_10_PLEX,
+    ("N-term", "TMT11plex"): TMT_11_PLEX,
     ("K", "iTRAQ4plex"): ITRAQ_4_PLEX,
     ("K", "iTRAQ8plex"): ITRAQ_8_PLEX,
     ("K", "TMT6plex"): TMT_6_PLEX,
