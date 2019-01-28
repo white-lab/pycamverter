@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.9 (2019-01-28)
+
+Bug fixes
+
+  - Show output of msconvert.exe on error.
+
 ## 0.13.8 (2019-01-25)
 
 Bug fixes

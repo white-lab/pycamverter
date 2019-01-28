@@ -218,7 +218,15 @@ def raw_to_mzml(raw_path, out_dir, scans=None, mz_window=None):
         "-c", config_path,
     ]
 
-    out = subprocess.check_output(cmd)
+    try:
+        out = subprocess.check_output(
+            cmd,
+            stderr=subprocess.STDOUT,
+        )
+    except subprocess.CalledProcessError as err:
+        LOGGER.error("Error Running msconvert:\n{}".format(err.output))
+        raise
+
     encoding = sys.stdout.encoding or "utf-8"
     LOGGER.debug(out.decode(encoding))
 
