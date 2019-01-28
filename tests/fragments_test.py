@@ -231,7 +231,6 @@ class FragmentIonsTest(TestCase):
 
             for name, mz in hits.items():
                 self.assertIn(name, frag_ions)
-                print(name, frag_ions[name], mz)
                 self.assertLess(abs(frag_ions[name] - mz), 0.01)
 
     def test_no_by_losses(self):
