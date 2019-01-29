@@ -547,6 +547,7 @@ def _get_peptide_queries(
     var_mods,
     pd_version,
     scan_list=None,
+    score=None,
 ):
     out = []
     # index = 0
@@ -572,6 +573,9 @@ def _get_peptide_queries(
         scan, exp_mz, mass_z, exp_z, filename,
     ) in query:
         if scan_list and scan not in scan_list:
+            continue
+
+        if score and pep_score < score:
             continue
 
         if exp_z < 1:
@@ -774,7 +778,7 @@ def _get_pd_version(conn):
     return tuple([int(i) for i in next(query)[0].split('.')])
 
 
-def read_discoverer_msf(msf_path, scan_list=None):
+def read_discoverer_msf(msf_path, scan_list=None, score=None):
     """
     Parse a ProteomeDiscoverer MSF file.
 
@@ -782,6 +786,8 @@ def read_discoverer_msf(msf_path, scan_list=None):
     ----------
     msf_path : str
         Path to MSF file.
+    scan_list : list of int, optional
+    score : int, optional
 
     Returns
     -------
@@ -794,6 +800,10 @@ def read_discoverer_msf(msf_path, scan_list=None):
             os.path.basename(msf_path),
         )
     )
+
+    if score:
+        LOGGER.info("Using minimum ion score >= {}".format(score))
+
     start = datetime.now()
 
     with sqlite3.connect(msf_path) as conn:
@@ -808,6 +818,7 @@ def read_discoverer_msf(msf_path, scan_list=None):
             var_mods,
             pd_version=pd_version,
             scan_list=scan_list,
+            score=score,
         )
 
     LOGGER.info(

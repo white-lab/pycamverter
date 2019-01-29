@@ -287,6 +287,7 @@ def validate_spectra(
     raw_paths=None,
     scans_path=None,
     scan_list=None,
+    score=None,
     mat_sessions=None,
     out_path=None,
     cpu_count=None,
@@ -302,6 +303,7 @@ def validate_spectra(
     raw_paths : list of str
     scans_path : str, optional
     scan_list : list of int, optional
+    score : int, optional
     mat_sessions : list of str, optional
     out_path : str, optional
     cpu_count : int, optional
@@ -332,6 +334,7 @@ def validate_spectra(
     fixed_mods, var_mods, pep_queries = search.read_search_file(
         search_path,
         scan_list=scan_list,
+        score=score,
     )
 
     LOGGER.info("Found info for {} peptide queries".format(len(pep_queries)))

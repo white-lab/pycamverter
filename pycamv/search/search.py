@@ -16,7 +16,7 @@ BACKENDS = {
 }
 
 
-def read_search_file(path, scan_list=None):
+def read_search_file(path, scan_list=None, score=None):
     """
     Parse a search input file.
 
@@ -24,6 +24,8 @@ def read_search_file(path, scan_list=None):
     ----------
     path : str
         Path to search input file.
+    scan_list : list of int, optional
+    score : int, optional
 
     Returns
     -------
@@ -39,4 +41,4 @@ def read_search_file(path, scan_list=None):
 
     LOGGER.debug("Using {} backend for {}".format(backend.__name__, ext))
 
-    return backend(path, scan_list=scan_list)
+    return backend(path, scan_list=scan_list, score=score)

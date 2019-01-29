@@ -82,6 +82,11 @@ def _parse_args(args):
         help="Individual scans to select for validation.",
     )
     parser.add_argument(
+        "--score",
+        type=int,
+        help="Minimum Ion Score to include for validation.",
+    )
+    parser.add_argument(
         "--mat-sessions",
         nargs="+",
         help="Path to CAMV-Matlab session files.",
@@ -189,6 +194,7 @@ def main(args):
         raw_paths=args.raw_paths,
         scans_path=args.scans_path,
         scan_list=args.scans,
+        score=args.score,
         mat_sessions=args.mat_sessions,
         out_path=args.out_path,
         reprocess=args.reprocess,
