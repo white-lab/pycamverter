@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.15.0 (2019-01-28)
+
+Features
+
+  - Added filtering by minimum ion score.
+
 ## 0.14.0 (2019-01-28)
 
 Bug fixes
