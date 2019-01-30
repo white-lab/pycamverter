@@ -1,9 +1,10 @@
+import os
 import tempfile
 from unittest import TestCase
 
 try:
     from queue import Queue
-except NameError:
+except ImportError:
     from Queue import Queue
 
 from pycamv import export, fragment, scan, search
@@ -95,3 +96,4 @@ class ExportTest(TestCase):
             [],
             total_num_seq=1,
         )
+        os.close(fd)
