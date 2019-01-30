@@ -24,7 +24,7 @@ LOGGER = logging.getLogger("pycamv.proteowizard")
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 PROTEOWIZARD_DIR = os.path.join(THIS_DIR, "ProteoWizard")
 
-PROTEOWIZARD_VERSION = "3.0.11768"
+PROTEOWIZARD_VERSION = "3.0.19014"
 PROTEOWIZARD_PATH = os.path.join(
     PROTEOWIZARD_DIR,
     "ProteoWizard {}".format(PROTEOWIZARD_VERSION),
@@ -38,37 +38,41 @@ PROTEOWIZARD_MSI_URLS = {
         [
             (
                 (
-                    "https://www.dropbox.com/s/1mix51j4jmukdxx/"
-                    "pwiz-setup-3.0.11768-x86.msi?dl=1"
+                    "https://www.dropbox.com/s/43jfkvqu268gc55/"
+                    "pwiz-setup-3.0.19014.f9d5b8a3b-x86_64.msi?dl=1"
                 ),
                 "GET",
                 None,
             ),
             (
-                "http://data.mallicklab.com/download.php",
-                "POST",
-                {"downloadtype": "bt36i"},
+                "http://teamcity.labkey.org/guestAuth/app/rest/builds/"
+                "id:686855/artifacts/content/"
+                "pwiz-setup-3.0.19014.f9d5b8a3b-x86_64.msi",
+                "GET",
+                None,
             ),
         ],
-        "24b744dc7860d6447335d812eb32efe4",
+        "5b812f1cc1395e37819a53412e8e8c79",
     ),
     "win64": (
         [
             (
                 (
-                    "https://www.dropbox.com/s/dkfyacf6ap0sjj5/"
-                    "pwiz-setup-3.0.11768-x86_64.msi?dl=1"
+                    "https://www.dropbox.com/s/39mkw5wjcjf8ft3/"
+                    "pwiz-setup-3.0.19014.f9d5b8a3b-x86.msi?dl=1"
                 ),
                 "GET",
                 None,
             ),
             (
-                "http://data.mallicklab.com/download.php",
-                "POST",
-                {"downloadtype": "bt83i"},
+                "http://teamcity.labkey.org/guestAuth/app/rest/builds/"
+                "id:686846/artifacts/content/"
+                "pwiz-setup-3.0.19014.f9d5b8a3b-x86.msi",
+                "GET",
+                None,
             ),
         ],
-        "16e0b611f32655a92400e233e3077290"
+        "d2f1ecca398bb7f10ac21815ac63b3d9"
     )
 }
 
