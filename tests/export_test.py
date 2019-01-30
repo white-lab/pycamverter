@@ -1,7 +1,4 @@
 from queue import Queue
-import hashlib
-import os
-import requests
 import tempfile
 from unittest import TestCase
 
@@ -9,25 +6,6 @@ from pycamv import export, fragment, scan, search
 
 
 class ExportTest(TestCase):
-    def fetch_url(self, url, md5hash):
-        response = requests.get(url, stream=True)
-        fd, path = tempfile.mkstemp(suffix='.msf')
-        hash_md5 = hashlib.md5()
-
-        with open(path, 'wb') as f:
-            for block in response.iter_content(1024):
-                hash_md5.update(block)
-                f.write(block)
-
-        if md5hash is not None and hash_md5.hexdigest() != md5hash:
-            os.close(fd)
-            raise Exception(
-                "MD5 hash of {} does not match record: {} != {}"
-                .format(url, md5hash, hash_md5.hexdigest())
-            )
-
-        return fd, path
-
     def test_export_to_sql(self):
         fd, path = tempfile.mkstemp(suffix='.db')
         filename = "dummy/path.msf"
