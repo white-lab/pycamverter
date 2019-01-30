@@ -88,8 +88,9 @@ class ValidateTest(TestCase):
             fragment.validate.validate_spectra(
                 search_path,
                 raw_paths=[i[1] for i in raw_paths],
-                score=20,
                 out_path=out_path,
+                score=20,
+                cpu_count=2,
                 auto_maybe=True,
             )
 

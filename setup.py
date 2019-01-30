@@ -44,8 +44,12 @@ setup(
         "openpyxl>=2.5.0",
         "pymzml==0.7.7",
         "requests>=2.18.4",
-        "scipy>=1.0.1",
     ],
+    extras_require={
+        'matlab': [
+            "scipy>=1.0.1",
+        ],
+    },
     dependency_links=[
         "git+https://github.com/naderm/pymzML.git"
         "@master#egg=pymzml-0.7.7",

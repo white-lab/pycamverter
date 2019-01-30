@@ -27,7 +27,8 @@ install:
 - echo $PATH
 - which python
 - python --version
-- python setup.py install
+- pip install .
+- pip install .[matlab]
 
 script:
 - coverage run --source=pycamv setup.py test
