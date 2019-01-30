@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.15.1 (2019-\*-\*)
+
+Features
+
+  - Updated ProteoWizard to latest version.
+
 ## 0.15.0 (2019-01-28)
 
 Features
