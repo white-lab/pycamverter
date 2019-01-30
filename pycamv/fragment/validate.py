@@ -132,9 +132,10 @@ def _map_frag_compare(kv):
 
         if ms_scan["id"] != scan_query.precursor_scan:
             LOGGER.warning(
-                "{} #{}: Precursor scan id different from expected: {} != {}"
-                .format(
+                "Precursor scan id different from expected: "
+                "{} - {} #{}  - {} != {}".format(
                     pep_query.query,
+                    pep_query.basename,
                     pep_query.scan,
                     ms_scan["id"],
                     scan_query.precursor_scan,
@@ -175,7 +176,6 @@ def _map_frag_compare(kv):
             tol=compare.COLLISION_TOLS[scan_query.collision_type],
         )
 
-        # XXX: Unlabeled runs?
         quant_scan = (
             ms_two_data[pep_query.basename][pep_query.quant_scan]
             if pep_query.scan != pep_query.quant_scan else
