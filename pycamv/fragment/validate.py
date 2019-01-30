@@ -479,8 +479,10 @@ def validate_spectra(
         # Output data
         export.export_to_sql(
             os.path.splitext(out_path)[0] + ".db",
-            queue, scan_mapping,
-            search_path, raw_paths,
+            queue,
+            scan_mapping,
+            search_path,
+            raw_paths,
             total_num_seq=total_num_seq,
             reprocess=reprocess,
         )

@@ -52,6 +52,8 @@ def export_to_sql(
     if not reprocess:
         try:
             os.remove(out_path)
+        except PermissionError:
+            pass
         except FileNotFoundError as e:
             if type(e) == IOError and e.errno != errno.EEXIST:
                 raise e

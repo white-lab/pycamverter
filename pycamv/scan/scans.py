@@ -29,9 +29,14 @@ class ScanQuery:
     basename : str or None
     """
     def __init__(
-        self, scan,
-        isolation_mz=None, window_offset=None, precursor_scan=None,
-        collision_type=None, c13_num=0, basename=None,
+        self,
+        scan,
+        isolation_mz=None,
+        window_offset=None,
+        precursor_scan=None,
+        collision_type=None,
+        c13_num=0,
+        basename=None,
     ):
         self.scan = scan
         self.precursor_scan = precursor_scan
