@@ -358,6 +358,11 @@ def validate_spectra(
     base_raw_paths = [os.path.basename(path) for path in raw_paths]
     missing = []
 
+    print(set(query.filename for query in pep_queries))
+    print(set(query.basename for query in pep_queries))
+    print(required_raws)
+    print(base_raw_paths)
+
     for base_raw in required_raws:
         if base_raw in base_raw_paths:
             continue

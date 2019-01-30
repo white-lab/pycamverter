@@ -4,6 +4,11 @@ import requests
 import tempfile
 from unittest import TestCase
 
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from pycamv.utils import TemporaryDirectory
+
 from pycamv import search, fragment
 
 PD_URL_BASE = (
@@ -72,7 +77,7 @@ class ValidateTest(TestCase):
 
     def test_validate_pd14(self):
         for url, md5 in PD14_URLS:
-            with tempfile.TemporaryDirectory() as tmpdir:
+            with TemporaryDirectory() as tmpdir:
                 search_path = self.fetch_url(
                     PD_URL_BASE + PD14_URL_BASE + url,
                     tmpdir,
@@ -96,7 +101,7 @@ class ValidateTest(TestCase):
 
     def test_load_pd14(self):
         for url, md5 in PD14_URLS:
-            with tempfile.TemporaryDirectory() as tmpdir:
+            with TemporaryDirectory() as tmpdir:
                 path = self.fetch_url(
                     PD_URL_BASE + PD14_URL_BASE + url,
                     tmpdir,
@@ -106,7 +111,7 @@ class ValidateTest(TestCase):
 
     def test_load_pd22(self):
         for url, md5 in PD22_URLS:
-            with tempfile.TemporaryDirectory() as tmpdir:
+            with TemporaryDirectory() as tmpdir:
                 path = self.fetch_url(
                     PD_URL_BASE + PD22_URL_BASE + url,
                     tmpdir,
