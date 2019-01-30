@@ -6,6 +6,11 @@ import os
 from pycamv.utils import nCr, fuzzy_find
 from pycamv.fragment import ms_labels
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 class PeptideQuery:
     """
@@ -48,8 +53,6 @@ class PeptideQuery:
         full_seqs=None,
         pep_offsets=None,
     ):
-        print(pep_var_mods)
-        print(pep_fixed_mods)
         assert _check_mods(pep_var_mods)
         assert _check_mods(pep_fixed_mods)
 
@@ -134,9 +137,9 @@ class PeptideQuery:
 def _check_mods(mods):
     return all(
         isinstance(count, int) and
-        isinstance(abbrev, str) and
+        isinstance(abbrev, basestring) and
         isinstance(letters, tuple) and
-        all(isinstance(i, str) for i in letters)
+        all(isinstance(i, basestring) for i in letters)
         for count, abbrev, letters in mods
     )
 
