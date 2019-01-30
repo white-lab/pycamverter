@@ -48,6 +48,8 @@ class PeptideQuery:
         full_seqs=None,
         pep_offsets=None,
     ):
+        print(pep_var_mods)
+        print(pep_fixed_mods)
         assert _check_mods(pep_var_mods)
         assert _check_mods(pep_fixed_mods)
 
