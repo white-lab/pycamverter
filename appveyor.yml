@@ -20,7 +20,8 @@ install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
     - "python --version"
-    - "pip install -r requirements.txt"
+    - "pip install ."
+    - "pip install .[matlab]"
     - "pip install pypiwin32>=223"
     # PyInstaller-3.3.dev0+g964547cd
     - "pip --version"
