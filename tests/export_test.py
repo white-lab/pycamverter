@@ -1,6 +1,10 @@
-from queue import Queue
 import tempfile
 from unittest import TestCase
+
+try:
+    from queue import Queue
+except NameError:
+    from Queue import Queue
 
 from pycamv import export, fragment, scan, search
 
