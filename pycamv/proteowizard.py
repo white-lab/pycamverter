@@ -98,9 +98,6 @@ def fetch_proteowizard(urls=None, md5hash=None):
 
     LOGGER.info("ProteoWizard not installed, fetching now.")
 
-    if platform.system() not in ["Windows"]:
-        raise Exception("Proteowizard install not supported on your platform")
-
     if urls is None:
         urls, md5hash = PROTEOWIZARD_MSI_URLS[
             "win64"
