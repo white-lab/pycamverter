@@ -52,9 +52,9 @@ PD22_URLS = [
 
 
 class ValidateTest(TestCase):
-    def fetch_url(self, url, md5hash=None):
+    def fetch_url(self, url, dir, md5hash=None):
         response = requests.get(url, stream=True)
-        fd, path = tempfile.mkstemp(suffix=url.split('/')[-1])
+        path = os.path.join(dir, url.split('/')[-1])
         hash_md5 = hashlib.md5()
 
         with open(path, 'wb') as f:
@@ -63,55 +63,53 @@ class ValidateTest(TestCase):
                 f.write(block)
 
         if md5hash is not None and hash_md5.hexdigest() != md5hash:
-            os.close(fd)
             raise Exception(
                 "MD5 hash of {} does not match record: {} != {}"
                 .format(url, md5hash, hash_md5.hexdigest())
             )
 
-        return fd, path
+        return path
 
     def test_validate_pd14(self):
         for url, md5 in PD14_URLS:
-            search_fd, search_path = self.fetch_url(
-                PD_URL_BASE + PD14_URL_BASE + url,
-                md5,
-            )
-            raw_paths = [
-                self.fetch_url(
-                    PD_URL_BASE + PD14_URL_BASE + raw,
-                    md5,
+            with tempfile.TemporaryDirectory() as tmpdir:
+                search_path = self.fetch_url(
+                    PD_URL_BASE + PD14_URL_BASE + url,
+                    tmpdir,
+                    md5hash=md5,
                 )
-                for raw, md5 in PD14_RAWS[url]
-            ]
-            out_fd, out_path = tempfile.mkstemp(suffix='.db')
-            fragment.validate.validate_spectra(
-                search_path,
-                raw_paths=[i[1] for i in raw_paths],
-                out_path=out_path,
-                score=20,
-                cpu_count=2,
-                auto_maybe=True,
-            )
+                raw_paths = [
+                    self.fetch_url(
+                        PD_URL_BASE + PD14_URL_BASE + raw,
+                        tmpdir,
+                        md5hash=md5,
+                    )
+                    for raw, md5 in PD14_RAWS[url]
+                ]
+                fragment.validate.validate_spectra(
+                    search_path,
+                    raw_paths=[i[1] for i in raw_paths],
+                    score=20,
+                    cpu_count=2,
+                    auto_maybe=True,
+                )
 
     def test_load_pd14(self):
         for url, md5 in PD14_URLS:
-            fd, path = self.fetch_url(
-                PD_URL_BASE + PD14_URL_BASE + url,
-                md5,
-            )
-            try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                path = self.fetch_url(
+                    PD_URL_BASE + PD14_URL_BASE + url,
+                    tmpdir,
+                    md5hash=md5,
+                )
                 search.search.read_search_file(path)
-            finally:
-                os.close(fd)
 
     def test_load_pd22(self):
         for url, md5 in PD22_URLS:
-            fd, path = self.fetch_url(
-                PD_URL_BASE + PD22_URL_BASE + url,
-                md5,
-            )
-            try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                path = self.fetch_url(
+                    PD_URL_BASE + PD22_URL_BASE + url,
+                    tmpdir,
+                    md5hash=md5,
+                )
                 search.search.read_search_file(path)
-            finally:
-                os.close(fd)
