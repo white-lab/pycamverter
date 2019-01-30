@@ -22,9 +22,12 @@ pip install --process-dependency-links pycamverter
 
 ## Usage
 
-To use pycamverter, select your raw data file, your search files (either MASCOT .xml or ProteomeDiscoverer .msf), and an optional excel listing scan numbers in a file browser. Then simply drag-and-drop them onto PyCAMVerter.exe.
+To use pycamverter, select your raw data file, your search files (Proteome
+Discoverer `.msf`), and an optional excel listing scan numbers in a file
+browser. Then simply drag-and-drop them onto PyCAMVerter.exe.
 
-After a few minutes of processing, you should see the output .camv.gz file in the same directory as your raw file.
+After a few minutes of processing, you should see the output .camv.gz file in
+the same directory as your raw file.
 
 For a full list of arguments, run PyCAMVerter.exe from the command line:
 
@@ -32,12 +35,10 @@ For a full list of arguments, run PyCAMVerter.exe from the command line:
 usage: PyCAMVerter [-h] [-v] [-q] [-V] [--cpus CPUS] [--reprocess]
                    [--no-auto-maybe] [--raw-paths RAW_PATHS [RAW_PATHS ...]]
                    [--search-path SEARCH_PATH] [--scans-path SCANS_PATH]
-                   [--scans [SCANS [SCANS ...]]]
+                   [--scans [SCANS [SCANS ...]]] [--score SCORE]
                    [--mat-sessions MAT_SESSIONS [MAT_SESSIONS ...]]
                    [--out-path OUT_PATH]
                    [files [files ...]]
-
-Aww yeah, mass specs!
 
 positional arguments:
   files                 Raw, search, or scan list files, determined by file
@@ -62,6 +63,7 @@ optional arguments:
                         validation.
   --scans [SCANS [SCANS ...]]
                         Individual scans to select for validation.
+  --score SCORE         Minimum Ion Score to include for validation.
   --mat-sessions MAT_SESSIONS [MAT_SESSIONS ...]
                         Path to CAMV-Matlab session files.
   --out-path OUT_PATH   Output path for CAMV export.
