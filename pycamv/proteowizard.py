@@ -12,6 +12,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 
 import requests
@@ -38,41 +39,43 @@ PROTEOWIZARD_MSI_URLS = {
         [
             (
                 (
-                    "https://www.dropbox.com/s/43jfkvqu268gc55/"
-                    "pwiz-setup-3.0.19014.f9d5b8a3b-x86_64.msi?dl=1"
+                    "https://www.dropbox.com/s/j54gb26dpsja6tn/"
+                    "pwiz-bin-windows-x86_64-vc141-release-3_0_19014_f9d5b8a3b"
+                    ".tar.bz2?dl=1"
                 ),
                 "GET",
                 None,
             ),
             (
                 "http://teamcity.labkey.org/guestAuth/app/rest/builds/"
-                "id:686855/artifacts/content/"
-                "pwiz-setup-3.0.19014.f9d5b8a3b-x86_64.msi",
+                "id:686855/artifacts/content/pwiz-bin-windows-x86_64"
+                "-vc141-release-3_0_19014_f9d5b8a3b.tar.bz2",
                 "GET",
                 None,
             ),
         ],
-        "5b812f1cc1395e37819a53412e8e8c79",
+        "5b1af1f0817a45f9600bb459993abb2b",
     ),
     "win64": (
         [
             (
                 (
-                    "https://www.dropbox.com/s/39mkw5wjcjf8ft3/"
-                    "pwiz-setup-3.0.19014.f9d5b8a3b-x86.msi?dl=1"
+                    "https://www.dropbox.com/s/hsd3ew8lm8gbk23/"
+                    "pwiz-bin-windows-x86-vc141-release-3_0_19014_f9d5b8a3b"
+                    ".tar.bz2?dl=1"
                 ),
                 "GET",
                 None,
             ),
             (
                 "http://teamcity.labkey.org/guestAuth/app/rest/builds/"
-                "id:686846/artifacts/content/"
-                "pwiz-setup-3.0.19014.f9d5b8a3b-x86.msi",
+                "id:686846/artifacts/content/pwiz-bin-windows-x86"
+                "-vc141-release-3_0_19014_f9d5b8a3b.tar.bz2",
                 "GET",
                 None,
             ),
         ],
-        "d2f1ecca398bb7f10ac21815ac63b3d9"
+        "247e28638d498050965482c8c0faa4ea"
     )
 }
 
@@ -151,26 +154,12 @@ def fetch_proteowizard(urls=None, md5hash=None):
     else:
         raise Exception("Unable to download file: {}".format(responses))
 
-    # Extract the msi file's contents
-    extract_path = os.path.join(tmpdir, "msi_extract")
-    cmd = [
-        "msiexec",
-        "/a",
-        out_path,
-        "/qb",
-        "TARGETDIR=\"{}\"".format(extract_path),
-    ]
-    subprocess.check_call(" ".join(cmd), shell=True)
+    shutil.rmtree(PROTEOWIZARD_DIR, ignore_errors=True)
 
     # Copy the msi file's contents to PROTEOWIZARD_DIR
-    src = os.path.join(
-        extract_path,
-        "PFiles",
-        "ProteoWizard",
-    )
+    with tarfile.open(out_path, "r:bz2") as f:
+        f.extractall(PROTEOWIZARD_DIR)
 
-    shutil.rmtree(PROTEOWIZARD_DIR, ignore_errors=True)
-    shutil.copytree(src, PROTEOWIZARD_DIR)
     shutil.rmtree(tmpdir)
 
 
