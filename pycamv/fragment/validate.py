@@ -96,17 +96,12 @@ def _get_window_coverage(pep_query, scan_query, precursor_win):
         if mz >= scan_query.isolation_mz - scan_query.window_offset[0] and
         mz <= scan_query.isolation_mz + scan_query.window_offset[1]
     ]
-    print(
-        '_get_window_coverage',
-        1, 1 + round(scan_query.window_offset[1] * pep_query.pep_exp_z)
-    )
+    max_c13 = int(1 + round(scan_query.window_offset[1] * pep_query.pep_exp_z))
+
     return (
         max([
             c13
-            for c13 in range(
-                1,
-                int(1 + round(scan_query.window_offset[1] * pep_query.pep_exp_z))
-            )
+            for c13 in range(1, max_c13)
             if min([
                 1e6 * abs(
                     scan_query.isolation_mz +
@@ -168,6 +163,7 @@ def _map_frag_compare(kv):
         print(ms_two_data[pep_query.basename]._tmp_dir)
         print(ms_two_data[pep_query.basename].info['filename'])
         print(os.path.exists(ms_two_data[pep_query.basename].info['filename']))
+        print(open(ms_two_data[pep_query.basename].info['filename']).read(1024))
         ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
 
         if ms_two_scan["id"] != scan_query.scan:
