@@ -69,30 +69,35 @@ def _scanquery_from_spectrum(pep_query, spectrum):
         spectrum["filter string"]
     ).group(1).upper()
 
-    ns = {"ns0": "http://psi.hupo.org/ms/mzml"}
-    precursor = spectrum.xmlTreeIterFree.find(
-        "ns0:precursorList/ns0:precursor",
-        ns,
-    ) or spectrum.xmlTreeIterFree.find(
-        "precursorList/precursor",
-    )
+    precursor = spectrum.precursors
+    print(precursor)
+    print([type(i) for i in precursor])
+    precursor_scan = int(precursor[0])
 
-    if precursor is None:
-        LOGGER.error(
-            "Unable to find precursor scan info in scan {}".format(scan)
-        )
-        LOGGER.error(
-            ET.tostring(
-                spectrum.xmlTreeIterFree,
-                encoding='utf8', method='xml',
-            )
-        )
-
-    spectrum_ref = precursor.get("spectrumRef")
-
-    precursor_scan = int(
-        regexes.RE_PRECURSOR_SCAN.search(spectrum_ref).group(1)
-    )
+    # ns = {"ns0": "http://psi.hupo.org/ms/mzml"}
+    # precursor = spectrum.xmlTreeIterFree.find(
+    #     "ns0:precursorList/ns0:precursor",
+    #     ns,
+    # ) or spectrum.xmlTreeIterFree.find(
+    #     "precursorList/precursor",
+    # )
+    #
+    # if precursor is None:
+    #     LOGGER.error(
+    #         "Unable to find precursor scan info in scan {}".format(scan)
+    #     )
+    #     LOGGER.error(
+    #         ET.tostring(
+    #             spectrum.xmlTreeIterFree,
+    #             encoding='utf8', method='xml',
+    #         )
+    #     )
+    #
+    # spectrum_ref = precursor.get("spectrumRef")
+    #
+    # precursor_scan = int(
+    #     regexes.RE_PRECURSOR_SCAN.search(spectrum_ref).group(1)
+    # )
 
     c13_num = _c13_num(pep_query, isolation_mz)
     assert c13_num < 100
