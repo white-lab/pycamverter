@@ -1,6 +1,7 @@
 
 from __future__ import absolute_import, division
 
+import ntpath
 import os
 
 from pycamv.utils import nCr, fuzzy_find
@@ -93,7 +94,7 @@ class PeptideQuery:
 
     @property
     def basename(self):
-        return os.path.basename(self.filename)
+        return os.path.basename(ntpath.basename(self.filename))
 
     @property
     def prot_name(self):

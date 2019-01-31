@@ -7,7 +7,6 @@ from unittest import TestCase
 try:
     from tempfile import TemporaryDirectory
 except ImportError:
-
     import shutil
     import warnings
     import weakref
