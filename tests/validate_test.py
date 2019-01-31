@@ -23,8 +23,8 @@ except ImportError:
         in it are removed.
         """
 
-        def __init__(self, suffix=None, prefix=None, dir=None):
-            self.name = tempfile.mkdtemp(suffix, prefix, dir)
+        def __init__(self, suffix='', prefix='tmp', dir=None):
+            self.name = tempfile.mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
             self._finalizer = weakref.finalize(
                 self, self._cleanup, self.name,
                 warn_message="Implicitly cleaning up {!r}".format(self))
