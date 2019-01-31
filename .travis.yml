@@ -32,7 +32,7 @@ install:
 - python --version
 - pip install .
 - pip install .[matlab]
-- docker pull chambm/pwiz-skyline-i-agree-to-the-vendor-licenses
+- docker pull chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:x64
 
 script:
 - coverage run --source=pycamv setup.py test

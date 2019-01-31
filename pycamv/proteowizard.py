@@ -190,6 +190,8 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
     -------
     :class:`pymzml.run.Reader<run.Reader>`
     """
+    LOGGER.info("Converting \"{}\" to .mzML format.".format(raw_path))
+
     basename = os.path.splitext(os.path.basename(raw_path))[0]
     config_name = '{}_msconvert.txt'.format(
         os.path.splitext(os.path.basename(raw_path))[0]
@@ -223,6 +225,7 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
         out_dir = '/data'
         config_dir = raw_dir
         mzml_path = os.path.join(raw_dir, "{}.mzML".format(basename))
+        raw_path = os.path.join(out_dir, basename)
 
     _write_config(
         os.path.join(config_dir, config_name),
@@ -231,8 +234,6 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
     )
 
     # Run msconvert to convert raw file to mzML
-    LOGGER.info("Converting \"{}\" to .mzML format.".format(raw_path))
-
     cmd += [
         raw_path,
         "-o", out_dir,
