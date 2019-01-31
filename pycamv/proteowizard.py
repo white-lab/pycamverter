@@ -225,7 +225,7 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
         out_dir = '/data'
         config_dir = raw_dir
         mzml_path = os.path.join(raw_dir, "{}.mzML".format(basename))
-        raw_path = os.path.join(out_dir, basename)
+        raw_path = os.path.join(out_dir, os.path.basename(raw_path))
 
     _write_config(
         os.path.join(config_dir, config_name),
