@@ -233,7 +233,7 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
     # Run msconvert to convert raw file to mzML
     LOGGER.info("Converting \"{}\" to .mzML format.".format(raw_path))
 
-    cmd = +[
+    cmd += [
         raw_path,
         "-o", out_dir,
         "--mzML",

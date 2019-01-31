@@ -2,6 +2,7 @@ import hashlib
 import logging
 import os
 import requests
+import sys
 import tempfile
 from unittest import TestCase
 
@@ -59,6 +60,7 @@ PD22_URLS = [
 
 class ValidateTest(TestCase):
     def fetch_url(self, url, dir, md5hash=None):
+        logging.info('Downloading {} to {}'.format(url, dir))
         response = requests.get(url, stream=True)
         path = os.path.join(dir, url.split('/')[-1])
         hash_md5 = hashlib.md5()
@@ -83,6 +85,9 @@ class ValidateTest(TestCase):
                 logger = logging.getLogger('pycamv')
                 logger.setLevel(logging.DEBUG)
 
+                ch = logging.StreamHandler(sys.stdout)
+                ch.setLevel(logging.DEBUG)
+
                 search_path = self.fetch_url(
                     PD_URL_BASE + PD14_URL_BASE + url,
                     tmp_dir,
@@ -100,7 +105,7 @@ class ValidateTest(TestCase):
                     search_path,
                     raw_paths=[i for i in raw_paths],
                     score=20,
-                    cpu_count=2,
+                    cpu_count=1,
                     auto_maybe=True,
                 )
 
