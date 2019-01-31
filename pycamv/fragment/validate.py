@@ -96,11 +96,16 @@ def _get_window_coverage(pep_query, scan_query, precursor_win):
         if mz >= scan_query.isolation_mz - scan_query.window_offset[0] and
         mz <= scan_query.isolation_mz + scan_query.window_offset[1]
     ]
+    print(
+        '_get_window_coverage',
+        1, 1 + round(scan_query.window_offset[1] * pep_query.pep_exp_z)
+    )
     return (
         max([
             c13
             for c13 in range(
-                1, 1 + round(scan_query.window_offset[1] * pep_query.pep_exp_z)
+                1,
+                int(1 + round(scan_query.window_offset[1] * pep_query.pep_exp_z))
             )
             if min([
                 1e6 * abs(
@@ -159,6 +164,9 @@ def _map_frag_compare(kv):
         )
 
         # Compare MS^2 data with predicted fragment ions
+        print(ms_two_data[pep_query.basename])
+        print(ms_two_data[pep_query.basename].tmp_dir)
+        print(ms_two_data[pep_query.basename].info['filename'])
         ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
 
         if ms_two_scan["id"] != scan_query.scan:
