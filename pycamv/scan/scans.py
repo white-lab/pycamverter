@@ -69,7 +69,7 @@ def _scanquery_from_spectrum(pep_query, spectrum):
         spectrum["filter string"]
     ).group(1).upper()
 
-    precursor = spectrum.precursors
+    precursor = spectrum.selected_precursors
     print(precursor)
     print([type(i) for i in precursor])
     precursor_scan = int(precursor[0])
