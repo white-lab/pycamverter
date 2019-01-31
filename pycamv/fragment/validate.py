@@ -165,8 +165,9 @@ def _map_frag_compare(kv):
 
         # Compare MS^2 data with predicted fragment ions
         print(ms_two_data[pep_query.basename])
-        print(ms_two_data[pep_query.basename].tmp_dir)
+        print(ms_two_data[pep_query.basename]._tmp_dir)
         print(ms_two_data[pep_query.basename].info['filename'])
+        print(os.path.exists(ms_two_data[pep_query.basename].info['filename']))
         ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
 
         if ms_two_scan["id"] != scan_query.scan:
