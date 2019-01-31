@@ -207,9 +207,9 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
 
         tmp_dir = tempfile.TemporaryDirectory()
 
-        out_dir = tmp_dir
-        config_dir = tmp_dir
-        mzml_path = os.path.join(tmp_dir, "{}.mzML".format(basename))
+        out_dir = tmp_dir.name
+        config_dir = tmp_dir.name
+        mzml_path = os.path.join(tmp_dir.name, "{}.mzML".format(basename))
     else:
         raw_dir = os.path.dirname(raw_path)
         cmd = [
