@@ -12,8 +12,6 @@ from functools import partial
 import logging
 import multiprocessing
 import os
-import tempfile
-import shutil
 
 from . import compare, fragments, gen_sequences, ms_labels
 from pycamv.search import search
@@ -79,16 +77,13 @@ def _to_str(seq):
     )
 
 
-def _close_scans(ms_datas, out_dir=None):
+def _close_scans(ms_datas):
     LOGGER.info("Removing directory of temporary files.")
 
     for ms_data in ms_datas:
         for raw in ms_data.values():
             raw.info['fileObject'].close()
             raw.seeker.close()
-
-    if out_dir:
-        shutil.rmtree(out_dir)
 
 
 def _get_window_coverage(pep_query, scan_query, precursor_win):
@@ -358,11 +353,6 @@ def validate_spectra(
     base_raw_paths = [os.path.basename(path) for path in raw_paths]
     missing = []
 
-    print(set(query.filename for query in pep_queries))
-    print(set(query.basename for query in pep_queries))
-    print(required_raws)
-    print(base_raw_paths)
-
     for base_raw in required_raws:
         if base_raw in base_raw_paths:
             continue
@@ -432,12 +422,11 @@ def validate_spectra(
         )
 
     # Import raw scan data
-    out_dir = tempfile.mkdtemp()
-
     LOGGER.info("Getting scan data.")
 
     scan_queries, ms_two_data, ms_data = scans.get_scan_data(
-        raw_paths, pep_queries, out_dir,
+        raw_paths,
+        pep_queries,
     )
 
     try:
@@ -496,7 +485,9 @@ def validate_spectra(
         raise
     finally:
         process.join()
-        _close_scans([ms_data, ms_two_data], out_dir=out_dir)
+        _close_scans([ms_data, ms_two_data])
+        del ms_data
+        del ms_two_data
 
     LOGGER.info(
         "Exported {} total peptide-scan combinations"

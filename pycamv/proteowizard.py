@@ -4,7 +4,6 @@ Provides functions for interacting with MS data through ProteoWizard.
 
 from __future__ import absolute_import, division
 
-import cgi
 import hashlib
 import logging
 import os
@@ -14,8 +13,13 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-
 import requests
+
+try:
+    tempfile.TemporaryDirectory
+except AttributeError:
+    from backports import tempfile
+
 import pymzml
 
 
@@ -121,12 +125,7 @@ def fetch_proteowizard(urls=None, md5hash=None):
             responses.append(response)
             continue
 
-        try:
-            filename = cgi.parse_header(
-                response.headers["Content-Disposition"]
-            )[-1]["filename"]
-        except KeyError:
-            filename = url.rsplit("/", 1)[1].rsplit("?")[0]
+        filename = url.rsplit("/", 1)[1].rsplit("?")[0]
 
         out_path = os.path.join(
             tmpdir,
@@ -160,29 +159,8 @@ def fetch_proteowizard(urls=None, md5hash=None):
     shutil.rmtree(tmpdir)
 
 
-def raw_to_mzml(raw_path, out_dir, scans=None, mz_window=None):
-    """
-    Covert a RAW file to .mzML using ProteoWizard.
-
-    Parameters
-    ----------
-    raw_path : str
-    out_dir : str
-    scans : list of int, optional
-    mz_window : list of int, optional
-
-    Returns
-    -------
-    :class:`pymzml.run.Reader<run.Reader>`
-    """
-    fetch_proteowizard()
-
-    ms_convert_path = os.path.join(PROTEOWIZARD_PATH, "msconvert.exe")
-
-    # Create a config file,
-    config, config_path = tempfile.mkstemp(suffix=".txt", text=True)
-
-    with os.fdopen(config, "w+") as config:
+def _write_config(config_path, scans=None, mz_window=None):
+    with open(config_path, "w+") as config:
         if scans:
             config.write(
                 "filter=\"scanNumber {}\"\n".format(
@@ -197,16 +175,74 @@ def raw_to_mzml(raw_path, out_dir, scans=None, mz_window=None):
                 )
             )
 
+
+def raw_to_mzml(raw_path, scans=None, mz_window=None):
+    """
+    Covert a RAW file to .mzML using ProteoWizard.
+
+    Parameters
+    ----------
+    raw_path : str
+    scans : list of int, optional
+    mz_window : list of int, optional
+
+    Returns
+    -------
+    :class:`pymzml.run.Reader<run.Reader>`
+    """
+    basename = os.path.splitext(os.path.basename(raw_path))[0]
+    config_name = '{}_msconvert.txt'.format(
+        os.path.splitext(os.path.basename(raw_path))[0]
+    )
+    tmp_dir = None
+
+    if platform.system() in ["Windows"]:
+        fetch_proteowizard()
+
+        cmd = [
+            os.path.join(PROTEOWIZARD_PATH, "msconvert.exe")
+        ]
+
+        tmp_dir = tempfile.TemporaryDirectory()
+
+        out_dir = tmp_dir
+        config_dir = tmp_dir
+        mzml_path = os.path.join(tmp_dir, "{}.mzML".format(basename))
+    else:
+        raw_dir = os.path.dirname(raw_path)
+        cmd = [
+            'docker',
+            'run',
+            '-it',
+            '-v', '{}:/data'.format(raw_dir),
+            'chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:x64',
+            'wine',
+            'msconvert',
+        ]
+
+        out_dir = '/data'
+        config_dir = raw_dir
+        mzml_path = os.path.join(raw_dir, "{}.mzML".format(basename))
+
+    _write_config(
+        os.path.join(config_dir, config_name),
+        scans=scans,
+        mz_window=mz_window,
+    )
+
     # Run msconvert to convert raw file to mzML
     LOGGER.info("Converting \"{}\" to .mzML format.".format(raw_path))
 
-    cmd = [
-        ms_convert_path,
+    cmd = +[
         raw_path,
         "-o", out_dir,
         "--mzML",
-        "-c", config_path,
+        "-c", os.path.join(out_dir, config_name),
     ]
+
+    encoding = sys.stdout.encoding or "utf-8"
+
+    LOGGER.debug('Calling subprocess: {}'.format(cmd.join(' ')))
 
     try:
         out = subprocess.check_output(
@@ -214,19 +250,16 @@ def raw_to_mzml(raw_path, out_dir, scans=None, mz_window=None):
             stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError as err:
-        LOGGER.error("Error Running msconvert:\n{}".format(err.output))
+        LOGGER.error(
+            "Error Running msconvert:\n{}".format(err.output.decode(encoding))
+        )
         raise
 
-    encoding = sys.stdout.encoding or "utf-8"
     LOGGER.debug(out.decode(encoding))
 
-    os.remove(config_path)
-
     # Read the file into memory using pymzml
-    basename = os.path.splitext(os.path.basename(raw_path))[0]
-    out_path = os.path.join(out_dir, "{}.mzML".format(basename))
     data = pymzml.run.Reader(
-        out_path,
+        mzml_path,
         extraAccessions=[
             ("MS:1000827", ["value"]),  # isolation window target m/z
             ("MS:1000828", ["value"]),  # isolation window lower offset
@@ -234,5 +267,6 @@ def raw_to_mzml(raw_path, out_dir, scans=None, mz_window=None):
             ("MS:1000512", ["value"]),  # filter string
         ],
     )
+    data._tmp_dir = tmp_dir
 
     return data

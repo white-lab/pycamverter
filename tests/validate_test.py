@@ -1,46 +1,14 @@
 import hashlib
+import logging
 import os
 import requests
 import tempfile
 from unittest import TestCase
 
 try:
-    from tempfile import TemporaryDirectory
-except ImportError:
-    import shutil
-    import warnings
-
-    class TemporaryDirectory(object):
-        """Create and return a temporary directory.  This has the same
-        behavior as mkdtemp but can be used as a context manager.  For
-        example:
-
-            with TemporaryDirectory() as tmpdir:
-                ...
-
-        Upon exiting the context, the directory and everything contained
-        in it are removed.
-        """
-
-        def __init__(self, suffix='', prefix='tmp', dir=None):
-            self.name = tempfile.mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
-
-        @classmethod
-        def _cleanup(cls, name, warn_message):
-            shutil.rmtree(name)
-            warnings.warn(warn_message, ResourceWarning)
-
-        def __repr__(self):
-            return "<{} {!r}>".format(self.__class__.__name__, self.name)
-
-        def __enter__(self):
-            return self.name
-
-        def __exit__(self, exc, value, tb):
-            self.cleanup()
-
-        def cleanup(self):
-            shutil.rmtree(self.name)
+    tempfile.TemporaryDirectory
+except AttributeError:
+    from backports import tempfile
 
 from pycamv import search, fragment
 
@@ -110,16 +78,20 @@ class ValidateTest(TestCase):
 
     def test_validate_pd14(self):
         for url, md5 in PD14_URLS:
-            with TemporaryDirectory() as tmpdir:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                print(url, md5, tmp_dir)
+                logger = logging.getLogger('pycamv')
+                logger.setLevel(logging.DEBUG)
+
                 search_path = self.fetch_url(
                     PD_URL_BASE + PD14_URL_BASE + url,
-                    tmpdir,
+                    tmp_dir,
                     md5hash=md5,
                 )
                 raw_paths = [
                     self.fetch_url(
                         PD_URL_BASE + PD14_URL_BASE + raw,
-                        tmpdir,
+                        tmp_dir,
                         md5hash=md5,
                     )
                     for raw, md5 in PD14_RAWS[url]
@@ -134,20 +106,20 @@ class ValidateTest(TestCase):
 
     def test_load_pd14(self):
         for url, md5 in PD14_URLS:
-            with TemporaryDirectory() as tmpdir:
+            with tempfile.TemporaryDirectory() as tmp_dir:
                 path = self.fetch_url(
                     PD_URL_BASE + PD14_URL_BASE + url,
-                    tmpdir,
+                    tmp_dir,
                     md5hash=md5,
                 )
                 search.search.read_search_file(path)
 
     def test_load_pd22(self):
         for url, md5 in PD22_URLS:
-            with TemporaryDirectory() as tmpdir:
+            with tempfile.TemporaryDirectory() as tmp_dir:
                 path = self.fetch_url(
                     PD_URL_BASE + PD22_URL_BASE + url,
-                    tmpdir,
+                    tmp_dir,
                     md5hash=md5,
                 )
                 search.search.read_search_file(path)

@@ -1,6 +1,9 @@
 language: python
 sudo: false
 
+services:
+  - docker
+
 python:
 - '2.7'
 # - '3.4'
@@ -29,6 +32,7 @@ install:
 - python --version
 - pip install .
 - pip install .[matlab]
+- docker pull chambm/pwiz-skyline-i-agree-to-the-vendor-licenses
 
 script:
 - coverage run --source=pycamv setup.py test

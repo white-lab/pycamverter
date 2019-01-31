@@ -6,7 +6,6 @@ from __future__ import absolute_import, division
 
 import logging
 import os
-import tempfile
 import xml.etree.ElementTree as ET
 
 from pycamv.fragment import ms_labels
@@ -212,7 +211,7 @@ def get_label_peak_window(
     ]
 
 
-def get_scan_data(raw_paths, pep_queries, out_dir=None):
+def get_scan_data(raw_paths, pep_queries):
     """
     Gets MS^2 and MS data for all scans in queries.
 
@@ -220,7 +219,6 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
     ----------
     raw_path : list of str
     pep_queries : list of :class:`PeptideQuery<pycamv.pep_query.PeptideQuery>`
-    out_dir : str, optional
 
     Returns
     -------
@@ -228,9 +226,6 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
     ms2_data : :class:`pymzml.run.Reader<run.Reader>`
     ms_data : :class:`pymzml.run.Reader<run.Reader>`
     """
-    if out_dir is None:
-        out_dir = tempfile.mkdtemp()
-
     # Collect MS^2 data
     ms_data = {}
     ms2_data = {}
@@ -258,7 +253,7 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
         )
 
         ms2_data[base_raw] = proteowizard.raw_to_mzml(
-            raw_path, os.path.join(out_dir, "ms2"),
+            raw_path,
             scans=ms2_scan_filter,
         )
 
@@ -287,7 +282,7 @@ def get_scan_data(raw_paths, pep_queries, out_dir=None):
         )
 
         ms_data[base_raw] = proteowizard.raw_to_mzml(
-            raw_path, os.path.join(out_dir, "ms"),
+            raw_path,
             scans=ms_scan_filter,
         )
 
