@@ -215,7 +215,7 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
         cmd = [
             'docker',
             'run',
-            '-it',
+            '-t',
             '-v', '{}:/data'.format(raw_dir),
             'chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:x64',
             'wine',
