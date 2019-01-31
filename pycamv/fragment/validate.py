@@ -435,7 +435,7 @@ def validate_spectra(
             pool.join()
     else:
         sequence_mapping = dict(
-            _map_seq(pep_query)
+            _map_seq(pep_query, limit_comb=not reprocess)
             for pep_query in pep_queries
         )
 
