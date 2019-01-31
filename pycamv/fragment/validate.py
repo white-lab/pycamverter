@@ -248,14 +248,15 @@ def fill_map_frag_compare(
         else:
             peak_hits = (
                 _map_frag_compare(
-                    pep_query,
-                    scan_mapping[pep_query],
-                    sequence,
-                    ms_two_data,
-                    ms_data,
-                    validation_data,
-                    auto_maybe,
-                    len=total_num_seq,
+                    (
+                        pep_query,
+                        scan_mapping[pep_query],
+                        sequence,
+                        ms_two_data,
+                        ms_data,
+                        validation_data,
+                        auto_maybe,
+                    )
                 )
                 for pep_query, sequences in sequence_mapping.items()
                 for sequence in sequences
