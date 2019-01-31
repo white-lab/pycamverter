@@ -20,6 +20,14 @@ To install the core pycamverter python library, run the following command:
 pip install --process-dependency-links pycamverter
 ```
 
+If you are running PyCAMVerter on a non-Windows system, you will need to
+install [Docker](https://docs.docker.com/install/) and download the following
+package to read raw spectra data:
+
+```
+docker pull chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:x64
+```
+
 ## Usage
 
 To use pycamverter, select your raw data file, your search files (Proteome
