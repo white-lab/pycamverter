@@ -242,7 +242,7 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
 
     encoding = sys.stdout.encoding or "utf-8"
 
-    LOGGER.debug('Calling subprocess: {}'.format(cmd.join(' ')))
+    LOGGER.debug('Calling subprocess: {}'.format(" ".join(cmd)))
 
     try:
         out = subprocess.check_output(
