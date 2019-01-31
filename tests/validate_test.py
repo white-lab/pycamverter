@@ -9,7 +9,6 @@ try:
 except ImportError:
     import shutil
     import warnings
-    import weakref
 
     class TemporaryDirectory(object):
         """Create and return a temporary directory.  This has the same
@@ -25,9 +24,6 @@ except ImportError:
 
         def __init__(self, suffix='', prefix='tmp', dir=None):
             self.name = tempfile.mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
-            self._finalizer = weakref.finalize(
-                self, self._cleanup, self.name,
-                warn_message="Implicitly cleaning up {!r}".format(self))
 
         @classmethod
         def _cleanup(cls, name, warn_message):
@@ -44,8 +40,7 @@ except ImportError:
             self.cleanup()
 
         def cleanup(self):
-            if self._finalizer.detach():
-                shutil.rmtree(self.name)
+            shutil.rmtree(self.name)
 
 from pycamv import search, fragment
 
