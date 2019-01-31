@@ -44,7 +44,7 @@ setup(
         "openpyxl>=2.5.0",
         "pymzml",
         "requests>=2.18.4",
-        'backports.tempfile>=1.0',
+        'backports.tempfile>=1.0 ; python_version<=\"2.7\"',
     ],
     extras_require={
         'matlab': [
