@@ -40,9 +40,12 @@ def _remap_pst(pep_mods):
     ]
 
 
-def _map_seq(kv, limit_comb=False):
+def _multi_map_seq(*args, **kwargs):
     lowpriority()
+    return _map_seq(*args, **kwargs)
 
+
+def _map_seq(kv, limit_comb=False):
     pep_query = kv
 
     gen = gen_sequences.gen_possible_seq(
@@ -113,9 +116,12 @@ def _get_window_coverage(pep_query, scan_query, precursor_win):
     )
 
 
-def _map_frag_compare(kv):
+def _multi_map_frag_compare(*args, **kwargs):
     lowpriority()
+    return _map_frag_compare(*args, **kwargs)
 
+
+def _map_frag_compare(kv):
     try:
         (
             pep_query, scan_query, sequence,
@@ -202,47 +208,73 @@ def _map_frag_compare(kv):
 
 
 def fill_map_frag_compare(
-    sequence_mapping, scan_mapping,
-    ms_two_data, ms_data,
-    queue, cpu_count,
-    validation_data, auto_maybe,
+    sequence_mapping,
+    scan_mapping,
+    ms_two_data,
+    ms_data,
+    queue,
+    cpu_count,
+    validation_data,
+    auto_maybe,
 ):
-    pool = multiprocessing.Pool(
-        processes=cpu_count - 1,
-    )
-
     total_num_seq = sum(len(i) for i in sequence_mapping.values())
+    pool = None
 
     try:
-        peak_hits = pool.imap_unordered(
-            func=_map_frag_compare,
-            iterable=LenGen(
-                gen=(
-                    (
-                        pep_query,
-                        scan_mapping[pep_query],
-                        sequence,
-                        ms_two_data,
-                        ms_data,
-                        validation_data,
-                        auto_maybe,
-                    )
-                    for pep_query, sequences in sequence_mapping.items()
-                    for sequence in sequences
+        if cpu_count > 1:
+            pool = multiprocessing.Pool(
+                processes=cpu_count - 1,
+            )
+
+            peak_hits = pool.imap_unordered(
+                func=_multi_map_frag_compare,
+                iterable=LenGen(
+                    gen=(
+                        (
+                            pep_query,
+                            scan_mapping[pep_query],
+                            sequence,
+                            ms_two_data,
+                            ms_data,
+                            validation_data,
+                            auto_maybe,
+                        )
+                        for pep_query, sequences in sequence_mapping.items()
+                        for sequence in sequences
+                    ),
+                    len=total_num_seq,
                 ),
-                len=total_num_seq,
-            ),
-        )
+            )
+        else:
+            peak_hits = (
+                _map_frag_compare(
+                    pep_query,
+                    scan_mapping[pep_query],
+                    sequence,
+                    ms_two_data,
+                    ms_data,
+                    validation_data,
+                    auto_maybe,
+                    len=total_num_seq,
+                )
+                for pep_query, sequences in sequence_mapping.items()
+                for sequence in sequences
+            )
 
         for item in peak_hits:
             queue.put(item)
 
-        pool.close()
+        if pool:
+            pool.close()
     except:
-        pool.terminate()
+        if pool:
+            pool.terminate()
+
         raise
     finally:
-        pool.join()
+        if pool:
+            pool.join()
+
         _close_scans([ms_data, ms_two_data])
 
 
@@ -382,22 +414,29 @@ def validate_spectra(
     LOGGER.info(
         "Generating all possible sequence-modification combinations."
     )
-    pool = multiprocessing.Pool(
-        processes=cpu_count,
-    )
-    try:
-        sequence_mapping = dict(
-            pool.imap_unordered(
-                partial(_map_seq, limit_comb=not reprocess),
-                pep_queries,
-            )
+
+    if cpu_count > 1:
+        pool = multiprocessing.Pool(
+            processes=cpu_count,
         )
-        pool.close()
-    except:
-        pool.terminate()
-        raise
-    finally:
-        pool.join()
+        try:
+            sequence_mapping = dict(
+                pool.imap_unordered(
+                    partial(_multi_map_seq, limit_comb=not reprocess),
+                    pep_queries,
+                )
+            )
+            pool.close()
+        except:
+            pool.terminate()
+            raise
+        finally:
+            pool.join()
+    else:
+        sequence_mapping = dict(
+            _map_seq(pep_query)
+            for pep_query in pep_queries
+        )
 
     total_num_seq = sum(len(i) for i in sequence_mapping.values())
 
@@ -429,6 +468,8 @@ def validate_spectra(
         pep_queries,
     )
 
+    process = None
+
     try:
         LOGGER.info("Found data for {} scans".format(len(scan_queries)))
 
@@ -449,9 +490,24 @@ def validate_spectra(
         )
 
         queue = multiprocessing.Queue()
-        process = multiprocessing.Process(
-            target=fill_map_frag_compare,
-            args=(
+
+        if cpu_count > 1:
+            process = multiprocessing.Process(
+                target=fill_map_frag_compare,
+                args=(
+                    sequence_mapping,
+                    scan_mapping,
+                    ms_two_data,
+                    ms_data,
+                    queue,
+                    cpu_count,
+                    validation_data,
+                    auto_maybe,
+                ),
+            )
+            process.start()
+        else:
+            fill_map_frag_compare(
                 sequence_mapping,
                 scan_mapping,
                 ms_two_data,
@@ -460,9 +516,7 @@ def validate_spectra(
                 cpu_count,
                 validation_data,
                 auto_maybe,
-            ),
-        )
-        process.start()
+            )
 
         # XXX: Determine SILAC precursor masses?
 
@@ -481,10 +535,14 @@ def validate_spectra(
             reprocess=reprocess,
         )
     except:
-        process.terminate()
+        if process:
+            process.terminate()
+
         raise
     finally:
-        process.join()
+        if process:
+            process.join()
+
         _close_scans([ms_data, ms_two_data])
         del ms_data
         del ms_two_data
