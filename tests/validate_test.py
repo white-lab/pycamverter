@@ -11,7 +11,7 @@ try:
 except AttributeError:
     from backports import tempfile
 
-from pycamv import search, fragment
+from pycamv import search, main
 
 PD_URL_BASE = (
     "https://media.githubusercontent.com/media/"
@@ -101,12 +101,12 @@ class ValidateTest(TestCase):
                     )
                     for raw, md5 in PD14_RAWS[url]
                 ]
-                fragment.validate.validate_spectra(
-                    search_path,
-                    raw_paths=[i for i in raw_paths],
-                    score=20,
-                    cpu_count=1,
-                    auto_maybe=True,
+                main.main(
+                    [
+                        '--score=20',
+                        '--cpus=1',
+                        search_path,
+                    ] + [i for i in raw_paths],
                 )
 
     def test_load_pd14(self):
