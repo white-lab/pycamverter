@@ -234,6 +234,7 @@ def get_scan_data(raw_paths, pep_queries):
             raw_path,
             scans=ms2_scan_filter,
         )
+        print(ms2_data[base_raw])
 
         # Build a list of scan queries, including data about each scan
         scan_queries += [
