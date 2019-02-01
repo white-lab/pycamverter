@@ -63,6 +63,7 @@ class ValidateTest(TestCase):
         logging.info('Downloading {} to {}'.format(url, dir))
         response = requests.get(url, stream=True)
         path = os.path.join(dir, url.split('/')[-1])
+        path = os.path.splitext(path)[0] + os.path.splitext(path)[1].lower()
         hash_md5 = hashlib.md5()
 
         with open(path, 'wb') as f:
