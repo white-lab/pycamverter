@@ -11,19 +11,9 @@ import os
 import sqlite3
 from time import time
 
-try:
-    PermissionError
-except NameError:
-    PermissionError = IOError
-
 from . import sql
 
 LOGGER = logging.getLogger("pycamv.export")
-
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
 
 
 def _extract_pep_seq(sequence):
@@ -57,11 +47,9 @@ def export_to_sql(
     if not reprocess:
         try:
             os.remove(out_path)
-        except PermissionError:
-            pass
-        except FileNotFoundError as e:
-            if type(e) == IOError and e.errno != errno.EEXIST:
-                raise e
+        except EnvironmentError as err:
+            if getattr(err, 'errno', None) != errno.ENOENT:
+                raise err
 
     db = sqlite3.connect(out_path, isolation_level="EXCLUSIVE")
     cursor = db.cursor()
