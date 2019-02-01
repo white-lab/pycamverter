@@ -49,7 +49,7 @@ def export_to_sql(
             os.remove(out_path)
         except EnvironmentError as err:
             if getattr(err, 'errno', None) != errno.ENOENT:
-                raise err
+                raise
 
     db = sqlite3.connect(out_path, isolation_level="EXCLUSIVE")
     cursor = db.cursor()
