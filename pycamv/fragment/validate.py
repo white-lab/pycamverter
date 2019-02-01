@@ -161,11 +161,36 @@ def _map_frag_compare(kv):
         print(pep_query.basename, pep_query.scan, type(pep_query.scan))
         print(ms_two_data[pep_query.basename].info['file_object'])
         print(ms_two_data[pep_query.basename].info['offset_dict'])
-        try:
-            ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
-        except:
+        print(pep_query.scan in ms_two_data[pep_query.basename].info['offset_dict'])
+        print(ms_two_data[pep_query.basename].info['file_object'].file_handler)
+        print(ms_two_data[pep_query.basename].info['file_object'].file_handler.path)
+        print(os.path.exists(ms_two_data[pep_query.basename].info['file_object'].file_handler.path))
+        self = ms_two_data[pep_query.basename].info['file_object'].file_handler
 
-            ms_two_scan = ms_two_data[pep_query.basename][str(pep_query.scan)]
+        identifier = pep_query.scan
+        print(identifier)
+        start = self.offset_dict[identifier]
+        print(start)
+        with open(self.path, 'rb') as seeker:
+            seeker.seek(start[0])
+            start, end = self._read_to_spec_end(seeker)
+        print(start, end)
+        self.file_handler.seek(start, 0)
+        data = self.file_handler.read(end - start)
+        print(data)
+        from pymzml import spec
+        from xml.etree.ElementTree import XML
+        if data.startswith('<spectrum'):
+            spectrum = spec.Spectrum(
+                XML(data),
+                measured_precision=5e-6
+            )
+        elif data.startswith('<chromatogram'):
+            spectrum = spec.Chromatogram(
+                XML(data)
+            )
+        print(spectrum)
+        ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
 
         if ms_two_scan["id"] != scan_query.scan:
             LOGGER.warning(
