@@ -22,10 +22,26 @@ PD14_URL_BASE = 'Test%20PD1.4/'
 PD22_URL_BASE = 'Test%20PD2.2/'
 
 PD14_URLS = [
-    ("CK-C1-pY.msf", "96eda5b0e47f615cf000d1c5d3ecc8cd"),
-    ("FAD-H1-Global.msf", "497ba1841faac883619d4f91a86a95cc"),
-    ("FAD-H1-MPM2.msf", "5def08356bcfa5b679835e4a23dd1396"),
-    ("Tau-4moHL1-Global.msf", "95d8089b5e4657b348bea0868c655478"),
+    (
+        "CK-C1-pY.msf",
+        "96eda5b0e47f615cf000d1c5d3ecc8cd",
+        [5330, 5732, 5818, 6185, 6296, 7044, 7211, 28124, 28164, 28201, 28257],
+    ),
+    (
+        "FAD-H1-Global.msf",
+        "497ba1841faac883619d4f91a86a95cc"
+        [1472, 1473, 1518, 1519, 1520, 1521, 1524, 8593, 8594, 8598],
+    ),
+    (
+        "FAD-H1-MPM2.msf",
+        "5def08356bcfa5b679835e4a23dd1396",
+        [3702, 5739, 5799, 5996, 6088, 6179, 6244, 22278, 23179, 23237, 23332],
+    ),
+    (
+        "Tau-4moHL1-Global.msf",
+        "95d8089b5e4657b348bea0868c655478",
+        [],
+    ),
 ]
 PD14_RAWS = {
     "CK-C1-pY.msf": [
@@ -80,7 +96,7 @@ class ValidateTest(TestCase):
         return path
 
     def test_validate_pd14(self):
-        for url, md5 in PD14_URLS:
+        for url, md5, include_scans in PD14_URLS:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 print(url, md5, tmp_dir)
                 logger = logging.getLogger('pycamv')
@@ -106,6 +122,8 @@ class ValidateTest(TestCase):
                     [
                         '--score=20',
                         '--cpus=1',
+                        '--scans',
+                        include_scans,
                         search_path,
                     ] + [i for i in raw_paths],
                 )
