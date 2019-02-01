@@ -11,6 +11,11 @@ import os
 import sqlite3
 from time import time
 
+try:
+    PermissionError
+except NameError:
+    PermissionError = IOError
+
 from . import sql
 
 LOGGER = logging.getLogger("pycamv.export")
