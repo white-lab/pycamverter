@@ -429,6 +429,9 @@ def validate_spectra(
             search_dir,
             os.path.join(search_dir, ".."),
             os.path.join(search_dir, "..", "MS RAW"),
+            os.path.join(search_dir, "..", "Tau MS RAW"),
+            os.path.join(search_dir, "..", "CK MS RAW"),
+            os.path.join(search_dir, "..", "5XFAD MS RAW"),
         ]:
             local_raw_path = os.path.join(base_dir, base_raw)
 

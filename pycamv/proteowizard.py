@@ -95,12 +95,14 @@ def fetch_proteowizard(urls=None, md5hash=None):
     md5hash : list of str, optional
         MD5 Hash for ProteoWizard installer.
     """
-    LOGGER.debug("Proteowizard: {}".format(PROTEOWIZARD_PATH))
+    LOGGER.debug("Proteowizard: {}".format(PROTEOWIZARD_DIR))
 
-    if os.path.exists(PROTEOWIZARD_PATH):
+    if os.path.exists(PROTEOWIZARD_DIR):
         return
 
-    LOGGER.info("ProteoWizard not installed, fetching now.")
+    LOGGER.info(
+        "ProteoWizard not installed, fetching to {}.".format(PROTEOWIZARD_DIR)
+    )
 
     if urls is None:
         urls, md5hash = PROTEOWIZARD_MSI_URLS[
@@ -202,7 +204,7 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
         fetch_proteowizard()
 
         cmd = [
-            os.path.join(PROTEOWIZARD_PATH, "msconvert.exe")
+            os.path.join(PROTEOWIZARD_DIR, "msconvert.exe")
         ]
 
         tmp_dir = tempfile.TemporaryDirectory()
