@@ -158,41 +158,47 @@ def _map_frag_compare(kv):
         )
 
         # Compare MS^2 data with predicted fragment ions
-        print(pep_query.basename, pep_query.scan, type(pep_query.scan))
-        print(ms_two_data[pep_query.basename].info['file_object'])
-        print(ms_two_data[pep_query.basename].info['offset_dict'])
-        print(pep_query.scan in ms_two_data[pep_query.basename].info['offset_dict'])
-        print(ms_two_data[pep_query.basename].info['file_object'].file_handler)
-        print(ms_two_data[pep_query.basename].info['file_object'].file_handler.path)
-        print(os.path.exists(ms_two_data[pep_query.basename].info['file_object'].file_handler.path))
-        self = ms_two_data[pep_query.basename].info['file_object'].file_handler
-
-        identifier = pep_query.scan
-        print(identifier)
-        start = self.offset_dict[identifier]
-        print(start)
-        from pymzml import spec
-        from xml.etree.ElementTree import XML
-        for i in start:
-            spectrum = None
-            with open(self.path, 'rb') as seeker:
-                seeker.seek(i)
-                sstart, end = self._read_to_spec_end(seeker)
-            print(sstart, end)
-            self.file_handler.seek(sstart, 0)
-            data = self.file_handler.read(end - sstart)
-            print(data)
-            if data.startswith('<spectrum'):
-                spectrum = spec.Spectrum(
-                    XML(data),
-                    measured_precision=5e-6
-                )
-            elif data.startswith('<chromatogram'):
-                spectrum = spec.Chromatogram(
-                    XML(data)
-                )
-            print(spectrum)
-        ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
+        # print(pep_query.basename, pep_query.scan, type(pep_query.scan))
+        # print(ms_two_data[pep_query.basename].info['file_object'])
+        # print(ms_two_data[pep_query.basename].info['offset_dict'])
+        # print(pep_query.scan in ms_two_data[pep_query.basename].info['offset_dict'])
+        # print(ms_two_data[pep_query.basename].info['file_object'].file_handler)
+        # print(ms_two_data[pep_query.basename].info['file_object'].file_handler.path)
+        # print(os.path.exists(ms_two_data[pep_query.basename].info['file_object'].file_handler.path))
+        # self = ms_two_data[pep_query.basename].info['file_object'].file_handler
+        #
+        # identifier = pep_query.scan
+        # print(identifier)
+        # start = self.offset_dict[identifier]
+        # print(start)
+        # from pymzml import spec
+        # from xml.etree.ElementTree import XML
+        # for i in start:
+        #     spectrum = None
+        #     with open(self.path, 'rb') as seeker:
+        #         seeker.seek(i)
+        #         sstart, end = self._read_to_spec_end(seeker)
+        #     print(sstart, end)
+        #     self.file_handler.seek(sstart, 0)
+        #     data = self.file_handler.read(end - sstart)
+        #     print(data)
+        #     if data.startswith('<spectrum'):
+        #         spectrum = spec.Spectrum(
+        #             XML(data),
+        #             measured_precision=5e-6
+        #         )
+        #     elif data.startswith('<chromatogram'):
+        #         spectrum = spec.Chromatogram(
+        #             XML(data)
+        #         )
+        #     print(spectrum)
+        try:
+            ms_two_scan = ms_two_data[pep_query.basename][str(pep_query.scan)]
+        except Exception as err:
+            LOGGER.warning(
+                'Unable to find MS2 scan for #{}'.format(pep_query.scan)
+            )
+            print(err)
 
         if ms_two_scan["id"] != scan_query.scan:
             LOGGER.warning(
@@ -235,7 +241,7 @@ def _map_frag_compare(kv):
             pep_query, tuple(sequence), choice,
             peaks, precursor_win, label_win,
         )
-    except:
+    except Exception:
         _close_scans([ms_data, ms_two_data])
         raise
 
@@ -300,7 +306,7 @@ def fill_map_frag_compare(
 
         if pool:
             pool.close()
-    except:
+    except Exception:
         if pool:
             pool.terminate()
 
@@ -464,7 +470,7 @@ def validate_spectra(
                 )
             )
             pool.close()
-        except:
+        except Exception:
             pool.terminate()
             raise
         finally:
@@ -571,7 +577,7 @@ def validate_spectra(
             total_num_seq=total_num_seq,
             reprocess=reprocess,
         )
-    except:
+    except Exception:
         if process:
             process.terminate()
 

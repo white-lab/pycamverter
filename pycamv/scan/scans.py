@@ -234,17 +234,21 @@ def get_scan_data(raw_paths, pep_queries):
             raw_path,
             scans=ms2_scan_filter,
         )
-        print(ms2_data[base_raw])
 
         # Build a list of scan queries, including data about each scan
-        scan_queries += [
-            _scanquery_from_spectrum(
-                pep_query,
-                ms2_data[base_raw][pep_query.scan],
-            )
-            for pep_query in pep_queries
-            if pep_query.basename == base_raw
-        ]
+        for pep_query in pep_queries:
+            if pep_query.basename != base_raw:
+                continue
+
+            try:
+                scan_queries.append(
+                    _scanquery_from_spectrum(
+                        pep_query,
+                        ms2_data[base_raw][str(pep_query.scan)],
+                    )
+                )
+            except Exception as err:
+                pass
 
         # Collect MS^1 data
         LOGGER.info(
