@@ -171,25 +171,27 @@ def _map_frag_compare(kv):
         print(identifier)
         start = self.offset_dict[identifier]
         print(start)
-        with open(self.path, 'rb') as seeker:
-            seeker.seek(start[0])
-            start, end = self._read_to_spec_end(seeker)
-        print(start, end)
-        self.file_handler.seek(start, 0)
-        data = self.file_handler.read(end - start)
-        print(data)
         from pymzml import spec
         from xml.etree.ElementTree import XML
-        if data.startswith('<spectrum'):
-            spectrum = spec.Spectrum(
-                XML(data),
-                measured_precision=5e-6
-            )
-        elif data.startswith('<chromatogram'):
-            spectrum = spec.Chromatogram(
-                XML(data)
-            )
-        print(spectrum)
+        for i in start:
+            spectrum = None
+            with open(self.path, 'rb') as seeker:
+                seeker.seek(i)
+                sstart, end = self._read_to_spec_end(seeker)
+            print(sstart, end)
+            self.file_handler.seek(sstart, 0)
+            data = self.file_handler.read(end - sstart)
+            print(data)
+            if data.strip('<').startswith('spectrum'):
+                spectrum = spec.Spectrum(
+                    XML(data),
+                    measured_precision=5e-6
+                )
+            elif data.strip('<').startswith('chromatogram'):
+                spectrum = spec.Chromatogram(
+                    XML(data)
+                )
+            print(spectrum)
         ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
 
         if ms_two_scan["id"] != scan_query.scan:
