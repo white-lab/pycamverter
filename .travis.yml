@@ -35,7 +35,7 @@ install:
 - docker pull chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:x64
 
 script:
-- travis_wait 10 coverage run --source=pycamv setup.py test
+- travis_wait 30 coverage run --source=pycamv setup.py test
 
 after_success:
 - coveralls
