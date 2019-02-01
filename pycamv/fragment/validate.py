@@ -182,12 +182,12 @@ def _map_frag_compare(kv):
             self.file_handler.seek(sstart, 0)
             data = self.file_handler.read(end - sstart)
             print(data)
-            if data.strip('<').startswith('spectrum'):
+            if data.startswith('<spectrum'):
                 spectrum = spec.Spectrum(
                     XML(data),
                     measured_precision=5e-6
                 )
-            elif data.strip('<').startswith('chromatogram'):
+            elif data.startswith('<chromatogram'):
                 spectrum = spec.Chromatogram(
                     XML(data)
                 )
