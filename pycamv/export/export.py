@@ -71,7 +71,13 @@ def export_to_sql(
     # frag_map = defaultdict(list)
     index = 1
     while index <= total_num_seq:
-        pep_query, seq, choice, peaks, precursor_win, label_win = queue.get()
+        index += 1
+        item = queue.get()
+
+        if item:
+            pep_query, seq, choice, peaks, precursor_win, label_win = item
+        else:
+            continue
 
         scan_query = scan_mapping[pep_query]
 
@@ -83,9 +89,9 @@ def export_to_sql(
                     _extract_mods(seq),
                 ),
                 "- {}".format(choice) if choice else "",
-                "({} / {})".format(index, total_num_seq)
+                "({} / {})".format(index - 1, total_num_seq)
                 if total_num_seq else
-                "(# {})".format(index),
+                "(# {})".format(index - 1),
             )
         )
 
@@ -135,10 +141,8 @@ def export_to_sql(
 
         db.commit()
         LOGGER.debug(
-            "done - avg: {:.3f} sec".format((time() - total) / (index + 1))
+            "done - avg: {:.3f} sec".format((time() - total) / index)
         )
-
-        index += 1
 
     LOGGER.debug(
         "total: {:.3f} min ({:.3f} sec / peptide)"
