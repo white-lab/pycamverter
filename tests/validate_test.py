@@ -119,14 +119,15 @@ class ValidateTest(TestCase):
                     for raw, md5 in PD14_RAWS[url]
                 ]
                 main.main(
+                    [search_path] +
+                    [i for i in raw_paths] +
                     [
                         '--score=20',
                         '--cpus=1',
+                        "--no-write-log",
                         '--scans',
                     ] +
-                    [str(i) for i in include_scans] +
-                    [search_path] +
-                    [i for i in raw_paths],
+                    [str(i) for i in include_scans],
                 )
 
     def test_load_pd14(self):

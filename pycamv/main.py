@@ -43,6 +43,12 @@ def _parse_args(args):
         help="Decrease verbosity of output.",
     )
     parser.add_argument(
+        "--no-write-log",
+        action="store_false",
+        dest="write_log",
+        help="Don't write a log file.",
+    )
+    parser.add_argument(
         '-V', '--version',
         action="version",
         version="%(prog)s {}".format(__version__),
@@ -146,16 +152,17 @@ def main(args):
         if len(searches) == 1:
             args.search_path = searches[0]
 
-    try:
-        fh = logging.FileHandler(
-            os.path.join(os.path.dirname(args.search_path), 'pycamv.log')
-        )
+    if args.write_log:
+        try:
+            fh = logging.FileHandler(
+                os.path.join(os.path.dirname(args.search_path), 'pycamv.log')
+            )
 
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-    except OSError:
-        pass
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+        except OSError:
+            pass
 
     LOGGER.debug(sys.argv)
     LOGGER.debug(args)

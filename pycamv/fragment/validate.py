@@ -87,7 +87,10 @@ def _close_scans(ms_datas):
         for raw in ms_data.values():
             raw.info['fileObject'].close()
             raw.seeker.close()
-            raw._tmp_dir.close()
+
+            if hasattr(raw, '_tmp_dir'):
+                del raw._tmp_dir
+
 
 def _get_window_coverage(pep_query, scan_query, precursor_win):
     precursor_win = [
@@ -163,7 +166,10 @@ def _map_frag_compare(kv):
             ms_two_scan = ms_two_data[pep_query.basename][pep_query.scan]
         except Exception as err:
             LOGGER.warning(
-                'Unable to find MS2 scan for #{}'.format(pep_query.scan)
+                'Unable to find MS2 scan for #{}: {}'.format(
+                    pep_query.scan,
+                    err,
+                )
             )
             return
 
@@ -553,6 +559,7 @@ def validate_spectra(
         if process:
             process.join()
 
+        print('finishing')
         _close_scans([ms_data, ms_two_data])
         del ms_data
         del ms_two_data
