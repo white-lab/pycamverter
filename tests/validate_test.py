@@ -96,14 +96,15 @@ class ValidateTest(TestCase):
         return path
 
     def test_validate_pd14(self):
+        logger = logging.getLogger('pycamv')
+        logger.setLevel(logging.DEBUG)
+
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.DEBUG)
+
         for url, md5, include_scans in PD14_URLS:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 print(url, md5, tmp_dir)
-                logger = logging.getLogger('pycamv')
-                logger.setLevel(logging.DEBUG)
-
-                ch = logging.StreamHandler(sys.stdout)
-                ch.setLevel(logging.DEBUG)
 
                 search_path = self.fetch_url(
                     PD_URL_BASE + PD14_URL_BASE + url,
