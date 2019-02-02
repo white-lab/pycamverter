@@ -87,7 +87,7 @@ def _close_scans(ms_datas):
         for raw in ms_data.values():
             raw.info['fileObject'].close()
             raw.seeker.close()
-
+            raw._tmp_dir.close()
 
 def _get_window_coverage(pep_query, scan_query, precursor_win):
     precursor_win = [

@@ -29,7 +29,7 @@ PD14_URLS = [
     ),
     (
         "FAD-H1-Global.msf",
-        "497ba1841faac883619d4f91a86a95cc"
+        "497ba1841faac883619d4f91a86a95cc",
         [1472, 1473, 1518, 1519, 1520, 1521, 1524, 8593, 8594, 8598],
     ),
     (
@@ -123,13 +123,14 @@ class ValidateTest(TestCase):
                         '--score=20',
                         '--cpus=1',
                         '--scans',
-                        include_scans,
-                        search_path,
-                    ] + [i for i in raw_paths],
+                    ] +
+                    [str(i) for i in include_scans] +
+                    [search_path] +
+                    [i for i in raw_paths],
                 )
 
     def test_load_pd14(self):
-        for url, md5 in PD14_URLS:
+        for url, md5, _ in PD14_URLS:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 path = self.fetch_url(
                     PD_URL_BASE + PD14_URL_BASE + url,
@@ -139,7 +140,7 @@ class ValidateTest(TestCase):
                 search.search.read_search_file(path)
 
     def test_load_pd22(self):
-        for url, md5 in PD22_URLS:
+        for url, md5, _ in PD22_URLS:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 path = self.fetch_url(
                     PD_URL_BASE + PD22_URL_BASE + url,
