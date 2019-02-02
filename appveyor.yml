@@ -20,13 +20,12 @@ install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
     - "python --version"
+    - "python -m pip install -U \"pip<19.0\""
+    - "pip --version"
     - "pip install ."
     - "pip install .[matlab]"
     - "pip install pypiwin32>=223"
     # PyInstaller-3.3.dev0+g964547cd
-    - "pip --version"
-    - "python -m pip install -U \"pip<19.0\""
-    - "pip --version"
     - "pip install git+git://github.com/pyinstaller/pyinstaller.git@develop"
 
 build_script:

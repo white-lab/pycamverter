@@ -52,7 +52,7 @@ setup(
         ],
     },
     dependency_links=[
-        "git+https://github.com/white-lab/pymzML.git"
+        "git+https://github.com/naderm/pymzML.git"
         "@master#egg=pymzml",
     ],
     classifiers=[

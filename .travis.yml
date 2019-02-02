@@ -25,13 +25,12 @@ install:
 - conda update conda
 - conda create -n env python=$TRAVIS_PYTHON_VERSION $CONDA_PACKAGES
 - source activate env
-- pip install -r requirements.txt
-- pip install coveralls
 - echo $PATH
 - which python
 - python --version
 - pip install .
 - pip install .[matlab]
+- pip install coveralls
 - docker pull chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:x64
 
 script:
