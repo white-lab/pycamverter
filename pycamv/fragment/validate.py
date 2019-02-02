@@ -289,8 +289,6 @@ def fill_map_frag_compare(
         if pool:
             pool.join()
 
-        _close_scans([ms_data, ms_two_data])
-
 
 # Taken from https://stackoverflow.com/questions/1023038/
 def lowpriority():
