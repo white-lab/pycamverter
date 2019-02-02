@@ -88,7 +88,8 @@ def _close_scans(ms_datas):
             raw.info['fileObject'].close()
             raw.seeker.close()
 
-            if hasattr(raw, '_tmp_dir'):
+            if getattr(raw, '_tmp_dir', None):
+                raw._tmp_dir.cleanup()
                 del raw._tmp_dir
 
 
@@ -559,7 +560,7 @@ def validate_spectra(
         if process:
             process.join()
 
-        print('finishing')
+        LOGGER.info('finishing')
         _close_scans([ms_data, ms_two_data])
         del ms_data
         del ms_two_data
