@@ -28,7 +28,7 @@ install:
 - echo $PATH
 - which python
 - python --version
-- pip install .
+- pip install --process-dependency-links .
 - pip install .[matlab]
 - pip install coveralls
 - docker pull chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:x64
