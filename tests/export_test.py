@@ -95,5 +95,6 @@ class ExportTest(TestCase):
             filename,
             [],
             total_num_seq=1,
+            reprocess=True,
         )
         os.close(fd)
