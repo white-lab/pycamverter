@@ -20,13 +20,6 @@ with open(
         __version__ = line.split("=")[1].strip().strip("\"")
 
 
-REQUIREMENTS_PATH = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__), "requirements.txt",
-    )
-)
-
-
 setup(
     name="pycamverter",
     version=__version__,
@@ -42,7 +35,7 @@ setup(
     install_requires=[
         "numpydoc>=0.7",
         "openpyxl>=2.5.0",
-        "pymzml==0.7.7",
+        'pymzml @ http://github.com/naderm/pymzML/archive/master.zip',
         "requests>=2.18.4",
         'backports.tempfile>=1.0 ; python_version<=\"2.7\"',
     ],
@@ -51,10 +44,6 @@ setup(
             "scipy>=1.0.1",
         ],
     },
-    dependency_links=[
-        "git+https://github.com/naderm/pymzML.git"
-        "@master#egg=pymzml-0.7.7",
-    ],
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
