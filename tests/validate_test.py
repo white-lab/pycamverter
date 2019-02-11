@@ -2,7 +2,6 @@ import hashlib
 import logging
 import os
 import requests
-import sys
 import tempfile
 from unittest import TestCase
 
@@ -71,7 +70,20 @@ PD14_RAWS = {
 }
 
 PD22_URLS = [
+    (
+        'CK-H1-MPM2.msf',
+        '0f880eb80b298233551a759864f25e44',
+        [8517, 9705, 15824, 20341, 21914],
+    ),
 ]
+PD22_RAWS = {
+    "CK-H1-MPM2.msf": [
+        (
+            "2015-11-23-CKH1-MPM2-NTA-elute-pre43-col35.raw",
+            "5af702d13c0cb88ce851f935807ac817",
+        ),
+    ],
+}
 
 
 class ValidateTest(TestCase):
@@ -95,41 +107,54 @@ class ValidateTest(TestCase):
 
         return path
 
-    def test_validate_pd14(self):
-        logger = logging.getLogger('pycamv')
-        logger.setLevel(logging.DEBUG)
+    def _validate_pd(self, url_base, url, md5, scans, raws):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            print(url, md5, tmp_dir)
 
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
-
-        for url, md5, include_scans in PD14_URLS:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                print(url, md5, tmp_dir)
-
-                search_path = self.fetch_url(
-                    PD_URL_BASE + PD14_URL_BASE + url,
+            search_path = self.fetch_url(
+                url_base + url,
+                tmp_dir,
+                md5hash=md5,
+            )
+            raw_paths = [
+                self.fetch_url(
+                    url_base + raw,
                     tmp_dir,
                     md5hash=md5,
                 )
-                raw_paths = [
-                    self.fetch_url(
-                        PD_URL_BASE + PD14_URL_BASE + raw,
-                        tmp_dir,
-                        md5hash=md5,
-                    )
-                    for raw, md5 in PD14_RAWS[url]
-                ]
-                main.main(
-                    [search_path] +
-                    [i for i in raw_paths] +
-                    [
-                        '--score=20',
-                        '--cpus=1',
-                        "--no-write-log",
-                        '--scans',
-                    ] +
-                    [str(i) for i in include_scans],
-                )
+                for raw, md5 in raws
+            ]
+            main.main(
+                [search_path] +
+                [i for i in raw_paths] +
+                [
+                    '--score=20',
+                    '--cpus=1',
+                    "--no-write-log",
+                    '--scans',
+                ] +
+                [str(i) for i in scans],
+            )
+
+    def test_validate_pd14(self):
+        for url, md5, include_scans in PD14_URLS:
+            self._validate_pd(
+                PD_URL_BASE + PD14_URL_BASE,
+                url,
+                md5,
+                include_scans,
+                PD14_RAWS[url],
+            )
+
+    def test_validate_pd22(self):
+        for url, md5, include_scans in PD22_URLS:
+            self._validate_pd(
+                PD_URL_BASE + PD22_URL_BASE,
+                url,
+                md5,
+                include_scans,
+                PD22_RAWS[url],
+            )
 
     def test_load_pd14(self):
         for url, md5, _ in PD14_URLS:
