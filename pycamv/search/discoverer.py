@@ -605,7 +605,7 @@ def _get_peptide_queries(
             full_seqs,
         ) = _get_prot_info(conn, pep_id, pd_version)
 
-        if pep_id in psp_vals:
+        if psp_vals.get(pep_id, None) is not None:
             rank_pos, reassigned, ambiguous = _reassign_rank(
                 pep_fixed_mods + pep_var_mods,
                 rank_pos,
