@@ -14,10 +14,10 @@ Utility for converting searched mass spec data into a format readable by [CAMV](
 
 To download a completely packaged Windows executable, visit our [releases page](https://github.com/white-lab/pycamverter/releases)
 
-To install the core pycamverter python library, run the following command:
+To install the core pycamverter python library, [install the latest version of pip](https://pip.pypa.io/en/stable/installing/) and run the following command:
 
 ```
-pip install --process-dependency-links pycamverter
+pip install pycamverter
 ```
 
 If you are running PyCAMVerter on a non-Windows system, you will need to
