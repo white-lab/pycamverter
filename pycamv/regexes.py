@@ -2,10 +2,16 @@
 import re
 
 RE_DISCOVERER_DESCRIPTION = re.compile(
-    r"^>sp\|([\dA-Za-z]+)\|([\dA-Za-z_]+) (.+) OS=(.+)$"
+    r"^>([A-Za-z]+)\|([\dA-Za-z]+)\|([\dA-Za-z_]+) (.+) OS=(.+)$"
 )
 """
 Regex matching Discoverer protein description.
+"""
+RE_FALLBACK_DESCRIPTION = re.compile(
+    r"^>([A-Za-z]+)\|([\dA-Za-z]+)\|([\dA-Za-z_]+)\|([\dA-Za-z_\.]+)\|([^|]+?)( \[(.+)\])?$"
+)
+"""
+Regex matching alternative protein description.
 """
 RE_MASCOT_DESCRIPTION = re.compile(
     r"^(.+) OS=(.+)$"

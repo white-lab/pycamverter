@@ -520,8 +520,28 @@ def _get_prot_info(conn, peptide_id, pd_version):
 
     for full_prot_desc, sequence in proteins:
         for line in full_prot_desc.split('\n'):
-            uniprot_accession, accession, prot_desc = \
-                regexes.RE_DISCOVERER_DESCRIPTION.match(line).group(1, 2, 3)
+            match = regexes.RE_DISCOVERER_DESCRIPTION.match(line)
+
+            if match:
+                uniprot_accession, accession, prot_desc = match.group(2, 3, 4)
+            else:
+                match = regexes.RE_FALLBACK_DESCRIPTION.match(line)
+
+                if match:
+                    uniprot_accession, accession, prot_desc = \
+                        match.group(2, 4, 5)
+                else:
+                    uniprot_accession, accession, prot_desc = (
+                        'N/A',
+                        'N/A',
+                        line.rsplit('|', 1)[-1]
+                    )
+                    LOGGER.warning(
+                        'Unable to match accession / protein description: {}'
+                        .format(line)
+                    )
+
+            prot_desc = prot_desc.strip()
 
             if not accession:
                 raise Exception(
