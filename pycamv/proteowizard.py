@@ -30,10 +30,6 @@ THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 PROTEOWIZARD_DIR = os.path.join(THIS_DIR, "ProteoWizard")
 
 PROTEOWIZARD_VERSION = "3.0.19014"
-PROTEOWIZARD_PATH = os.path.join(
-    PROTEOWIZARD_DIR,
-    "ProteoWizard {}".format(PROTEOWIZARD_VERSION),
-)
 
 # URLs + MD5 Hash:
 # Windows Powershell: CertUtil -hashfile <filename> MD5

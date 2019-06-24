@@ -25,6 +25,7 @@ a = Analysis(
     datas=[
         (
             'pycamv/ProteoWizard/*',
+            'pycamv/ProteoWizard/',
         ),
     ],
     hiddenimports=[],
