@@ -1,10 +1,14 @@
 # Change Log
 
-## 0.15.1 (2019-\*-\*)
+## 0.15.1 (2019-06-24)
 
 Features
 
   - Updated ProteoWizard to latest version.
+
+Bug fixes
+
+  - Updated regex matcher for protein accession / description.
 
 ## 0.15.0 (2019-01-28)
 
