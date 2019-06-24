@@ -244,8 +244,6 @@ def raw_to_mzml(raw_path, scans=None, mz_window=None):
     LOGGER.debug('Calling subprocess: {}'.format(" ".join(cmd)))
 
     try:
-        print(cmd)
-        print([os.path.exists(i) for i in cmd])
         out = subprocess.check_output(
             cmd,
             stderr=subprocess.STDOUT,
