@@ -21,52 +21,52 @@ PD14_URL_BASE = 'Test%20PD1.4/'
 PD22_URL_BASE = 'Test%20PD2.2/'
 
 PD14_URLS = [
-    (
-        "CK-C1-pY.msf",
-        "96eda5b0e47f615cf000d1c5d3ecc8cd",
-        [5330, 5732, 5818, 6185, 6296, 7044, 7211, 28124, 28164, 28201, 28257],
-    ),
-    (
-        "FAD-H1-Global.msf",
-        "497ba1841faac883619d4f91a86a95cc",
-        [1472, 1473, 1518, 1519, 1520, 1521, 1524, 8593, 8594, 8598],
-    ),
-    (
-        "FAD-H1-MPM2.msf",
-        "5def08356bcfa5b679835e4a23dd1396",
-        [3702, 5739, 5799, 5996, 6088, 6179, 6244, 22278, 23179, 23237, 23332],
-    ),
-    (
-        "Tau-4moHL1-Global.msf",
-        "95d8089b5e4657b348bea0868c655478",
-        [],
-    ),
+    # (
+    #     "CK-C1-pY.msf",
+    #     "96eda5b0e47f615cf000d1c5d3ecc8cd",
+    #     [5330, 5732, 5818, 6185, 6296, 7044, 7211, 28124, 28164, 28201, 28257],
+    # ),
+    # (
+    #     "FAD-H1-Global.msf",
+    #     "497ba1841faac883619d4f91a86a95cc",
+    #     [1472, 1473, 1518, 1519, 1520, 1521, 1524, 8593, 8594, 8598],
+    # ),
+    # (
+    #     "FAD-H1-MPM2.msf",
+    #     "5def08356bcfa5b679835e4a23dd1396",
+    #     [3702, 5739, 5799, 5996, 6088, 6179, 6244, 22278, 23179, 23237, 23332],
+    # ),
+    # (
+    #     "Tau-4moHL1-Global.msf",
+    #     "95d8089b5e4657b348bea0868c655478",
+    #     [],
+    # ),
 ]
 PD14_RAWS = {
-    "CK-C1-pY.msf": [
-        (
-            "2015-11-13-CKC1-pY-imac30-elute-pre50-col40.raw",
-            "e10ba1aeb6ae587549aa40e327eace93",
-        ),
-    ],
-    "FAD-H1-Global.msf": [
-        (
-            "2017-02-27-FADH1-pY-sup10-pre48-col99.RAW",
-            "e4b02c27fb5030a60ecaced28c56db66",
-        ),
-    ],
-    "FAD-H1-MPM2.msf": [
-        (
-            "2017-03-16-FADH1-MPM2-NTA-pre100-col96.raw",
-            "ca28737c529cbe871fa4095b4c2496f1",
-        ),
-    ],
-    "Tau-4moHL1-Global.msf": [
-        (
-            "2017-10-13-TauHL1-pY-sup10-pre126-col113.RAW",
-            "e30d3bcbbbe1cd83ca387e721039a4c0",
-        ),
-    ],
+    # "CK-C1-pY.msf": [
+    #     (
+    #         "2015-11-13-CKC1-pY-imac30-elute-pre50-col40.raw",
+    #         "e10ba1aeb6ae587549aa40e327eace93",
+    #     ),
+    # ],
+    # "FAD-H1-Global.msf": [
+    #     (
+    #         "2017-02-27-FADH1-pY-sup10-pre48-col99.RAW",
+    #         "e4b02c27fb5030a60ecaced28c56db66",
+    #     ),
+    # ],
+    # "FAD-H1-MPM2.msf": [
+    #     (
+    #         "2017-03-16-FADH1-MPM2-NTA-pre100-col96.raw",
+    #         "ca28737c529cbe871fa4095b4c2496f1",
+    #     ),
+    # ],
+    # "Tau-4moHL1-Global.msf": [
+    #     (
+    #         "2017-10-13-TauHL1-pY-sup10-pre126-col113.RAW",
+    #         "e30d3bcbbbe1cd83ca387e721039a4c0",
+    #     ),
+    # ],
 }
 
 PD22_URLS = [
