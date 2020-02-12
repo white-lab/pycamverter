@@ -12,13 +12,13 @@ environment:
           PYTHON_VERSION: "3.6"
           platform: x64
           PYTHON_ARCH: "64"
-          CONDA_DEPENDENCIES: "scipy"
 
 install:
     - "git clone git://github.com/astropy/ci-helpers.git"
-    - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "activate test"
+    - "conda update -q conda"
+    - "conda create -q -n test-environment python=%PYTHON_VERSION% scipy numpy pandas"
+    - "activate test-environment"
     - "python --version"
     - "python -m pip install -U pip"
     - "pip --version"

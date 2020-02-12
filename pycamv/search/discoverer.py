@@ -709,12 +709,9 @@ def _reassign_rank(mods, rank_pos, psp_val):
 
     o_mods = [i for i in rank_pos[1] if not _is_pmod(i)]
     p_mods = [i for i in rank_pos[1] if _is_pmod(i)]
-    psp_val_f = [i for i in psp_val if i[2] > 50]
+    psp_val_f = [i for i in psp_val if i[2] >= 75]
 
     if len(p_mods) != len(psp_val_f):
-        LOGGER.debug(
-            "Not enough info to assign phophosite: {}".format(psp_val)
-        )
         ambiguous = True
         rank_pos = None
     elif set(i[0] + 1 for i in p_mods) != set(i[1] for i in psp_val_f):
